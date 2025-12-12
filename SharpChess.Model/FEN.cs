@@ -6,20 +6,10 @@ namespace SharpChess.Model;
 /// </summary>
 public static class Fen
 {
-    /// <summary>
-    ///   Gets GameStartPosition.
-    /// </summary>
-    public static string GameStartPosition
-    {
-        get
-        {
-            return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        }
-    }
+    /// <summary> Gets GameStartPosition. </summary>
+    public static string GameStartPosition => "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    /// <summary>
-    /// Extraction the current position in FEN: Forsyth-Edwards Notation
-    /// </summary>
+    /// <summary>Extraction the current position in FEN: Forsyth-Edwards Notation </summary>
     /// <returns>
     /// string of the FEN position with 6 fields separated by " "
     ///   <list type="number">
@@ -84,7 +74,7 @@ public static class Fen
         bool blackCanCastle = FenGet3CastlingIsPossible(Game.PlayerBlack.King, strbFen);
         if (!whiteCanCastle && !blackCanCastle)
         {
-            strbFen.Append("-"); // No castling availability for either side
+            strbFen.Append('-'); // No castling availability for either side
         }
 
         // Field 4: En passant target square coordonates
@@ -94,18 +84,14 @@ public static class Fen
         strbFen.Append(FenGet5Counter50MoveDraw());
 
         // Field 6: Full move number
-        strbFen.Append(((Game.TurnNo >> 1) + 1).ToString()); // Incremented at each move of Blacks
+        strbFen.Append((Game.TurnNo >> 1) + 1); // Incremented at each move of Blacks
 
         Game.ResumePondering();
         return strbFen.ToString();
     }
 
-    /// <summary>
-    /// The set board position.
-    /// </summary>
-    /// <param name="fenString">
-    /// The str fen.
-    /// </param>
+    /// <summary> Set board position from the provided FEN string.</summary>
+    /// <param name="fenString"> The FEN string. </param>
     public static void SetBoardPosition(string fenString)
     {
         string strActiveColour = "w";
@@ -124,47 +110,47 @@ public static class Fen
         fenString += " ";
 
         // Piece Placement
-        int pos = fenString.IndexOf(" ");
+        int pos = fenString.IndexOf(' ');
         char[] acharPiecePlacement = fenString.ToCharArray(0, pos);
-        fenString = fenString.Substring(pos + 1);
+        fenString = fenString[(pos + 1)..];
 
         // Active Colour
-        pos = fenString.IndexOf(" ");
+        pos = fenString.IndexOf(' ');
         if (pos > -1)
         {
-            strActiveColour = fenString.Substring(0, pos);
-            fenString = fenString.Substring(pos + 1);
+            strActiveColour = fenString[..pos];
+            fenString = fenString[(pos + 1)..];
         }
 
         // Castling Rights
-        pos = fenString.IndexOf(" ");
+        pos = fenString.IndexOf(' ');
         if (pos > -1)
         {
-            strCastlingRights = fenString.Substring(0, pos);
-            fenString = fenString.Substring(pos + 1);
+            strCastlingRights = fenString[..pos];
+            fenString = fenString[(pos + 1)..];
         }
 
         // En passant
-        pos = fenString.IndexOf(" ");
+        pos = fenString.IndexOf(' ');
         if (pos > -1)
         {
-            strEnPassant = fenString.Substring(0, pos);
-            fenString = fenString.Substring(pos + 1);
+            strEnPassant = fenString[..pos];
+            fenString = fenString[(pos + 1)..];
         }
 
         // Half move clock
-        pos = fenString.IndexOf(" ");
+        pos = fenString.IndexOf(' ');
         if (pos > -1)
         {
-            strHalfMoveClock = fenString.Substring(0, pos);
-            fenString = fenString.Substring(pos + 1);
+            strHalfMoveClock = fenString[..pos];
+            fenString = fenString[(pos + 1)..];
         }
 
         // Full move number
-        pos = fenString.IndexOf(" ");
+        pos = fenString.IndexOf(' ');
         if (pos > -1)
         {
-            strFullMoveNumber = fenString.Substring(0, pos);
+            strFullMoveNumber = fenString[..pos];
         }
 
         // Match FEN pieces against actual pieces, and move them onto the board
@@ -182,34 +168,34 @@ public static class Fen
         Game.PlayerToPlay = strActiveColour == "b" ? Game.PlayerBlack : Game.PlayerWhite;
 
         // Set castling rights
-        Piece pieceRook;
+        Piece? pieceRook;
 
         // White King's Rook
         if ((pieceRook = Board.GetPiece(7, 0)) != null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.White)
         {
-            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf("K") >= 0 ? 0 : 1;
+            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('K') >= 0 ? 0 : 1;
         }
 
         // Black King's Rook
         if ((pieceRook = Board.GetPiece(7, 7)) != null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.Black)
         {
-            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf("k") >= 0 ? 0 : 1;
+            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('k') >= 0 ? 0 : 1;
         }
 
         // White Queen's Rook
         if ((pieceRook = Board.GetPiece(0, 0)) != null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.White)
         {
-            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf("Q") >= 0 ? 0 : 1;
+            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('Q') >= 0 ? 0 : 1;
         }
 
         // Black Queen's Rook
         if ((pieceRook = Board.GetPiece(0, 7)) != null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.Black)
         {
-            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf("q") >= 0 ? 0 : 1;
+            pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('q') >= 0 ? 0 : 1;
         }
 
         // Half move (50 move draw) clock.
@@ -234,9 +220,12 @@ public static class Fen
             }
 
             // else if indRank = 3, fenString = "e3" last move was e2-e4 so indRank = 3
-            Piece piecePassed = Board.GetPiece(indFile, indRank);
-            piecePassed.NoOfMoves = 1;
-            piecePassed.LastMoveTurnNo = Game.TurnNo;
+            Piece? piecePassed = Board.GetPiece(indFile, indRank);
+            if (piecePassed != null)
+            {
+                piecePassed.NoOfMoves = 1;
+                piecePassed.LastMoveTurnNo = Game.TurnNo;
+            } 
         }
 
         // Recalculate the hashkey for the current position.
@@ -245,12 +234,8 @@ public static class Fen
         VerifyPiecePlacement(ref acharPiecePlacement);
     }
 
-    /// <summary>
-    /// Check if the array of strings represents a valid FEN position
-    /// </summary>
-    /// <param name="fenString">
-    /// FEN chess board position string
-    /// </param>
+    /// <summary> Checks if the array of strings represents a valid FEN position. </summary>
+    /// <param name="fenString"> FEN chess board position string </param>
     /// <remarks>
     /// <list type="number">
     /// <item>
@@ -311,9 +296,7 @@ public static class Fen
         }
     }
 
-    /// <summary>
-    /// Check the squares in the FEN position
-    /// </summary>
+    /// <summary> Check the squares in the FEN position </summary>
     /// <param name="fenString">
     /// field 1 of the FEN string: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
     /// </param>
@@ -436,20 +419,11 @@ public static class Fen
         return true;
     }
 
-    // end FenCheck1PiecePlace
-
-    /// <summary>
-    /// Check the active color in the FEN string
-    /// </summary>
-    /// <param name="fenString">
-    /// field 2 of the FEN string: "w" or "b"
-    /// </param>
-    private static void FenCheck2Color(string fenString)
+    /// <summary> Check the active color in the FEN string </summary>
+    /// <param name="fenString"> field 2 of the FEN string: "w" or "b" </param>
+    private static void FenCheck2Color(string? fenString)
     {
-        if (fenString == null)
-        {
-            throw new ArgumentNullException("fenString");
-        }
+        ArgumentNullException.ThrowIfNull(fenString);
 
         if ((fenString != "w") && (fenString != "b"))
         {
@@ -459,17 +433,9 @@ public static class Fen
         return;
     }
 
-    // end FenCheck2Color
-
-    /// <summary>
-    /// Check the castling availability in the FEN string
-    /// </summary>
-    /// <param name="fenString">
-    /// field 3 of the FEN string: "KQkq", ..., "-"
-    /// </param>
-    /// <remarks>
-    /// If White/Black King could O-O or O-O-O then fenString = "KQkq"
-    /// </remarks>
+    /// <summary> Check the castling availability in the FEN string </summary>
+    /// <param name="fenString"> field 3 of the FEN string: "KQkq", ..., "-" </param>
+    /// <remarks> If White/Black King could O-O or O-O-O then fenString = "KQkq" </remarks>
     private static void FenCheck3Castle(string fenString)
     {
         int dash = 0, whiteKing = 0, whiteQueen = 0, blackKing = 0, blackQueen = 0;
@@ -510,11 +476,7 @@ public static class Fen
         return;
     }
 
-    // end FenCheck3Castle
-
-    /// <summary>
-    /// Check the capture square En Passant in the FEN string
-    /// </summary>
+    /// <summary> Check the capture square En Passant in the FEN string </summary>
     /// <param name="fenString">
     /// field 4 of the FEN string: "e3", "e6", ..., "-"
     /// </param>
@@ -547,17 +509,9 @@ public static class Fen
         return;
     }
 
-    // end FenCheck4EnPassant
-
-    /// <summary>
-    /// Check the half move number in the FEN string
-    /// </summary>
-    /// <param name="fenString">
-    /// field 5 of the FEN string: 0..100
-    /// </param>
-    /// <remarks>
-    /// Represent the number of ply after a capture or a pawn move
-    /// </remarks>
+    /// <summary> Check the half move number in the FEN string </summary>
+    /// <param name="fenString"> field 5 of the FEN string: 0..100 </param>
+    /// <remarks> Represent the number of ply after a capture or a pawn move. </remarks>
     private static void FenCheck5Counter50MoveDraw(string fenString)
     {
         if (fenString.Length > 2)
@@ -585,14 +539,8 @@ public static class Fen
         return;
     }
 
-    // end FenCheck5Counter50MoveDraw
-
-    /// <summary>
-    /// Check the full move number in the FEN string
-    /// </summary>
-    /// <param name="fenString">
-    /// field 6 of the FEN string: 1..200
-    /// </param>
+    /// <summary> Check the full move number in the FEN string. </summary>
+    /// <param name="fenString"> field 6 of the FEN string: 1..200  </param>
     private static void FenCheck6NbrMove(string fenString)
     {
         int fullMove;
@@ -613,16 +561,8 @@ public static class Fen
         return;
     }
 
-    // end FenCheck6NbrMove
-
-    // end FenGetPosition 
-
-    /// <summary>
-    /// FEN piece placement string by rank 7..0 and by file 0..7
-    /// </summary>
-    /// <param name="strbFen">
-    /// string builder FEN of the chessboard
-    /// </param>
+    /// <summary> FEN piece placement string by rank 7..0 and by file 0..7 </summary>
+    /// <param name="strbFen"> string builder FEN of the chessboard </param>
     /// <remarks>
     /// <list type="bullet">
     /// <item>
@@ -654,8 +594,13 @@ public static class Fen
             for (int indFile = 0; indFile < Board.FileCount; indFile++)
             {
                 // Browse by column
-                Square squareThis = Board.GetSquare(indFile, indRank);
-                Piece pieceThis = squareThis.Piece;
+                Square? squareThis = Board.GetSquare(indFile, indRank);
+                if (squareThis == null)
+                {
+                    continue; 
+                }
+
+                Piece? pieceThis = squareThis.Piece;
                 if (pieceThis == null)
                 {
                     emptySquare++;
@@ -665,7 +610,7 @@ public static class Fen
                     if (emptySquare > 0)
                     {
                         // Nbr of empty squares before the piece
-                        strbFen.Append(emptySquare.ToString());
+                        strbFen.Append(emptySquare);
                         emptySquare = 0;
                     }
 
@@ -684,20 +629,14 @@ public static class Fen
             if (emptySquare > 0)
             {
                 // Nbr of empty squares after the last piece
-                strbFen.Append(emptySquare.ToString());
+                strbFen.Append(emptySquare);
                 emptySquare = 0;
             }
         }
     }
 
-    // end FenGet1Pieces
-
-    /// <summary>
-    /// FEN notation of castling availability of the King in the future
-    /// </summary>
-    /// <param name="pieceKing">
-    /// the White or Black King
-    /// </param>
+    /// <summary> FEN notation of castling availability of the King in the future </summary>
+    /// <param name="pieceKing"> the White or Black King </param>
     /// <param name="fenString">
     /// <list type="bullet">
     /// <item>
@@ -717,9 +656,7 @@ public static class Fen
     ///     </item>
     /// </list>
     /// </param>
-    /// <returns>
-    /// The fen get 3 castling future.
-    /// </returns>
+    /// <returns> True if Castling Is Possible in the future.</returns>
     private static bool FenGet3CastlingIsPossible(Piece pieceKing, StringBuilder fenString)
     {
         bool canCastle = false;
@@ -740,11 +677,7 @@ public static class Fen
         return canCastle;
     }
 
-    // end FenGet3CastlingIsPossible
-
-    /// <summary>
-    /// FEN string indicating the potential square target for a capture en passant
-    /// </summary>
+    /// <summary> FEN string indicating the potential square target for a capture en passant </summary>
     /// <returns>
     /// <list type="bullet">
     /// <item>
@@ -778,102 +711,71 @@ public static class Fen
         return " - "; // There is not en passant target square
     }
 
-    // end FenGet4EnPassant
-
-    /// <summary>
-    /// FEN string of the number of ply since the last pawn advance or capturing move
-    /// </summary>
-    /// <returns>
-    /// Return 50 move draw
-    /// </returns>
+    /// <summary> FEN string of the number of ply since the last pawn advance or capturing move </summary>
+    /// <returns> Return 50 move draw </returns>
     private static string FenGet5Counter50MoveDraw()
-    {
-        return string.Format(
-            "{0} ", Game.MoveHistory.Count > 0 ? Game.MoveHistory.Last.FiftyMoveDrawCounter : Game.FiftyMoveDrawBase);
-    }
+        => string.Format(
+            "{0} ", 
+            Game.MoveHistory.Count > 0 ? 
+                Game.MoveHistory.Last.FiftyMoveDrawCounter : 
+                Game.FiftyMoveDrawBase);
 
-    /// <summary>
-    /// FEN helper naming each field
-    /// </summary>
-    /// <param name="fieldNumber">
-    /// A value between 1 and 6
-    /// </param>
-    /// <returns>
-    /// FEN field {iField}: help message
-    /// </returns>
-    /// <remarks>
-    /// Used in a Warning message
-    /// </remarks>
+    /// <summary> FEN helper naming each field </summary>
+    /// <param name="fieldNumber"> A value between 1 and 6 </param>
+    /// <returns> FEN field {iField}: help message </returns>
+    /// <remarks> Used in a Warning message </remarks>
     private static string FenHlpMsg(int fieldNumber)
     {
-        switch (fieldNumber)
+        return fieldNumber switch
         {
-            case 1:
-                return "FEN field 1: Piece placement data.\n";
-            case 2:
-                return "FEN field 2: Active color.\n";
-            case 3:
-                return "FEN field 3: Castling availability.\n";
-            case 4:
-                return "FEN field 4: En passant target square coordonates.\n";
-            case 5:
-                return "FEN field 5: Nbr of half move without capture or pawn move.\n";
-            case 6:
-                return "FEN field 6: Full move number.\n";
-        }
-
-        return string.Empty;
+            1 => "FEN field 1: Piece placement data.\n",
+            2 => "FEN field 2: Active color.\n",
+            3 => "FEN field 3: Castling availability.\n",
+            4 => "FEN field 4: En passant target square coordonates.\n",
+            5 => "FEN field 5: Nbr of half move without capture or pawn move.\n",
+            6 => "FEN field 6: Full move number.\n",
+            _ => string.Empty,
+        };
     }
 
-    /// <summary>
-    /// The move piece to fen position.
-    /// </summary>
-    /// <param name="charToken">
-    /// The char token.
-    /// </param>
-    /// <param name="intFile">
-    /// The int file.
-    /// </param>
-    /// <param name="intRank">
-    /// The int rank.
-    /// </param>
-    /// <param name="blnAnyLocation">
-    /// The bln any location.
-    /// </param>
-    /// <param name="blnAllowPromotion">
-    /// The bln allow promotion.
-    /// </param>
+    /// <summary> The move piece to fen position. </summary>
+    /// <param name="charToken"> The char token. </param>
+    /// <param name="intFile"> The file. </param>
+    /// <param name="intRank"> The rank. </param>
+    /// <param name="blnAnyLocation"> An indicator for any location. </param>
+    /// <param name="blnAllowPromotion"> The allow promotion indicator. </param>
     private static void MovePieceToFenPosition(
         ref char charToken, int intFile, int intRank, bool blnAnyLocation, bool blnAllowPromotion)
     {
         Piece.PieceNames piecename = Piece.PieceNames.King;
-        Player player = charToken.ToString() == charToken.ToString().ToUpper() ? Game.PlayerWhite : Game.PlayerBlack;
+        char upperCharToken = char.ToUpper(charToken);
+        Player player = charToken == upperCharToken ? Game.PlayerWhite : Game.PlayerBlack;
 
-        switch (charToken.ToString().ToUpper())
+        switch (upperCharToken)
         {
-            case "K":
+            case 'K':
                 piecename = Piece.PieceNames.King;
                 break;
-            case "Q":
+            case 'Q':
                 piecename = Piece.PieceNames.Queen;
                 break;
-            case "R":
+            case 'R':
                 piecename = Piece.PieceNames.Rook;
                 break;
-            case "B":
+            case 'B':
                 piecename = Piece.PieceNames.Bishop;
                 break;
-            case "N":
+            case 'N':
                 piecename = Piece.PieceNames.Knight;
                 break;
-            case "P":
+            case 'P':
                 piecename = Piece.PieceNames.Pawn;
                 break;
         }
 
         // Try to find the required piece in from the available pool of captured 
         // pieces that haven't been placed on the board yet.
-        Piece pieceToUse = null;
+        Piece? pieceToUse = null;
         foreach (Piece pieceCaptured in player.OpposingPlayer.CapturedEnemyPieces)
         {
             if ((pieceCaptured.Name == piecename || (blnAllowPromotion && pieceCaptured.Name == Piece.PieceNames.Pawn))
@@ -886,36 +788,29 @@ public static class Fen
 
         if (pieceToUse != null)
         {
-            Square square = Board.GetSquare(intFile, intRank);
-            pieceToUse.Uncapture(0);
-            square.Piece = pieceToUse;
-            pieceToUse.Square = square;
-            pieceToUse.NoOfMoves = blnAnyLocation ? 1 : 0;
-            if (pieceToUse.Name != piecename)
+            Square? square = Board.GetSquare(intFile, intRank);
+            if (square != null)
             {
-                pieceToUse.Promote(piecename);
-            }
+                pieceToUse.Uncapture(0);
+                square.Piece = pieceToUse;
+                pieceToUse.Square = square;
+                pieceToUse.NoOfMoves = blnAnyLocation ? 1 : 0;
+                if (pieceToUse.Name != piecename)
+                {
+                    pieceToUse.Promote(piecename);
+                }
 
-            // Mark the token in the original FEN string with a * to indicate that the piece has been processed
-            charToken = '.';
+                // Mark the token in the original FEN string with a * to indicate that the piece has been processed
+                charToken = '.';
+            } 
         }
     }
 
-    /// <summary>
-    /// The set piece placement.
-    /// </summary>
-    /// <param name="acharPiecePlacement">
-    /// The achar piece placement.
-    /// </param>
-    /// <param name="blnAnyLocation">
-    /// The bln any location.
-    /// </param>
-    /// <param name="blnAllowPromotion">
-    /// The bln allow promotion.
-    /// </param>
-    /// <exception cref="ValidationException">
-    /// Unknow character in FEN string.
-    /// </exception>
+    /// <summary> set piece placement. </summary>
+    /// <param name="acharPiecePlacement"> The piece placement. </param>
+    /// <param name="blnAnyLocation"> True if any location. </param>
+    /// <param name="blnAllowPromotion"> True if allow promotion. </param>
+    /// <exception cref="ValidationException"> thrown if any Unknow character in FEN string. </exception>
     private static void SetPiecePlacement(
         ref char[] acharPiecePlacement, bool blnAnyLocation, bool blnAllowPromotion)
     {
@@ -970,20 +865,13 @@ public static class Fen
         }
     }
 
-    /// <summary>
-    /// The verify piece placement.
-    /// </summary>
-    /// <param name="acharPiecePlacement">
-    /// The achar piece placement.
-    /// </param>
-    /// <exception cref="ValidationException">
-    /// Raised when unable to place piece.
-    /// </exception>
+    /// <summary> Verify a piece placement. </summary>
+    /// <param name="acharPiecePlacement"> The piece placement. </param>
+    /// <exception cref="ValidationException"> Raised when unable to place piece. </exception>
     private static void VerifyPiecePlacement(ref char[] acharPiecePlacement)
     {
         // Check to see if there were any pieces left that we couldnt place.
         string strPieceName = string.Empty;
-
         foreach (char t in acharPiecePlacement)
         {
             switch (t)
@@ -1033,36 +921,15 @@ public static class Fen
         }
     }
 
-    /// <summary>
-    /// The validation exception.
-    /// </summary>
-    public class ValidationException : ApplicationException
+    /// <summary> The validation exception class. </summary>
+    /// <remarks> Initializes a new instance of the <see cref="ValidationException"/> class. </remarks>
+    /// <param name="strMessage"> The message text.  </param>
+    public class ValidationException(string strMessage) : ApplicationException
     {
-        /// <summary>
-        ///   Message text.
-        /// </summary>
-        private readonly string message = string.Empty;
+        /// <summary> Message text. </summary>
+        private readonly string message = strMessage;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ValidationException"/> class.
-        /// </summary>
-        /// <param name="strMessage">
-        /// The str message.
-        /// </param>
-        public ValidationException(string strMessage)
-        {
-            this.message = strMessage;
-        }
-
-        /// <summary>
-        ///   Gets FENMessage.
-        /// </summary>
-        public string FenMessage
-        {
-            get
-            {
-                return this.message;
-            }
-        }
+        /// <summary> Gets the exception Message. </summary>
+        public string FenMessage => this.message;
     }
 }
