@@ -172,7 +172,7 @@ public abstract class Player
 
     /// <summary> Gets a value indicating whether the player is in check. </summary>
     public bool IsInCheck
-        => HashTableCheck.QueryandCachePlayerInCheckStatusForPosition(Board.HashCodeA, Board.HashCodeB, this);
+        => Game.HashTableCheck.QueryandCachePlayerInCheckStatusForPosition(Board.HashCodeA, Board.HashCodeB, this);
 
     /// <summary> Gets a value indicating whether the player is in checkmate. </summary>
     public bool IsInCheckMate
@@ -332,7 +332,7 @@ public abstract class Player
         get
         {
             // Check is pawn position if cached in Hash Table.
-            int pawnPositionScore = HashTablePawn.ProbeHash(Board.HashCodeA, Board.HashCodeB, this.Colour);
+            int pawnPositionScore = Game.HashTablePawn.ProbeHash(Board.HashCodeA, Board.HashCodeB, this.Colour);
 
             if (pawnPositionScore == HashTablePawn.NotFoundInHashTable)
             {
@@ -349,7 +349,7 @@ public abstract class Player
             }
 
             // Record positional score in pawn hash table.
-            HashTablePawn.RecordHash(Board.HashCodeA, Board.HashCodeB, pawnPositionScore, this.Colour);
+            Game.HashTablePawn.RecordHash(Board.HashCodeA, Board.HashCodeB, pawnPositionScore, this.Colour);
 
             return pawnPositionScore;
         }
