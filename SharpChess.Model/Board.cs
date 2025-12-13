@@ -64,8 +64,8 @@ public static class Board
                     Square? square = GetSquare(intOrdinal);
                     if (square != null)
                     {
-                        Piece piece;
-                        if ((piece = square.Piece) != null)
+                        Piece? piece = square.Piece;
+                        if (piece is not null)
                         {
                             strOutput += piece.Abbreviation;
                         }
@@ -76,7 +76,6 @@ public static class Board
                     }
 
                     strOutput += Convert.ToChar(13) + Convert.ToChar(10);
-
                     intOrdinal--;
                 }
             }
@@ -190,7 +189,7 @@ public static class Board
 
     /// <summary> Gets a piece from an ordinal. </summary>
     /// <param name="ordinal"> The ordinal. </param>
-    /// <returns> The corresponding piece or null </returns>
+    /// <returns> The corresponding piece or null if the square is empty </returns>
     public static Piece? GetPiece(int ordinal) 
         => (ordinal & 0x88) == 0 ? 
                 Squares[ordinal].Piece : 
@@ -199,7 +198,7 @@ public static class Board
     /// <summary> Gets a piece from a file and a rank. </summary>
     /// <param name="file"> The file. </param>
     /// <param name="rank"> The rank. </param>
-    /// <returns> The corresponding piece or null </returns>
+    /// <returns> The corresponding piece or null if the square is empty </returns>
     public static Piece? GetPiece(int file, int rank)
         => (OrdinalFromFileRank(file, rank) & 0x88) == 0 ? 
                 Squares[OrdinalFromFileRank(file, rank)].Piece : 
@@ -207,18 +206,20 @@ public static class Board
 
     /// <summary> Gets a square from an ordinal. </summary>
     /// <param name="ordinal"> The ordinal. </param>
-    /// <returns> The corresponding square or null </returns>
-    public static Square? GetSquare(int ordinal)
-        => (ordinal & 0x88) == 0 ? Squares[ordinal] : null;
+    /// <returns> The corresponding square or or exception thrown </returns>
+    public static Square GetSquare(int ordinal)
+        => (ordinal & 0x88) == 0 ? 
+            Squares[ordinal] 
+            : throw new ApplicationException("Invalid file and/or rank ");
 
     /// <summary> Gets a square from a file and a rank. </summary>
     /// <param name="file"> The file. </param>
     /// <param name="rank"> The rank. </param>
-    /// <returns> The corresponding square or null </returns>
-    public static Square? GetSquare(int file, int rank)
+    /// <returns> The corresponding square or exception thrown </returns>
+    public static Square GetSquare(int file, int rank)
         => (OrdinalFromFileRank(file, rank) & 0x88) == 0 ? 
-                Squares[OrdinalFromFileRank(file, rank)] : 
-                null;
+                Squares[OrdinalFromFileRank(file, rank)] :
+                throw new ApplicationException("Invalid file and/or rank ");
 
     /// <summary> Gets a square from a label string. </summary>
     /// <param name="label"> The label. </param>

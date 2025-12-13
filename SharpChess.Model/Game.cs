@@ -718,9 +718,9 @@ namespace SharpChess.Model
                         to = Board.GetSquare(xmlnode.GetAttribute("To"));
                     }
 
-                    if ( from is null || to is null)
+                    if ( from is null || to is null || from.Piece is null)
                     {
-                        // Invalid move squares
+                        // Invalid move squares or no piece on from square
                         return false;
                     }
 
@@ -843,10 +843,14 @@ namespace SharpChess.Model
         /// <exception cref="ApplicationException">Raised when principal variation is empty.</exception>
         private static void PlayerReadyToMakeMove()
         {
-            Move move;
+            Move? move;
             if (PlayerToPlay.Brain.PrincipalVariation.Count > 0)
             {
                 move = PlayerToPlay.Brain.PrincipalVariation[0];
+                if ( move is null)
+                {
+                    throw new ApplicationException("Player_ReadToMakeMove: Principal Variation first move is null.");
+                }
             }
             else
             {
@@ -864,12 +868,23 @@ namespace SharpChess.Model
         {
             if (MoveRedoList.Count > 0)
             {
-                Move moveRedo = MoveRedoList[MoveRedoList.Count - 1];
+                Move? moveRedo = MoveRedoList[MoveRedoList.Count - 1];
+                if ( moveRedo is null)
+                {
+                    throw new ApplicationException("RedoMoveInternal: MoveRedoList last move is null.");
+                }
+
                 PlayerToPlay.Clock.Revert();
                 moveRedo.Piece.Move(moveRedo.Name, moveRedo.To);
                 PlayerToPlay.Clock.TimeElapsed = moveRedo.TimeStamp;
-                MoveHistory.Last.TimeStamp = moveRedo.TimeStamp;
-                MoveHistory.Last.EnemyStatus = moveRedo.Piece.Player.OpposingPlayer.Status; // 14Mar05 Nimzo
+                Move? last = MoveHistory.Last;
+                if ( last is null)
+                {
+                    throw new ApplicationException("RedoMoveInternal: MoveRedoList last move is null.");
+                }
+                
+                last.TimeStamp = moveRedo.TimeStamp;
+                last.EnemyStatus = moveRedo.Piece.Player.OpposingPlayer.Status; // 14Mar05 Nimzo
                 PlayerToPlay = PlayerToPlay.OpposingPlayer;
                 MoveRedoList.RemoveLast();
                 if (!IsPaused)
@@ -924,7 +939,11 @@ namespace SharpChess.Model
             // Redo moves
             for (int intIndex = MoveRedoList.Count - 1; intIndex >= 0; intIndex--)
             {
-                AddSaveGameNode(xmldoc, xmlnodeGame, MoveRedoList[intIndex]);
+                var move = MoveRedoList[intIndex];
+                if (move is not null)
+                {
+                    AddSaveGameNode(xmldoc, xmlnodeGame, move);
+                }
             }
 
             xmldoc.Save(fileName);
@@ -950,14 +969,18 @@ namespace SharpChess.Model
         {
             if (MoveHistory.Count > 0)
             {
-                Move moveUndo = MoveHistory.Last;
+                Move? moveUndo = 
+                    MoveHistory.Last ?? 
+                    throw new ApplicationException("UndoMoveInternal: MoveHistory last move is null.");
                 PlayerToPlay.Clock.Revert();
                 MoveRedoList.Add(moveUndo);
                 Move.Undo(moveUndo);
                 PlayerToPlay = PlayerToPlay.OpposingPlayer;
                 if (MoveHistory.Count > 1)
                 {
-                    Move movePenultimate = MoveHistory[MoveHistory.Count - 2];
+                    Move? movePenultimate = 
+                        MoveHistory[MoveHistory.Count - 2] ?? 
+                        throw new ApplicationException("UndoMoveInternal: MoveHistory penultimate move is null.");
                     PlayerToPlay.Clock.TimeElapsed = movePenultimate.TimeStamp;
                 }
                 else

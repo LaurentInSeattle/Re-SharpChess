@@ -10,16 +10,15 @@ public static class BoardDebug
         {
             string strOutput = string.Empty;
             int intOrdinal = Board.SquareCount - 1;
-
             for (int intRank = 0; intRank < Board.RankCount; intRank++)
             {
                 for (int intFile = 0; intFile < Board.FileCount; intFile++)
                 {
-                    Square? square = Board.GetSquare(intOrdinal);
+                    var square = Board.GetSquare(intOrdinal);
                     if (square != null)
                     {
-                        Piece piece;
-                        if ((piece = square.Piece) != null)
+                        Piece? piece = square.Piece;
+                        if (piece is not null)
                         {
                             strOutput += piece.Abbreviation;
                         }
@@ -83,16 +82,19 @@ public static class BoardDebug
                      indMov < Game.MoveHistory.Count;
                      indMov++)
                 {
-                    Move moveThis = Game.MoveHistory[indMov];
-                    if (moveThis.Piece.Player.Colour == Player.PlayerColourNames.White)
+                    Move? moveThis = Game.MoveHistory[indMov];
+                    if (moveThis is not null)
                     {
-                        strbBoard.Append(indMov >> 1);
-                        strbBoard.Append(". ");
-                    }
+                        if (moveThis.Piece.Player.Colour == Player.PlayerColourNames.White)
+                        {
+                            strbBoard.Append(indMov >> 1);
+                            strbBoard.Append(". ");
+                        }
 
-                    // moveThis.PgnSanFormat(false); // Contextual to Game.TurNo
-                    strbBoard.Append(moveThis.Description + " ");
-                    Game.TurnNo++;
+                        // moveThis.PgnSanFormat(false); // Contextual to Game.TurNo
+                        strbBoard.Append(moveThis.Description + " ");
+                        Game.TurnNo++;
+                    }
                 }
 
                 Game.TurnNo = turnNumberOld; // Restore TurNo

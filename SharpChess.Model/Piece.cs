@@ -7,9 +7,6 @@ namespace SharpChess.Model;
 /// </summary>
 public class Piece : IPieceTop
 {
-    /// <summary> Initializes a new instance of the <see cref="Piece"/> class. </summary>
-    public Piece() {  }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="Piece"/> class.
     /// </summary>
@@ -32,8 +29,11 @@ public class Piece : IPieceTop
     {
         this.LastMoveTurnNo = -1;
         this.IsInPlay = true;
-        Square square = Board.GetSquare(file, rank);
-
+        Square? square = Board.GetSquare(file, rank);
+        if(square == null)
+        {
+            throw new ApplicationException("Invalid square for piece creation!");
+        }
         this.Player = player;
         this.StartLocation = this.Square = square;
         square.Piece = this;

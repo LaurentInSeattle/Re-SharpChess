@@ -412,7 +412,12 @@ public abstract class Player
         int intIndex = Game.MoveHistory.Count - 1;
         for (; intIndex >= 0; intIndex--, intIndex--)
         {
-            Move move = Game.MoveHistory[intIndex];
+            Move? move = Game.MoveHistory[intIndex];
+            if ( move is null)
+            {
+                continue;
+            }
+
             if (move.HashCodeA == Board.HashCodeA && move.HashCodeB == Board.HashCodeB)
             {
                 if (intRepetitionCount >= numberOfMoves)

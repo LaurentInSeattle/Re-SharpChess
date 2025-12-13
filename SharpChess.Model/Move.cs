@@ -3,36 +3,16 @@ namespace SharpChess.Model;
 /// <summary> Represents a chess move. </summary>
 public class Move : IComparable
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Move"/> class.
-    /// </summary>
-    /// <param name="turnNo">
-    /// The turn no.
-    /// </param>
-    /// <param name="lastMoveTurnNo">
-    /// The last move turn no.
-    /// </param>
-    /// <param name="moveName">
-    /// The move name.
-    /// </param>
-    /// <param name="piece">
-    /// The piece moving.
-    /// </param>
-    /// <param name="from">
-    /// The square the peice is moving from.
-    /// </param>
-    /// <param name="to">
-    /// The square the peice is moving to.
-    /// </param>
-    /// <param name="pieceCaptured">
-    /// The piece being captured.
-    /// </param>
-    /// <param name="pieceCapturedOrdinal">
-    /// Ordinal position of the piece being captured.
-    /// </param>
-    /// <param name="score">
-    /// The positional score.
-    /// </param>
+    /// <summary> Initializes a new instance of the <see cref="Move"/> class. </summary>
+    /// <param name="turnNo"> The turn number. </param>
+    /// <param name="lastMoveTurnNo"> The last move turn number. </param>
+    /// <param name="moveName"> The move name. </param>
+    /// <param name="piece"> The piece moving.</param>
+    /// <param name="from">The square the piece is moving from.</param>
+    /// <param name="to">The square the piece is moving to.</param>
+    /// <param name="pieceCaptured"> The piece being captured, or null if no capture.</param>
+    /// <param name="pieceCapturedOrdinal"> Ordinal position of the piece being captured, only valid if capture.</param>
+    /// <param name="score"> The positional score. </param>
     public Move(int turnNo, int lastMoveTurnNo, MoveNames moveName, Piece piece, Square from, Square to, Piece? pieceCaptured, int pieceCapturedOrdinal, int score)
     {
         this.EnemyStatus = Player.PlayerStatusNames.Normal;
@@ -45,81 +25,38 @@ public class Move : IComparable
         this.PieceCaptured = pieceCaptured;
         this.PieceCapturedOrdinal = pieceCapturedOrdinal;
         this.Score = score;
+        this.DebugComment = string.Empty;
+        this.Moves = new(); 
+
         if (moveName != MoveNames.NullMove && pieceCaptured == null && piece != null && piece.Name != Piece.PieceNames.Pawn)
         {
             this.FiftyMoveDrawCounter = Game.MoveHistory.Count > 0 ? Game.MoveHistory.Last.FiftyMoveDrawCounter + 1 : (Game.FiftyMoveDrawBase / 2) + 1;
         }
     }
 
-    /// <summary>
-    /// Move type names.
-    /// </summary>
+    /// <summary> Move type names.</summary>
     public enum MoveNames
     {
-        /// <summary>
-        /// Standard move.
-        /// </summary>
         Standard, 
-
-        /// <summary>
-        /// Castling queen side.
-        /// </summary>
         CastleQueenSide, 
-
-        /// <summary>
-        /// Castling king side.
-        /// </summary>
         CastleKingSide, 
-
-        /// <summary>
-        /// Pawn promotion to queen.
-        /// </summary>
         PawnPromotionQueen, 
-
-        /// <summary>
-        /// Pawn promotion to rook.
-        /// </summary>
         PawnPromotionRook, 
-
-        /// <summary>
-        /// Pawn promotion to knight.
-        /// </summary>
         PawnPromotionKnight, 
-
-        /// <summary>
-        /// Pawn promotion to bishop.
-        /// </summary>
         PawnPromotionBishop, 
-
-        /// <summary>
-        /// En passent move.
-        /// </summary>
         EnPassent, 
-
-        /// <summary>
-        /// A null move.
-        /// </summary>
         NullMove
     }
 
-    /// <summary>
-    /// Gets or sets Alpha.
-    /// </summary>
+    /// <summary> Gets or sets Alpha.</summary>
     public int Alpha { get; set; }
 
-    /// <summary>
-    /// Gets or sets Beta.
-    /// </summary>
+    /// <summary> Gets or sets Beta. </summary>
     public int Beta { get; set; }
 
-    /// <summary>
-    /// Gets text for the move useful in debugging.
-    /// </summary>
+    /// <summary> Gets text for the move useful in debugging. </summary>
     public string DebugText
-    {
-        get
-        {
-            return (this.Piece != null ? this.Piece.Player.Colour.ToString() + " " 
+        => (this.Piece != null ? this.Piece.Player.Colour.ToString() + " " 
                 + this.Piece.Name.ToString() : string.Empty) + " " 
                 + this.From.Name 
                 + (this.PieceCaptured == null ? "-" : "x") + this.To.Name + " " 
@@ -128,17 +65,11 @@ public class Move : IComparable
                 + " B: " + this.Beta 
                 + " Score: " + this.Score 
                 + " " + this.DebugComment;  // + " h: " + this.m_HashEntries.ToString() + " c:" + this.m_HashCaptures.ToString();
-        }
-    }
 
-    /// <summary>
-    /// Gets or sets a comment string containing useful debug info.
-    /// </summary>
+    /// <summary> Gets or sets a comment string containing useful debug info. </summary>
     public string DebugComment { get; set; }
 
-    /// <summary>
-    /// Gets a texual description of the move.
-    /// </summary>
+    /// <summary> Gets a texual description of the move. </summary>
     public string Description
     {
         get
@@ -208,127 +139,69 @@ public class Move : IComparable
         }
     }
 
-    /// <summary>
-    /// Gets or sets status of the enemy e.g. In check, stalemate, checkmate etc.
-    /// </summary>
+    /// <summary> Gets or sets status of the enemy e.g. In check, stalemate, checkmate etc. </summary>
     public Player.PlayerStatusNames EnemyStatus { get; set; }
 
-    /// <summary>
-    /// Gets a counter indicating closeness to a fifty-move-draw condition.
-    /// </summary>
+    /// <summary> Gets a counter indicating closeness to a fifty-move-draw condition.</summary>
     public int FiftyMoveDrawCounter { get; private set; }
 
-    /// <summary>
-    /// Gets the move From square.
-    /// </summary>
+    /// <summary> Gets the move From square. </summary>
     public Square From { get; private set; }
 
-    /// <summary>
-    /// Gets or sets the board position HashCodeA.
-    /// </summary>
+    /// <summary> Gets or sets the board position HashCodeA. </summary>
     public ulong HashCodeA { get; set; }
 
-    /// <summary>
-    /// Gets or sets the board position HashCodeB.
-    /// </summary>
+    /// <summary> Gets or sets the board position HashCodeB.</summary>
     public ulong HashCodeB { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the enemy is in check.
-    /// </summary>
+    /// <summary>Gets or sets a value indicating whether the enemy is in check.</summary>
     public bool IsEnemyInCheck { get; set; }
 
-    /// <summary>
-    /// Gets a value indicating whether a fifty-move-draw condition has been reached.
-    /// </summary>
-    public bool IsFiftyMoveDraw
-    {
-        get
-        {
-            return this.FiftyMoveDrawCounter >= 100;
-        }
-    }
+    /// <summary> Gets a value indicating whether a fifty-move-draw condition has been reached. </summary>
+    public bool IsFiftyMoveDraw => this.FiftyMoveDrawCounter >= 100;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the player-to-play is in check.
-    /// </summary>
+    /// <summary> Gets or sets a value indicating whether the player-to-play is in check.</summary>
     public bool IsInCheck { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether three-move-repetition applied to this move.
-    /// </summary>
+    /// <summary> Gets or sets a value indicating whether three-move-repetition applied to this move. </summary>
     public bool IsThreeMoveRepetition { get; set; }
 
-    /// <summary>
-    /// Gets last move turn-number.
-    /// </summary>
+    /// <summary> Gets last move turn-number. </summary>
     public int LastMoveTurnNo { get; private set; }
 
-    /// <summary>
-    /// Gets the move number.
-    /// </summary>
-    public int MoveNo
-    {
-        get
-        {
-            return (this.TurnNo / 2) + 1;
-        }
-    }
+    /// <summary> Gets the move number. </summary>
+    public int MoveNo =>  (this.TurnNo / 2) + 1;
 
-    /// <summary>
-    /// Gets or sets Moves.
-    /// </summary>
+    /// <summary> Gets or sets Moves. </summary>
     public Moves Moves { get; set; }
 
-    /// <summary>
-    /// Gets the move name.
-    /// </summary>
+    /// <summary> Gets the move name. </summary>
     public MoveNames Name { get; private set; }
 
-    /// <summary>
-    /// Gets the Piece being moved.
-    /// </summary>
+    /// <summary> Gets the Piece being moved. </summary>
     public Piece Piece { get; private set; }
 
-    /// <summary>
-    /// Gets or sets the score relating to this move. Ususally used for assigning a move-ordering weighting.
-    /// </summary>
+    /// <summary> Gets or sets the score relating to this move. Ususally used for assigning a move-ordering weighting. </summary>
     public int Score { get; set; }
 
-    /// <summary>
-    /// Gets or sets TimeStamp.
-    /// </summary>
+    /// <summary> Gets or sets TimeStamp. </summary>
     public TimeSpan TimeStamp { get; set; }
 
-    /// <summary>
-    /// Gets the move To square.
-    /// </summary>
+    /// <summary> Gets the move To square.</summary>
     public Square To { get; private set; }
 
-    /// <summary>
-    /// Gets the turn number.
-    /// </summary>
+    /// <summary> Gets the turn number. </summary>
     public int TurnNo { get; private set; }
 
-    /// <summary>
-    /// Gets the piece being captured.
-    /// </summary>
+    /// <summary> Gets the piece being captured, maybe null. </summary>
     public Piece? PieceCaptured { get; private set; }
 
-    /// <summary>
-    /// Gets the ordinal of the piece being captured.
-    /// </summary>
+    /// <summary> Gets the ordinal of the piece being captured. </summary>
     public int PieceCapturedOrdinal { get; private set; }
 
-    /// <summary>
-    /// Gets move name from text.
-    /// </summary>
-    /// <param name="moveName">
-    /// The move name text.
-    /// </param>
-    /// <returns>
-    /// The Move Name.
-    /// </returns>
+    /// <summary> Gets the move name from the provided text. </summary>
+    /// <param name="moveName"> The move name text. </param>
+    /// <returns> Returns the Move Name enum value. </returns>
     public static MoveNames MoveNameFromString(string moveName)
     {
         if (moveName == MoveNames.Standard.ToString())
@@ -379,18 +252,10 @@ public class Move : IComparable
         return 0;
     }
 
-    /// <summary>
-    /// Determine where two moves are identical moves.
-    /// </summary>
-    /// <param name="moveA">
-    /// Move A.
-    /// </param>
-    /// <param name="moveB">
-    /// Move B.
-    /// </param>
-    /// <returns>
-    /// True if moves match.
-    /// </returns>
+    /// <summary> Determine where two moves are identical moves. </summary>
+    /// <param name="moveA"> Move A. </param>
+    /// <param name="moveB"> Move B. </param>
+    /// <returns> True if moves match. </returns>
     public static bool MovesMatch(Move moveA, Move moveB)
     {
         return moveA != null 
@@ -404,12 +269,8 @@ public class Move : IComparable
                 || (moveA.PieceCaptured != null && moveB.PieceCaptured != null && moveA.PieceCaptured == moveB.PieceCaptured));
     }
 
-    /// <summary>
-    /// Undo the specified move.
-    /// </summary>
-    /// <param name="move">
-    /// Move to undo.
-    /// </param>
+    /// <summary> Undo the specified move. </summary>
+    /// <param name="move"> The move to undo. </param>
     public static void Undo(Move move)
     {
         Board.HashCodeA ^= move.To.Piece.HashCodeA; // un_XOR the piece from where it was previously moved to
@@ -425,28 +286,37 @@ public class Move : IComparable
         move.Piece.LastMoveTurnNo = move.LastMoveTurnNo;
         move.Piece.NoOfMoves--;
 
+
+        Piece? pieceCaptured = move.PieceCaptured; 
         if (move.Name != MoveNames.EnPassent)
         {
-            move.To.Piece = move.PieceCaptured; // Return piece taken
+            // TODO: Can be null 
+            move.To.Piece = pieceCaptured; // Return piece taken
         }
         else
         {
+            // TODO: Can be null 
             move.To.Piece = null; // Blank square where this pawn was
-            Board.GetSquare(move.To.Ordinal - move.Piece.Player.PawnForwardOffset).Piece = move.PieceCaptured; // Return En Passent pawn taken
-        }
-
-        if (move.PieceCaptured != null)
-        {
-            move.PieceCaptured.Uncapture(move.PieceCapturedOrdinal);
-            Board.HashCodeA ^= move.PieceCaptured.HashCodeA; // XOR back into play the piece that was taken
-            Board.HashCodeB ^= move.PieceCaptured.HashCodeB; // XOR back into play the piece that was taken
-            if (move.PieceCaptured.Name == Piece.PieceNames.Pawn)
+            Square? square = Board.GetSquare(move.To.Ordinal - move.Piece.Player.PawnForwardOffset);
+            if (square is not null)
             {
-                Board.PawnHashCodeA ^= move.PieceCaptured.HashCodeA;
-                Board.PawnHashCodeB ^= move.PieceCaptured.HashCodeB;
-            }
+                // TODO: Can be null 
+                square.Piece = pieceCaptured; // Return En Passent pawn taken
+            } 
         }
 
+        if (pieceCaptured is not null)
+        {
+            pieceCaptured.Uncapture(move.PieceCapturedOrdinal);
+            Board.HashCodeA ^= pieceCaptured.HashCodeA; // XOR back into play the piece that was taken
+            Board.HashCodeB ^= pieceCaptured.HashCodeB; // XOR back into play the piece that was taken
+            if (pieceCaptured.Name == Piece.PieceNames.Pawn)
+            {
+                Board.PawnHashCodeA ^= pieceCaptured.HashCodeA;
+                Board.PawnHashCodeB ^= pieceCaptured.HashCodeB;
+            }
+        } 
+        
         Piece pieceRook;
         switch (move.Name)
         {
@@ -501,21 +371,19 @@ public class Move : IComparable
         }
 
         Game.TurnNo--;
-
         Game.MoveHistory.RemoveLast();
     }
 
-    /// <summary>
-    /// Compare the score of this move, and the specified move.
-    /// </summary>
-    /// <param name="move">
-    /// Nove to compare.
-    /// </param>
-    /// <returns>
-    /// 1 if specified move score is less, -1 if more, otherwise 0
-    /// </returns>
-    public int CompareTo(object move)
+    /// <summary> Compare the score of this move, and the specified move.</summary>
+    /// <param name="move"> Move to compare. </param>
+    /// <returns> 1 if specified move score is less, -1 if more, otherwise 0 </returns>
+    public int CompareTo(object? move)
     {
+        if (move is null)
+        {
+            return 1;
+        } 
+
         if (this.Score < ((Move)move).Score)
         {
             return 1;
@@ -529,17 +397,9 @@ public class Move : IComparable
         return 0;
     }
 
-    /// <summary>
-    /// Is the move a promotion of pawn
-    /// </summary>
-    /// <returns>
-    /// true if promotion otherwise false
-    /// </returns>
-    /// <remarks>
-    /// Keep the order of the enumeration <see cref="MoveNames"/>.PawnPromotionQueen before PawnPromotionBishop
-    /// </remarks>
-    public bool IsPromotion()
-    {
-        return (this.Name >= MoveNames.PawnPromotionQueen) && (this.Name <= MoveNames.PawnPromotionBishop);
-    }
+    /// <summary> Is the move a promotion of a pawn  </summary>
+    /// <returns> true if promotion otherwise false </returns>
+    /// <remarks> Keep the order of the enumeration <see cref="MoveNames"/>.PawnPromotionQueen before PawnPromotionBishop </remarks>
+    public bool IsPromotion() 
+        => (this.Name >= MoveNames.PawnPromotionQueen) && (this.Name <= MoveNames.PawnPromotionBishop);    
 }

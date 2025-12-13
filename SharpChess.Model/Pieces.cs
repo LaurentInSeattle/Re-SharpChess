@@ -1,21 +1,13 @@
-namespace SharpChess.Model; 
+namespace SharpChess.Model;
 
-/// <summary>
-/// A list of pieces.
-/// </summary>
+// TODO : Implement as derived from List<Piece>
+//
+/// <summary> A list of pieces. </summary>
 public class Pieces : IEnumerable
 {
-    #region Constants and Fields
-
-    /// <summary>
-    /// Internal ArrayList of pieces.
-    /// </summary>
-    private readonly ArrayList pieces = new ArrayList();
-    private static PieceSort sorter = new PieceSort();
-
-    #endregion
-
-    #region Public Properties
+    /// <summary> Internal List of pieces. </summary>
+    private readonly List<Piece> pieces = new(16);
+    private static PieceSort sorter = new ();
 
     /// <summary>
     /// Gets Count.
@@ -27,10 +19,6 @@ public class Pieces : IEnumerable
             return this.pieces.Count;
         }
     }
-
-    #endregion
-
-    #region Public Methods
 
     /// <summary>
     /// The add.
@@ -44,14 +32,14 @@ public class Pieces : IEnumerable
     }
 
     /// <summary>
-    /// Return a close of this list.
+    /// Return a clone of this list.
     /// </summary>
     /// <returns>
     /// The clone.
     /// </returns>
     public object Clone()
     {
-        return this.pieces.Clone();
+        return this.pieces.ToList();
     }
 
     /// <summary>
@@ -104,7 +92,7 @@ public class Pieces : IEnumerable
     /// </returns>
     public Piece Item(int intIndex)
     {
-        return (Piece)this.pieces[intIndex];
+        return this.pieces[intIndex];
     }
 
     /// <summary>
@@ -125,29 +113,35 @@ public class Pieces : IEnumerable
     {
         this.pieces.Sort(sorter);
     }
-
-    #endregion
 }
 
-public class PieceSort : System.Collections.IComparer
+public class PieceSort : IComparer<Piece>
 {
-    public int Compare(System.Object a, System.Object b)
+    public int Compare(Piece? x, Piece? y)
     {
-        if (b == null)
+        if (y == null)
+        {
             return 1;
-        Piece x = (Piece)a;
-        Piece y = (Piece)b;
-        if (x.Value > y.Value)
-            return 1;
-        else if (x.Value < y.Value)
+        }
+        
+        if (x == null)
+        {
             return -1;
+        }
+        
+        if (x.Value > y.Value)
+        {
+            return 1;
+        }
+        else if (x.Value < y.Value)
+        {
+            return -1;
+        }
         else if (x.Value == y.Value)
         {
-            if (y.Name == Piece.PieceNames.Knight) // bishops beat knights
-                return 1;
-            else
-                return -1;
+            return y.Name == Piece.PieceNames.Knight ? 1 : -1;
         }
+
         return 1;
     }
 }
