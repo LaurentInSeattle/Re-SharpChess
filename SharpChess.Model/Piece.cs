@@ -7,6 +7,9 @@ namespace SharpChess.Model;
 /// </summary>
 public class Piece : IPieceTop
 {
+    public readonly Game Game;
+    public readonly Board Board;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Piece"/> class.
     /// </summary>
@@ -27,20 +30,22 @@ public class Piece : IPieceTop
     /// </param>
     public Piece(PieceNames name, Player player, int file, int rank, PieceIdentifierCodes identifier)
     {
+        this.Player = player;
+        this.Game = player.Game;
+        this.Board = player.Game.Board;
+
         this.LastMoveTurnNo = -1;
         this.IsInPlay = true;
-        Square? square = Board.GetSquare(file, rank);
-        if(square == null)
-        {
+        Square? square = 
+            Board.GetSquare(file, rank) ?? 
             throw new ApplicationException("Invalid square for piece creation!");
-        }
-        this.Player = player;
         this.StartLocation = this.Square = square;
         square.Piece = this;
         this.IdentifierCode = identifier;
 
         switch (name)
         {
+            default:
             case PieceNames.Pawn:
                 this.Top = new PiecePawn(this);
                 break;
@@ -514,42 +519,39 @@ public class Piece : IPieceTop
         return false;
     }
 
-    static public bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector)
+    public bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector)
     {
-        Piece piece;
         for (int i = 0; i < vector.Length; i++)
         {
-            piece = Board.GetPiece(square.Ordinal + vector[i]);
+            Piece? piece = Board.GetPiece(square.Ordinal + vector[i]);
             if (piece != null && piece.Name == pieceName && piece.Player.Colour == player.Colour)
             {
                 return true;
             }
         }
+
         return false;
     }
 
-    static public bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector, out Piece attackingPiece)
+    public bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector, out Piece attackingPiece)
     {
-        Piece piece;
         attackingPiece = null;
         for (int i = 0; i < vector.Length; i++)
         {
-            piece = Board.GetPiece(square.Ordinal + vector[i]);
+            Piece? piece = Board.GetPiece(square.Ordinal + vector[i]);
             if (piece != null && piece.Name == pieceName && piece.Player.Colour == player.Colour)
             {
                 attackingPiece = piece;
                 return true;
             }
         }
+
         return false;
     }
 
 
 
-    public bool CanAttackSquare(Square square)
-    {
-        return this.Top.CanAttackSquare(square);
-    }
+    public bool CanAttackSquare(Square square) => this.Top.CanAttackSquare(square);
 
     /// <summary>
     /// Indicates whether the piece would be attackable by a nearby enemy pawm, if the enemy pawn were to advance.

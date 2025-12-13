@@ -4,7 +4,7 @@ namespace SharpChess.Model;
 public class PlayerWhite : Player
 {
     /// <summary> Initializes a new instance of the <see cref="PlayerWhite"/> class. </summary>
-    public PlayerWhite()
+    public PlayerWhite(Game game) : base(game)
     {
         this.Colour = PlayerColourNames.White;
         this.Intellegence = PlayerIntellegenceNames.Human;

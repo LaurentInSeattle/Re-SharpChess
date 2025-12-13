@@ -4,10 +4,19 @@ namespace SharpChess.Model;
 /// Converts a Forsyth–Edwards Notation (FEN) string into a SharpChess board position.
 /// http://chessprogramming.wikispaces.com/Forsyth-Edwards+Notation
 /// </summary>
-public static class Fen
+public sealed class Fen
 {
     /// <summary> Gets GameStartPosition. </summary>
     public static string GameStartPosition => "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    private readonly Game Game;
+    private readonly Board Board;
+
+    public Fen(Game game, Board board)
+    {
+        this.Game = game;
+        this.Board = board;
+    }
 
     /// <summary>Extraction the current position in FEN: Forsyth-Edwards Notation </summary>
     /// <returns>
@@ -58,7 +67,7 @@ public static class Fen
     ///     </item>
     /// </list>
     /// </example>
-    public static string GetBoardPosition()
+    public string GetBoardPosition()
     {
         Game.SuspendPondering();
         var strbFen = new StringBuilder();
@@ -92,7 +101,7 @@ public static class Fen
 
     /// <summary> Set board position from the provided FEN string.</summary>
     /// <param name="fenString"> The FEN string. </param>
-    public static void SetBoardPosition(string fenString)
+    public void SetBoardPosition(string fenString)
     {
         string strActiveColour = "w";
         string strCastlingRights = string.Empty;
@@ -582,7 +591,7 @@ public static class Fen
     ///     </item>
     /// </list>
     /// </remarks>
-    private static void FenGet1Pieces(StringBuilder strbFen)
+    private void FenGet1Pieces(StringBuilder strbFen)
     {
         for (int emptySquare = 0, indRank = Board.RankCount - 1; indRank >= 0; indRank--)
         {
@@ -691,7 +700,7 @@ public static class Fen
     ///     </item>
     /// </list>
     /// </returns>
-    private static string FenGet4EnPassant()
+    private string FenGet4EnPassant()
     {
         if ((Game.MoveHistory.Count > 0) && (Game.MoveHistory.Last.Piece.Name == Piece.PieceNames.Pawn)
             && (Game.MoveHistory.Last.From.File == Game.MoveHistory.Last.To.File)
@@ -713,7 +722,7 @@ public static class Fen
 
     /// <summary> FEN string of the number of ply since the last pawn advance or capturing move </summary>
     /// <returns> Return 50 move draw </returns>
-    private static string FenGet5Counter50MoveDraw()
+    private string FenGet5Counter50MoveDraw()
         => string.Format(
             "{0} ", 
             Game.MoveHistory.Count > 0 ? 
@@ -744,7 +753,7 @@ public static class Fen
     /// <param name="intRank"> The rank. </param>
     /// <param name="blnAnyLocation"> An indicator for any location. </param>
     /// <param name="blnAllowPromotion"> The allow promotion indicator. </param>
-    private static void MovePieceToFenPosition(
+    private void MovePieceToFenPosition(
         ref char charToken, int intFile, int intRank, bool blnAnyLocation, bool blnAllowPromotion)
     {
         Piece.PieceNames piecename = Piece.PieceNames.King;
@@ -811,7 +820,7 @@ public static class Fen
     /// <param name="blnAnyLocation"> True if any location. </param>
     /// <param name="blnAllowPromotion"> True if allow promotion. </param>
     /// <exception cref="ValidationException"> thrown if any Unknow character in FEN string. </exception>
-    private static void SetPiecePlacement(
+    private void SetPiecePlacement(
         ref char[] acharPiecePlacement, bool blnAnyLocation, bool blnAllowPromotion)
     {
         // Setup piece placement

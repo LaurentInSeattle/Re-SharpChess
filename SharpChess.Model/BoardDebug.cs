@@ -1,10 +1,19 @@
 namespace SharpChess.Model;
 
 /// <summary> Helper methods for debuging board positions. </summary>
-public static class BoardDebug
+public sealed class BoardDebug
 {
+    private readonly Game Game;
+    private readonly Board Board;
+
+    public BoardDebug(Game game, Board board)
+    {
+        this.Game = game;
+        this.Board = board;
+    }
+
     /// <summary> Gets a Debug String representing the current board position.</summary>
-    public static string DebugString
+    public string DebugString
     {
         get
         {
@@ -39,7 +48,7 @@ public static class BoardDebug
     }
 
     /// <summary> Display the chessboard in the Immediate Windows </summary>
-    public static void DebugDisplay()
+    public void DebugDisplay()
     {
         Debug.Write(DebugGetBoard());
         Debug.Write(". ");
@@ -49,7 +58,7 @@ public static class BoardDebug
     /// <param name="indRank"> the rank in the chessboard </param>
     /// <param name="strbBoard"> output buffer </param>
     /// <remarks> Display the captured pieces and the MoveHistory </remarks>
-    private static void DebugGameInfo(int indRank, ref StringBuilder strbBoard)
+    private void DebugGameInfo(int indRank, ref StringBuilder strbBoard)
     {
         strbBoard.Append(':');
         strbBoard.Append(indRank);
@@ -106,7 +115,7 @@ public static class BoardDebug
 
     /// <summary> A string representation of the board position - useful for debugging. </summary>
     /// <returns> Board position string. </returns>
-    public static string DebugGetBoard()
+    public string DebugGetBoard()
     {
         var strbBoard = new StringBuilder(160);
         strbBoard.Append("  0 1 2 3 4 5 6 7 :PlayerToPlay = ");

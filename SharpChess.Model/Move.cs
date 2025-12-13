@@ -1,8 +1,11 @@
 namespace SharpChess.Model;
 
 /// <summary> Represents a chess move. </summary>
-public class Move : IComparable
+public sealed class Move : IComparable
 {
+    public readonly Game Game;
+    public readonly Board Board;
+
     /// <summary> Initializes a new instance of the <see cref="Move"/> class. </summary>
     /// <param name="turnNo"> The turn number. </param>
     /// <param name="lastMoveTurnNo"> The last move turn number. </param>
@@ -13,8 +16,16 @@ public class Move : IComparable
     /// <param name="pieceCaptured"> The piece being captured, or null if no capture.</param>
     /// <param name="pieceCapturedOrdinal"> Ordinal position of the piece being captured, only valid if capture.</param>
     /// <param name="score"> The positional score. </param>
-    public Move(int turnNo, int lastMoveTurnNo, MoveNames moveName, Piece piece, Square from, Square to, Piece? pieceCaptured, int pieceCapturedOrdinal, int score)
+    public Move(
+        int turnNo, int lastMoveTurnNo, MoveNames moveName, 
+        Piece piece, 
+        Square from, Square to, 
+        Piece? pieceCaptured, int pieceCapturedOrdinal, 
+        int score)
     {
+        this.Game = piece.Game;
+        this.Board = piece.Game.Board;
+
         this.EnemyStatus = Player.PlayerStatusNames.Normal;
         this.TurnNo = turnNo;
         this.LastMoveTurnNo = lastMoveTurnNo;
@@ -26,7 +37,7 @@ public class Move : IComparable
         this.PieceCapturedOrdinal = pieceCapturedOrdinal;
         this.Score = score;
         this.DebugComment = string.Empty;
-        this.Moves = new(); 
+        this.Moves = []; 
 
         if (moveName != MoveNames.NullMove && pieceCaptured == null && piece != null && piece.Name != Piece.PieceNames.Pawn)
         {
@@ -271,7 +282,7 @@ public class Move : IComparable
 
     /// <summary> Undo the specified move. </summary>
     /// <param name="move"> The move to undo. </param>
-    public static void Undo(Move move)
+    public void Undo(Move move)
     {
         Board.HashCodeA ^= move.To.Piece.HashCodeA; // un_XOR the piece from where it was previously moved to
         Board.HashCodeB ^= move.To.Piece.HashCodeB; // un_XOR the piece from where it was previously moved to

@@ -1,377 +1,382 @@
-namespace SharpChess.Model
+namespace SharpChess.Model; 
+
+/// <summary>
+/// The square.
+/// </summary>
+public sealed class Square
 {
     /// <summary>
-    /// The square.
+    /// Simple square values.
     /// </summary>
-    public class Square
+    private static readonly int[] SquareValues =
+    { 
+        1,  1,  1,  1,  1,  1,  1, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 10, 10, 10, 10, 10, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 10, 25, 25, 25, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 10, 25, 50, 50, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 10, 25, 50, 50, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 10, 25, 25, 25, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 10, 10, 10, 10, 10, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
+        1,  1,  1,  1,  1,  1,  1, 1,    0, 0, 0, 0, 0, 0, 0, 0
+    };
+
+    /// <summary>
+    /// The king attackers.
+    /// </summary>
+    private static char[] kingAttackers = 
+    { 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', 'K', 
+        'K', 'K', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', 'K',  
+        '.', 
+        'K', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'K', 'K', 
+        'K', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.',
+        '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.'
+    };
+
+    /// <summary>
+    /// The minor attackers.
+    /// </summary>
+    private static char[] minorAttackers = 
+    { 
+        '.', '.', '.', '.', '.', '.', '.', '.',   'B', 'B', '.', '.', '.', '.', '.', '.', 
+        'R', '.', '.', '.', '.', '.', '.', 'B',   '.', '.', 'B', '.', '.', '.', '.', '.', 
+        'R', '.', '.', '.', '.', '.', 'B', '.',   '.', '.', '.', 'B', '.', '.', '.', '.', 
+        'R', '.', '.', '.', '.', 'B', '.', '.',   '.', '.', '.', '.', 'B', '.', '.', '.', 
+        'R', '.', '.', '.', 'B', '.', '.', '.',   '.', '.', '.', '.', '.', 'B', '.', '.', 
+        'R', '.', '.', 'B', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'B', 'N', 
+        'R', 'N', 'B', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'N', 'B', 
+        'R', 'B', 'N', '.', '.', '.', '.', '.',   '.', 'R', 'R', 'R', 'R', 'R', 'R', 'R',  
+        '.', 
+        'R', 'R', 'R', 'R', 'R', 'R', 'R', '.',   '.', '.', '.', '.', '.', 'N', 'B', 'R', 
+        'B', 'N', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', 'B', 'N', 'R', 
+        'N', 'B', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', 'B', '.', '.', 'R', 
+        '.', '.', 'B', '.', '.', '.', '.', '.',   '.', '.', '.', 'B', '.', '.', '.', 'R', 
+        '.', '.', '.', 'B', '.', '.', '.', '.',   '.', '.', 'B', '.', '.', '.', '.', 'R', 
+        '.', '.', '.', '.', 'B', '.', '.', '.',   '.', 'B', '.', '.', '.', '.', '.', 'R', 
+        '.', '.', '.', '.', '.', 'B', '.', '.',   'B', '.', '.', '.', '.', '.', '.', 'R', 
+        '.', '.', '.', '.', '.', '.', 'B', 'B',   '.', '.', '.', '.', '.', '.', '.', '.'
+    };
+
+    /// <summary>
+    /// The queen attackers.
+    /// </summary>
+    private static char[] queenAttackers =
+    { 
+        '.', '.', '.', '.', '.', '.', '.', '.', 'Q', 'Q', '.', '.', '.', '.', '.', '.', 
+        'Q', '.', '.', '.', '.', '.', '.', 'Q',   '.', '.', 'Q', '.', '.', '.', '.', '.', 
+        'Q', '.', '.', '.', '.', '.', 'Q', '.',   '.', '.', '.', 'Q', '.', '.', '.', '.', 
+        'Q', '.', '.', '.', '.', 'Q', '.', '.',   '.', '.', '.', '.', 'Q', '.', '.', '.', 
+        'Q', '.', '.', '.', 'Q', '.', '.', '.',   '.', '.', '.', '.', '.', 'Q', '.', '.', 
+        'Q', '.', '.', 'Q', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'Q', '.', 
+        'Q', '.', 'Q', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', 'Q', 
+        'Q', 'Q', '.', '.', '.', '.', '.', '.',   '.', 'Q', 'Q', 'Q', 'Q', 'Q', 'Q', 'Q',  
+        '.', 
+        'Q', 'Q', 'Q', 'Q', 'Q', 'Q', 'Q', '.',   '.', '.', '.', '.', '.', '.', 'Q', 'Q', 
+        'Q', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', 'Q', '.', 'Q', 
+        '.', 'Q', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', 'Q', '.', '.', 'Q', 
+        '.', '.', 'Q', '.', '.', '.', '.', '.',   '.', '.', '.', 'Q', '.', '.', '.', 'Q', 
+        '.', '.', '.', 'Q', '.', '.', '.', '.',   '.', '.', 'Q', '.', '.', '.', '.', 'Q', 
+        '.', '.', '.', '.', 'Q', '.', '.', '.',   '.', 'Q', '.', '.', '.', '.', '.', 'Q', 
+        '.', '.', '.', '.', '.', 'Q', '.', '.',   'Q', '.', '.', '.', '.', '.', '.', 'Q',
+        '.', '.', '.', '.', '.', '.', 'Q', 'Q',   '.', '.', '.', '.', '.', '.', '.', '.'
+    };
+
+    /// <summary>
+    /// The vectors.
+    /// </summary>
+    private static int[] vectors = 
+    { 
+          0,   0,   0,   0,   0,   0,   0,  0,   -15, -17,   0,   0,   0,   0,   0,   0, 
+        -16,   0,   0,   0,   0,   0,   0, -15,    0,   0, -17,   0,   0,   0,   0,   0, 
+        -16,   0,   0,   0,   0,   0, -15,  0,     0,   0,   0, -17,   0,   0,   0,   0, 
+        -16,   0,   0,   0,   0, -15,   0,  0,     0,   0,   0,   0, -17,   0,   0,   0, 
+        -16,   0,   0,   0, -15,   0,   0,  0,     0,   0,   0,   0,   0, -17,   0,   0, 
+        -16,   0,   0, -15,   0,   0,   0,  0,     0,   0,   0,   0,   0,   0, -17, 100, 
+        -16, 100, -15,   0,   0,   0,   0,  0,     0,   0,   0,   0,   0,   0, 100, -17, 
+        -16, -15, 100,   0,   0,   0,   0,  0,     0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  
+          0, 
+          1,  1,    1,   1,   1,   1,   1,  0,     0,   0,   0,   0,   0, 100,  15,  16, 
+         17, 100,   0,   0,   0,   0,   0,  0,     0,   0,   0,   0,   0,  15, 100,  16, 
+        100,  17,   0,   0,   0,   0,   0,  0,     0,   0,   0,   0,  15,   0,   0,  16, 
+          0,   0,  17,   0,   0,   0,   0,  0,     0,   0,   0,  15,   0,   0,   0,  16, 
+          0,   0,   0,  17,   0,   0,   0,  0,     0,   0,  15,   0,   0,   0,   0,  16, 
+          0,   0,   0,   0,  17,   0,   0,  0,     0,  15,   0,   0,   0,   0,   0,  16, 
+          0,   0,   0,   0,   0,  17,   0,  0,    15,   0,   0,   0,   0,   0,   0,  16, 
+          0,   0,   0,   0,   0,   0,  17, 15,     0,   0,   0,   0,   0,   0,   0,   0
+    };
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Square"/> class.
+    /// </summary>
+    /// <param name="ordinal">
+    /// The ordinal index of this square.
+    /// </param>
+    public Square(int ordinal)
     {
-        /// <summary>
-        /// Simple square values.
-        /// </summary>
-        private static readonly int[] SquareValues =
-        { 
-            1,  1,  1,  1,  1,  1,  1, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 10, 10, 10, 10, 10, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 10, 25, 25, 25, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 10, 25, 50, 50, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 10, 25, 50, 50, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 10, 25, 25, 25, 25, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
-            1, 10, 10, 10, 10, 10, 10, 1,    0, 0, 0, 0, 0, 0, 0, 0, 
-            1,  1,  1,  1,  1,  1,  1, 1,    0, 0, 0, 0, 0, 0, 0, 0
-        };
+        this.Ordinal = ordinal;
+        this.File = ordinal % Board.MatrixWidth;
+        this.Rank = ordinal / Board.MatrixWidth;
+        this.Colour = (this.File % 2 == this.Rank % 2) ? ColourNames.Black : ColourNames.White;
+    }
 
-        /// <summary>
-        /// The king attackers.
-        /// </summary>
-        private static char[] kingAttackers = 
-        { 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', 'K', 
-            'K', 'K', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', 'K',  
-            '.', 
-            'K', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'K', 'K', 
-            'K', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.', 
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.',
-            '.', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', '.'
-        };
+    /// <summary> Possible square colours: black or white. </summary>
+    public enum ColourNames
+    {
+        White, 
+        Black
+    }
 
-        /// <summary>
-        /// The minor attackers.
-        /// </summary>
-        private static char[] minorAttackers = 
-        { 
-            '.', '.', '.', '.', '.', '.', '.', '.',   'B', 'B', '.', '.', '.', '.', '.', '.', 
-            'R', '.', '.', '.', '.', '.', '.', 'B',   '.', '.', 'B', '.', '.', '.', '.', '.', 
-            'R', '.', '.', '.', '.', '.', 'B', '.',   '.', '.', '.', 'B', '.', '.', '.', '.', 
-            'R', '.', '.', '.', '.', 'B', '.', '.',   '.', '.', '.', '.', 'B', '.', '.', '.', 
-            'R', '.', '.', '.', 'B', '.', '.', '.',   '.', '.', '.', '.', '.', 'B', '.', '.', 
-            'R', '.', '.', 'B', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'B', 'N', 
-            'R', 'N', 'B', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'N', 'B', 
-            'R', 'B', 'N', '.', '.', '.', '.', '.',   '.', 'R', 'R', 'R', 'R', 'R', 'R', 'R',  
-            '.', 
-            'R', 'R', 'R', 'R', 'R', 'R', 'R', '.',   '.', '.', '.', '.', '.', 'N', 'B', 'R', 
-            'B', 'N', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', 'B', 'N', 'R', 
-            'N', 'B', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', 'B', '.', '.', 'R', 
-            '.', '.', 'B', '.', '.', '.', '.', '.',   '.', '.', '.', 'B', '.', '.', '.', 'R', 
-            '.', '.', '.', 'B', '.', '.', '.', '.',   '.', '.', 'B', '.', '.', '.', '.', 'R', 
-            '.', '.', '.', '.', 'B', '.', '.', '.',   '.', 'B', '.', '.', '.', '.', '.', 'R', 
-            '.', '.', '.', '.', '.', 'B', '.', '.',   'B', '.', '.', '.', '.', '.', '.', 'R', 
-            '.', '.', '.', '.', '.', '.', 'B', 'B',   '.', '.', '.', '.', '.', '.', '.', '.'
-        };
+    /// <summary>
+    ///   Gets the colour of this square: black or white!
+    /// </summary>
+    public ColourNames Colour { get; private set; }
 
-        /// <summary>
-        /// The queen attackers.
-        /// </summary>
-        private static char[] queenAttackers =
-        { 
-            '.', '.', '.', '.', '.', '.', '.', '.', 'Q', 'Q', '.', '.', '.', '.', '.', '.', 
-            'Q', '.', '.', '.', '.', '.', '.', 'Q',   '.', '.', 'Q', '.', '.', '.', '.', '.', 
-            'Q', '.', '.', '.', '.', '.', 'Q', '.',   '.', '.', '.', 'Q', '.', '.', '.', '.', 
-            'Q', '.', '.', '.', '.', 'Q', '.', '.',   '.', '.', '.', '.', 'Q', '.', '.', '.', 
-            'Q', '.', '.', '.', 'Q', '.', '.', '.',   '.', '.', '.', '.', '.', 'Q', '.', '.', 
-            'Q', '.', '.', 'Q', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', 'Q', '.', 
-            'Q', '.', 'Q', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', '.', '.', 'Q', 
-            'Q', 'Q', '.', '.', '.', '.', '.', '.',   '.', 'Q', 'Q', 'Q', 'Q', 'Q', 'Q', 'Q',  
-            '.', 
-            'Q', 'Q', 'Q', 'Q', 'Q', 'Q', 'Q', '.',   '.', '.', '.', '.', '.', '.', 'Q', 'Q', 
-            'Q', '.', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', '.', 'Q', '.', 'Q', 
-            '.', 'Q', '.', '.', '.', '.', '.', '.',   '.', '.', '.', '.', 'Q', '.', '.', 'Q', 
-            '.', '.', 'Q', '.', '.', '.', '.', '.',   '.', '.', '.', 'Q', '.', '.', '.', 'Q', 
-            '.', '.', '.', 'Q', '.', '.', '.', '.',   '.', '.', 'Q', '.', '.', '.', '.', 'Q', 
-            '.', '.', '.', '.', 'Q', '.', '.', '.',   '.', 'Q', '.', '.', '.', '.', '.', 'Q', 
-            '.', '.', '.', '.', '.', 'Q', '.', '.',   'Q', '.', '.', '.', '.', '.', '.', 'Q',
-            '.', '.', '.', '.', '.', '.', 'Q', 'Q',   '.', '.', '.', '.', '.', '.', '.', '.'
-        };
+    /// <summary> Gets file number for this square.
+    /// </summary>
+    public int File { get; private set; }
 
-        /// <summary>
-        /// The vectors.
-        /// </summary>
-        private static int[] vectors = 
-        { 
-              0,   0,   0,   0,   0,   0,   0,  0,   -15, -17,   0,   0,   0,   0,   0,   0, 
-            -16,   0,   0,   0,   0,   0,   0, -15,    0,   0, -17,   0,   0,   0,   0,   0, 
-            -16,   0,   0,   0,   0,   0, -15,  0,     0,   0,   0, -17,   0,   0,   0,   0, 
-            -16,   0,   0,   0,   0, -15,   0,  0,     0,   0,   0,   0, -17,   0,   0,   0, 
-            -16,   0,   0,   0, -15,   0,   0,  0,     0,   0,   0,   0,   0, -17,   0,   0, 
-            -16,   0,   0, -15,   0,   0,   0,  0,     0,   0,   0,   0,   0,   0, -17, 100, 
-            -16, 100, -15,   0,   0,   0,   0,  0,     0,   0,   0,   0,   0,   0, 100, -17, 
-            -16, -15, 100,   0,   0,   0,   0,  0,     0,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  
-              0, 
-              1,  1,    1,   1,   1,   1,   1,  0,     0,   0,   0,   0,   0, 100,  15,  16, 
-             17, 100,   0,   0,   0,   0,   0,  0,     0,   0,   0,   0,   0,  15, 100,  16, 
-            100,  17,   0,   0,   0,   0,   0,  0,     0,   0,   0,   0,  15,   0,   0,  16, 
-              0,   0,  17,   0,   0,   0,   0,  0,     0,   0,   0,  15,   0,   0,   0,  16, 
-              0,   0,   0,  17,   0,   0,   0,  0,     0,   0,  15,   0,   0,   0,   0,  16, 
-              0,   0,   0,   0,  17,   0,   0,  0,     0,  15,   0,   0,   0,   0,   0,  16, 
-              0,   0,   0,   0,   0,  17,   0,  0,    15,   0,   0,   0,   0,   0,   0,  16, 
-              0,   0,   0,   0,   0,   0,  17, 15,     0,   0,   0,   0,   0,   0,   0,   0
-        };
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Square"/> class.
-        /// </summary>
-        /// <param name="ordinal">
-        /// The ordinal index of this square.
-        /// </param>
-        public Square(int ordinal)
+    /// <summary>
+    ///   Gets the file letter for this square.
+    /// </summary>
+    public string FileName
+    {
+        get
         {
-            this.Ordinal = ordinal;
-            this.File = ordinal % Board.MatrixWidth;
-            this.Rank = ordinal / Board.MatrixWidth;
-            this.Colour = (this.File % 2 == this.Rank % 2) ? ColourNames.Black : ColourNames.White;
+            string[] fileNames = { "a", "b", "c", "d", "e", "f", "g", "h" };
+            return fileNames[this.File];
         }
+    }
 
-        /// <summary> Possible square colours: black or white. </summary>
-        public enum ColourNames
+    /// <summary>
+    ///   Gets HashCodeA.
+    /// </summary>
+    public ulong HashCodeA
+    {
+        get
         {
-            White, 
-            Black
+            return this.Piece == null ? 0UL : this.Piece.HashCodeAForSquareOrdinal(this.Ordinal);
         }
+    }
 
-        /// <summary>
-        ///   Gets the colour of this square: black or white!
-        /// </summary>
-        public ColourNames Colour { get; private set; }
-
-        /// <summary> Gets file number for this square.
-        /// </summary>
-        public int File { get; private set; }
-
-        /// <summary>
-        ///   Gets the file letter for this square.
-        /// </summary>
-        public string FileName
+    /// <summary>
+    ///   Gets HashCodeB.
+    /// </summary>
+    public ulong HashCodeB
+    {
+        get
         {
-            get
+            return this.Piece == null ? 0UL : this.Piece.HashCodeBForSquareOrdinal(this.Ordinal);
+        }
+    }
+
+    /// <summary>
+    ///   Gets the display name fo this square.
+    /// </summary>
+    public string Name
+    {
+        get
+        {
+            return this.FileName + this.RankName;
+        }
+    }
+
+    /// <summary>
+    ///   Gets the ordinal index of this square.
+    /// </summary>
+    public int Ordinal { get; private set; }
+
+    /// <summary>
+    ///   Gets or sets Piece.
+    /// </summary>
+    public Piece? Piece { get; set; }
+
+    /// <summary>
+    ///   Gets Rank.
+    /// </summary>
+    public int Rank { get; private set; }
+
+    /// <summary>
+    ///   Gets RankName.
+    /// </summary>
+    public string RankName
+    {
+        get
+        {
+            return (this.Rank + 1).ToString();
+        }
+    }
+
+    /// <summary>
+    ///   Gets a simple positonal value for this square.
+    /// </summary>
+    public int Value
+    {
+        get
+        {
+            return SquareValues[this.Ordinal];
+        }
+    }
+
+    /// <summary>
+    /// Appends a list of moves of all the pieces that are attacking this square.
+    /// </summary>
+    /// <param name="moves">
+    /// Moves of pieces that are attacking this square.
+    /// </param>
+    /// <param name="player">
+    /// Player whose turn it is
+    /// </param>
+    public void AttackersMoveList(Moves moves, Player player)
+    {
+        foreach (Piece p in player.Pieces)
+        {
+            if (p.CanAttackSquare(this))
             {
-                string[] fileNames = { "a", "b", "c", "d", "e", "f", "g", "h" };
-                return fileNames[this.File];
+                moves.Add(0, 0, Move.MoveNames.Standard, p, p.Square, this, this.Piece, 0, 0);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns a list of player's pieces attacking this square.
+    /// </summary>
+    /// <param name="player">
+    /// Player who owns the attacking pieces that you want to find.
+    /// </param>
+    /// <returns>
+    /// List of pieces.
+    /// </returns>
+    public Pieces PlayersPiecesAttackingThisSquare(Player player)
+    {
+        Pieces pieces = new Pieces();
+
+        foreach (Piece p in player.Pieces)
+        {
+            if (p.CanAttackSquare(this))
+            {
+                pieces.Add(p);
             }
         }
 
-        /// <summary>
-        ///   Gets HashCodeA.
-        /// </summary>
-        public ulong HashCodeA
+        return pieces;
+    }
+
+    /// <summary>
+    /// Determines whether the specified player can attack this square.
+    /// </summary>
+    /// <param name="player">
+    /// The player being tested. (
+    /// </param>
+    /// <returns>
+    /// True if player can move a piece to this square.
+    /// </returns>
+    public bool PlayerCanAttackSquare(Player player)
+    {
+
+        foreach (Piece.PieceNames pieceName in player.PieceTypes())
         {
-            get
+            if (Piece.CanPlayerPieceNameAttackSquare(this, player, pieceName))
             {
-                return this.Piece == null ? 0UL : this.Piece.HashCodeAForSquareOrdinal(this.Ordinal);
+                return true;
             }
         }
 
-        /// <summary>
-        ///   Gets HashCodeB.
-        /// </summary>
-        public ulong HashCodeB
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a sliding piece could slide to this square from the specified start square, 
+    /// in the specified direction-offset. Checks that no pieces are blocking the route.
+    /// </summary>
+    /// <param name="squareStart">
+    /// The starting square.
+    /// </param>
+    /// <param name="directionOffset">
+    /// The direciton offset.
+    /// </param>
+    /// <returns>
+    /// True if the piece can be slid.
+    /// </returns>
+    /// <exception cref="ApplicationException">
+    /// An exception indicting that the alogrithm has hit the edge of the board.
+    /// </exception>
+    public bool CanSlideToHereFrom(Square squareStart, int directionOffset)
+    {
+        int intOrdinal = squareStart.Ordinal;
+        Square square;
+
+        intOrdinal += directionOffset;
+        while ((square = Board.GetSquare(intOrdinal)) != null)
         {
-            get
+            if (square == this)
             {
-                return this.Piece == null ? 0UL : this.Piece.HashCodeBForSquareOrdinal(this.Ordinal);
-            }
-        }
-
-        /// <summary>
-        ///   Gets the display name fo this square.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                return this.FileName + this.RankName;
-            }
-        }
-
-        /// <summary>
-        ///   Gets the ordinal index of this square.
-        /// </summary>
-        public int Ordinal { get; private set; }
-
-        /// <summary>
-        ///   Gets or sets Piece.
-        /// </summary>
-        public Piece? Piece { get; set; }
-
-        /// <summary>
-        ///   Gets Rank.
-        /// </summary>
-        public int Rank { get; private set; }
-
-        /// <summary>
-        ///   Gets RankName.
-        /// </summary>
-        public string RankName
-        {
-            get
-            {
-                return (this.Rank + 1).ToString();
-            }
-        }
-
-        /// <summary>
-        ///   Gets a simple positonal value for this square.
-        /// </summary>
-        public int Value
-        {
-            get
-            {
-                return SquareValues[this.Ordinal];
-            }
-        }
-
-        /// <summary>
-        /// Appends a list of moves of all the pieces that are attacking this square.
-        /// </summary>
-        /// <param name="moves">
-        /// Moves of pieces that are attacking this square.
-        /// </param>
-        /// <param name="player">
-        /// Player whose turn it is
-        /// </param>
-        public void AttackersMoveList(Moves moves, Player player)
-        {
-            foreach (Piece p in player.Pieces)
-            {
-                if (p.CanAttackSquare(this))
-                    moves.Add(0, 0, Move.MoveNames.Standard, p, p.Square, this, this.Piece, 0, 0);
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of player's pieces attacking this square.
-        /// </summary>
-        /// <param name="player">
-        /// Player who owns the attacking pieces that you want to find.
-        /// </param>
-        /// <returns>
-        /// List of pieces.
-        /// </returns>
-        public Pieces PlayersPiecesAttackingThisSquare(Player player)
-        {
-            Pieces pieces = new Pieces();
-
-            foreach (Piece p in player.Pieces)
-            {
-                if (p.CanAttackSquare(this))
-                    pieces.Add(p);
+                return true;
             }
 
-            return pieces;
-        }
-
-        /// <summary>
-        /// Determines whether the specified player can attack this square.
-        /// </summary>
-        /// <param name="player">
-        /// The player being tested. (
-        /// </param>
-        /// <returns>
-        /// True if player can move a piece to this square.
-        /// </returns>
-        public bool PlayerCanAttackSquare(Player player)
-        {
-
-            foreach (Piece.PieceNames pieceName in player.PieceTypes())
+            if (square.Piece != null)
             {
-                if (Piece.CanPlayerPieceNameAttackSquare(this, player, pieceName))
-                    return true;
+                return false;
             }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Determines whether a sliding piece could slide to this square from the specified start square, 
-        /// in the specified direction-offset. Checks that no pieces are blocking the route.
-        /// </summary>
-        /// <param name="squareStart">
-        /// The starting square.
-        /// </param>
-        /// <param name="directionOffset">
-        /// The direciton offset.
-        /// </param>
-        /// <returns>
-        /// True if the piece can be slid.
-        /// </returns>
-        /// <exception cref="ApplicationException">
-        /// An exception indicting that the alogrithm has hit the edge of the board.
-        /// </exception>
-        public bool CanSlideToHereFrom(Square squareStart, int directionOffset)
-        {
-            int intOrdinal = squareStart.Ordinal;
-            Square square;
 
             intOrdinal += directionOffset;
-            while ((square = Board.GetSquare(intOrdinal)) != null)
-            {
-                if (square == this)
-                {
-                    return true;
-                }
-
-                if (square.Piece != null)
-                {
-                    return false;
-                }
-
-                intOrdinal += directionOffset;
-            }
-
-            throw new ApplicationException("CanSlideToHereFrom: Hit edge of board!");
         }
 
-        /// <summary>
-        /// Calculates defense points for the player on this square. Returns the value of the cheapest piece defending the square.
-        /// If no pieces are defending, then returns a high value (15,000).
-        /// </summary>
-        /// <param name="player">
-        /// The defending player.
-        /// </param>
-        /// <returns>
-        /// Defense points.
-        /// </returns>
-        public int DefencePointsForPlayer(Player player)
+        throw new ApplicationException("CanSlideToHereFrom: Hit edge of board!");
+    }
+
+    /// <summary>
+    /// Calculates defense points for the player on this square. Returns the value of the cheapest piece defending the square.
+    /// If no pieces are defending, then returns a high value (15,000).
+    /// </summary>
+    /// <param name="player">
+    /// The defending player.
+    /// </param>
+    /// <returns>
+    /// Defense points.
+    /// </returns>
+    public int DefencePointsForPlayer(Player player)
+    {
+
+        Piece piece;
+
+        foreach (Piece.PieceNames pieceName in player.PieceTypes())
         {
-
-            Piece piece;
-
-            foreach (Piece.PieceNames pieceName in player.PieceTypes())
-            {
-                if (Piece.CanPlayerPieceNameAttackSquare(this, player, pieceName, out piece))
-                    return piece.Value;
-            }
-            return 15000;
+            if (Piece.CanPlayerPieceNameAttackSquare(this, player, pieceName, out piece))
+                return piece.Value;
         }
+        return 15000;
+    }
 
-        /// <summary>
-        /// Gets the cheapest piece defending this square.
-        /// </summary>
-        /// <param name="player">
-        /// Defending player who pieces should be listed.
-        /// </param>
-        /// <returns>
-        /// List of pieces.
-        /// </returns>
-        public Piece? CheapestPieceDefendingThisSquare(Player player)
+    /// <summary>
+    /// Gets the cheapest piece defending this square.
+    /// </summary>
+    /// <param name="player">
+    /// Defending player who pieces should be listed.
+    /// </param>
+    /// <returns>
+    /// List of pieces.
+    /// </returns>
+    public Piece? CheapestPieceDefendingThisSquare(Player player)
+    {
+        foreach (Piece.PieceNames pieceName in player.PieceTypes())
         {
-            foreach (Piece.PieceNames pieceName in player.PieceTypes())
+            if (Piece.CanPlayerPieceNameAttackSquare(this, player, pieceName, out Piece piece))
             {
-                if (Piece.CanPlayerPieceNameAttackSquare(this, player, pieceName, out Piece piece))
-                {
-                    return piece;
-                }
+                return piece;
             }
-
-            return null;
         }
+
+        return null;
     }
 }

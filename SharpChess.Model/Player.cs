@@ -3,14 +3,20 @@ namespace SharpChess.Model;
 /// <summary> A player, implemented as PlayerWhite and PlayerBlack. </summary>
 public abstract class Player
 {
+    public readonly Game Game;
+    public readonly Board Board;
+
     /// <summary> Initializes a new instance of the <see cref = "Player" /> class. </summary>
 #pragma warning disable CS8618
     // Non-nullable field must contain a non-null value when exiting constructor. 
     // TODO : Fix creation of KING piece in derived classes. (Circular reference problem).
-    protected Player()
+    protected Player(Game game)
 #pragma warning restore CS8618 
     {
-        this.Clock = new PlayerClock();
+        this.Game = game;
+        this.Board = game.Board;
+
+        this.Clock = new PlayerClock(game);
         this.MaterialCount = 7;
         this.PawnCountInPlay = 8;
         this.Pieces = [];

@@ -25,6 +25,9 @@ public class PieceKing : IPieceTop
     /// </summary>
     public static int[] moveVectors = { 1, 15, 16, 17, -1, -15, -16, -17 };
 
+    public readonly Game Game;
+    public readonly Board Board;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PieceKing"/> class.
     /// </summary>
@@ -33,6 +36,8 @@ public class PieceKing : IPieceTop
     /// </param>
     public PieceKing(Piece pieceBase)
     {
+        this.Game = pieceBase.Player.Game;
+        this.Board = this.Game.Board;
         this.Base = pieceBase;
     }
 
@@ -445,12 +450,12 @@ public class PieceKing : IPieceTop
     /// <param name="square"></param>
     /// <param name="player"></param>
     /// <returns></returns>
-    static public bool DoesPieceAttackSquare(Square square, Player player)            
+    public static bool DoesPieceAttackSquare(Square square, Player player)            
     {
         return Piece.DoesLeaperPieceTypeAttackSquare(square, player, _pieceType, moveVectors);
     }
 
-    static public bool DoesPieceAttackSquare(Square square, Player player, out Piece attackingPiece)
+    public static bool DoesPieceAttackSquare(Square square, Player player, out Piece attackingPiece)
     {
         return Piece.DoesLeaperPieceTypeAttackSquare(square, player, _pieceType, moveVectors, out attackingPiece);
     }
@@ -463,9 +468,7 @@ public class PieceKing : IPieceTop
     /// </param>
     private void MoveSquares(ref Squares squares)
     {
-        Square square;
-
-        square = Board.GetSquare(this.Base.Square.Ordinal - 1);
+        Square square = Board.GetSquare(this.Base.Square.Ordinal - 1);
         if (square != null && (square.Piece == null || (square.Piece.Player.Colour != this.Base.Player.Colour && square.Piece.IsCapturable)))
         {
             squares.Add(square);
