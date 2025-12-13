@@ -1,7 +1,7 @@
 ﻿namespace SharpChess.Model.Tests;
 
 [TestClass]
-public sealed class Test1
+public sealed class TemplateForOptionalFixtures
 {
     [AssemblyInitialize]
     public static void AssemblyInit(TestContext context)
