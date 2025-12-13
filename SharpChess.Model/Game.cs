@@ -14,6 +14,9 @@ namespace SharpChess.Model
         public readonly HashTable HashTable;
         public readonly HashTablePawn HashTablePawn;
         public readonly HashTableCheck HashTableCheck;
+        public readonly OpeningBookSimple OpeningBookSimple;
+        public readonly HistoryHeuristic HistoryHeuristic;
+        public readonly KillerMoves KillerMoves;
 
         /// <summary> The file name.
         private string saveGameFileName = string.Empty;
@@ -39,17 +42,18 @@ namespace SharpChess.Model
             this.HashTable = new HashTable(this);
             this.HashTablePawn = new HashTablePawn();
             this.HashTableCheck = new HashTableCheck();
+            this.OpeningBookSimple = new OpeningBookSimple(this);
+            this.HistoryHeuristic = new HistoryHeuristic(this);
+            this.KillerMoves = new KillerMoves(this);
+            this.PlayerWhite = new PlayerWhite(this);
+            this.PlayerBlack = new PlayerBlack(this);
+            this.PlayerToPlay = PlayerWhite;
+            this.Board.EstablishHashKey();
 
-            PlayerWhite = new PlayerWhite(this);
-            PlayerBlack = new PlayerBlack(this);
-            PlayerToPlay = PlayerWhite;
-            Board.EstablishHashKey();
-            OpeningBookSimple.Initialise();
+            this.PlayerWhite.Brain.ReadyToMakeMoveEvent += PlayerReadyToMakeMove;
+            this.PlayerBlack.Brain.ReadyToMakeMoveEvent += PlayerReadyToMakeMove;
 
-            PlayerWhite.Brain.ReadyToMakeMoveEvent += PlayerReadyToMakeMove;
-            PlayerBlack.Brain.ReadyToMakeMoveEvent += PlayerReadyToMakeMove;
-
-            BackupGamePath = string.Empty;
+            this.BackupGamePath = string.Empty;
 
             #region Commented OUT : Load Settings from Registry
 
@@ -608,18 +612,19 @@ namespace SharpChess.Model
         /// <summary> Enable or disable SharpChess's features </summary>
         private void EnableFeatures()
         {
-            EnableAspiration = false;
-            EnableExtensions = true;
-            EnableHistoryHeuristic = true;
-            EnableKillerMoves = true;
-            EnableNullMovePruning = true;
-            EnablePvsSearch = true;
-            EnableQuiescense = true;
-            EnableReductions = true;
-            EnableReductionFutilityMargin = false;
-            EnableReductionFutilityFixedDepth = true;
-            EnableReductionLateMove = true;
-            EnableTranspositionTable = true;
+            this.EnableExtensions = true;
+            this.EnableHistoryHeuristic = true;
+            this.EnableKillerMoves = true;
+            this.EnableNullMovePruning = true;
+            this.EnablePvsSearch = true;
+            this.EnableQuiescense = true;
+            this.EnableReductions = true;
+            this.EnableReductionFutilityFixedDepth = true;
+            this.EnableReductionLateMove = true;
+            this.EnableTranspositionTable = true;
+
+            this.EnableAspiration = false;
+            this.EnableReductionFutilityMargin = false;
         }
 
         /// <summary> Load game from the specified file name. </summary>
@@ -834,11 +839,11 @@ namespace SharpChess.Model
 
             Fen.Validate(fenString);
 
-            HashTable.Clear();
-            HashTablePawn.Clear();
-            HashTableCheck.Clear();
-            KillerMoves.Clear();
-            HistoryHeuristic.Clear();
+            this.HashTable.Clear();
+            this.HashTablePawn.Clear();
+            this.HashTableCheck.Clear();
+            this.KillerMoves.Clear();
+            this.HistoryHeuristic.Clear();
 
             UndoAllMovesInternal();
             MoveRedoList.Clear();

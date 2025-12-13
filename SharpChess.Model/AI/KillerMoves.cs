@@ -4,30 +4,34 @@ namespace SharpChess.Model.AI;
 /// Represents the Killer Heuristic used to improve move ordering.
 ///   http://chessprogramming.wikispaces.com/Killer+Heuristic
 /// </summary>
-public static class KillerMoves
+public sealed class KillerMoves
 {
-    /// <summary>
-    ///   List of primary (A) Killer Moves indexed by search depth.
-    /// </summary>
-    private static readonly Move[] PrimaryKillerMovesA = new Move[64];
+    /// <summary> List of primary (A) Killer Moves indexed by search depth. </summary>
+    private readonly Move?[] PrimaryKillerMovesA ;
 
     /// <summary>
     ///   List of secondary (B) Killer Moves indexed by search depth.
     /// </summary>
-    private static readonly Move[] SecondaryKillerMovesB = new Move[64];
+    private readonly Move?[] SecondaryKillerMovesB ;
+
+    private readonly Game game; 
 
     /// <summary>
-    ///   Initializes static members of the <see cref = "KillerMoves" /> class.
+    /// Initializes a new instance of the KillerMoves class for the specified game position.    
     /// </summary>
-    static KillerMoves()
+    /// <remarks>Killer moves are a heuristic used in game search algorithms to improve move ordering. This
+    /// constructor prepares the data structures for tracking killer moves associated with the given game.</remarks>
+    /// <param name="game">The game position for which killer moves will be tracked. Cannot be null.</param>
+    public KillerMoves(Game game)
     {
-        Clear();
+        this.game = game;
+        PrimaryKillerMovesA = new Move[64];
+        SecondaryKillerMovesB = new Move[64];
+        this.Clear();
     }
 
-    /// <summary>
-    /// The clear.
-    /// </summary>
-    public static void Clear()
+    /// <summary> Clears all tables. </summary>
+    public void Clear()
     {
         for (int intIndex = 0; intIndex < 64; intIndex++)
         {
@@ -39,16 +43,12 @@ public static class KillerMoves
     /// <summary>
     /// Adds the move made to the appropriate killer move slot, if it's better than the current killer moves
     /// </summary>
-    /// <param name="ply">
-    /// Search depth
-    /// </param>
-    /// <param name="moveMade">
-    /// Move to be added
-    /// </param>
-    public static void RecordPossibleKillerMove(int ply, Move moveMade)
+    /// <param name="ply"> Search depth </param>
+    /// <param name="moveMade"> Move to be added </param>
+    public void RecordPossibleKillerMove(int ply, Move moveMade)
     {
         // Disable if this feature when switched off.
-        if (!Game.EnableKillerMoves)
+        if (!this.game.EnableKillerMoves)
         {
             return;
         }
@@ -117,59 +117,33 @@ public static class KillerMoves
         }
     }
 
-    /// <summary>
-    /// Retrieve primary (A) killer move for specified search depth.
-    /// </summary>
-    /// <param name="depth">
-    /// Search depth (ply).
-    /// </param>
-    /// <returns>
-    /// Move for specified depth
-    /// </returns>
-    public static Move RetrieveA(int depth)
+    /// <summary> Retrieve primary (A) killer move for specified search depth. </summary>
+    /// <param name="depth"> Search depth (ply). </param>
+    /// <returns> Move for specified depth </returns>
+    public Move? RetrieveA(int depth)
     {
-        return PrimaryKillerMovesA[depth + 32];
+        Move? move = this.PrimaryKillerMovesA[depth + 32];
+        return move;
     }
 
-    /// <summary>
-    /// Retrieve secondary (B) killer move for specified search depth.
-    /// </summary>
-    /// <param name="depth">
-    /// Search depth (ply).
-    /// </param>
-    /// <returns>
-    /// Move for specified depth
-    /// </returns>
-    public static Move RetrieveB(int depth)
+    /// <summary> Retrieve secondary (B) killer move for specified search depth. </summary>
+    /// <param name="depth"> Search depth (ply). </param>
+    /// <returns> Move for specified depth </returns>
+    public Move? RetrieveB(int depth)
     {
-        return SecondaryKillerMovesB[depth + 32];
+        return this.SecondaryKillerMovesB[depth + 32];
     }
 
-    /// <summary>
-    /// Assign killer move A (primary)
-    /// </summary>
-    /// <param name="depth">
-    /// The search depth (ply).
+    /// <summary> Assign killer move A (primary) </summary>
+    /// <param name="depth"> The search depth (ply). </param>
+    /// <param name="move"> The move to assign.
     /// </param>
-    /// <param name="move">
-    /// The move to assign.
-    /// </param>
-    private static void AssignA(int depth, Move move)
-    {
-        PrimaryKillerMovesA[depth + 32] = move;
-    }
+    private void AssignA(int depth, Move move)
+        => this.PrimaryKillerMovesA[depth + 32] = move;
 
-    /// <summary>
-    /// Assign killer move B (secondary)
-    /// </summary>
-    /// <param name="depth">
-    /// The search depth (ply).
-    /// </param>
-    /// <param name="move">
-    /// The move to assign.
-    /// </param>
-    private static void AssignB(int depth, Move move)
-    {
-        SecondaryKillerMovesB[depth + 32] = move;
-    }
+    /// <summary> Assign killer move B (secondary) </summary>
+    /// <param name="depth"> The search depth (ply). </param>
+    /// <param name="move"> The move to assign. </param>
+    private void AssignB(int depth, Move move)
+        => this.SecondaryKillerMovesB[depth + 32] = move;
 }

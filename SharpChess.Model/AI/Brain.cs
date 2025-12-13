@@ -298,8 +298,8 @@ public class Brain
                 // Query Simple Opening Book
                 if (Game.UseRandomOpeningMoves)
                 {
-                    Move moveBook;
-                    if ((moveBook = OpeningBookSimple.SuggestRandomMove(player)) != null)
+                    Move? moveBook = this.Game.OpeningBookSimple.SuggestRandomMove(player) ;
+                    if (moveBook is not null)
                     {
                         this.PrincipalVariation.Add(moveBook);
                         this.MoveConsideredEvent();
@@ -382,30 +382,31 @@ public class Brain
 
             if (Game.IsInAnalyseMode)
             {
-                HashTable.Clear();
-                HashTableCheck.Clear();
-                HashTablePawn.Clear();
-                HistoryHeuristic.Clear();
+                this.Game.HashTable.Clear();
+                this.Game.HashTableCheck.Clear();
+                this.Game.HashTablePawn.Clear();
+                this.Game.HistoryHeuristic.Clear();
             }
             else
             {
                 if (this.MyPlayer.CanClaimMoveRepetitionDraw(2))
                 {
                     // See if' we're in a 2 move repetition position, and if so, clear the hashtable, as old hashtable entries corrupt 3MR detection
-                    HashTable.Clear();
+                    this.Game.HashTable.Clear();
                 }
                 else
                 {
-                    HashTable.ResetStats(); // Reset the main hash table hit stats
+                    this.Game.HashTable.ResetStats(); // Reset the main hash table hit stats
                 }
 
-                HashTableCheck.ResetStats();
+                this.Game.HashTableCheck.ResetStats();
 
                 // We also have a hash table in which we just store the check status for both players
-                HashTablePawn.ResetStats();
-
                 // And finally a hash table that stores the positional score of just the pawns.
-                HistoryHeuristic.Clear(); // Clear down the History Heuristic info, at the start of each move.
+                this.Game.HashTablePawn.ResetStats();
+
+                // Clear down the History Heuristic info, at the start of each move.
+                this.Game.HistoryHeuristic.Clear(); 
             }
 
             if (!this.IsPondering)

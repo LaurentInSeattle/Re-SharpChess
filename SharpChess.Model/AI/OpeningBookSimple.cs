@@ -5,45 +5,22 @@ namespace SharpChess.Model.AI
     /// Not competition standard by any means!
     ///   XML opening book files are created from PGN files using the <see cref = "PGNtoXML" /> class.
     /// </summary>
-    public static class OpeningBookSimple
+    public sealed class OpeningBookSimple
     {
-        #region Constants and Fields
+        /// <summary> The hashtable for black. </summary>
+        private readonly Hashtable HashtableBlack = [];
 
-        /// <summary>
-        /// The m_ hashtable black.
-        /// </summary>
-        private static readonly Hashtable HashtableBlack = new Hashtable();
+        /// <summary> The hashtable for white. </summary>
+        private readonly Hashtable HashtableWhite = [];
+        private readonly Game game;
+        private readonly Board board;
 
-        /// <summary>
-        /// The m_ hashtable white.
-        /// </summary>
-        private static readonly Hashtable HashtableWhite = new Hashtable();
-
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Import opening book XML for file.
-        /// </summary>
-        /// <returns>
-        /// Imported XML.
-        /// </returns>
-        public static string Import()
+        public OpeningBookSimple(Game game)
         {
-            XmlDocument xmldoc = new XmlDocument();
-            xmldoc.Load(@"d:\OpeningBook_8plys_2014.xml");
-            Prune((XmlElement)xmldoc.FirstChild, 1);
-            return xmldoc.OuterXml;
-        }
+            this.game = game;
+            this.board = game.Board;
 
-        /// <summary>
-        /// The initialise.
-        /// </summary>
-        public static void Initialise()
-        {
             string strBook = string.Empty;
-
             strBook += "<root>";
             strBook += "<m f='b2' t='b4'><m f='g8' t='h6' /><m f='c7' t='c6' /></m><m f='g2' t='g3'><m f='h7' t='h5' /><m f='e7' t='e5'><m f='g1' t='f3' /></m></m><m f='g2' t='g4'><m f='d7' t='d5'><m f='f1' t='g2'><m f='c7' t='c6'><m f='g4' t='g5' /></m><m f='c8' t='g4'><m f='c2' t='c4'><m f='d5' t='d4' /></m></m></m></m></m><m f='h2' t='h3'><m f='e7' t='e5'><m f='a2' t='a3' /></m></m><m f='g1' t='h3'><m f='d7' t='d5'><m f='g2' t='g3'><m f='e7' t='e5'><m f='f2' t='f4'><m f='c8' t='h3'><m f='f1' t='h3'><m f='e5' t='f4' /></m></m></m></m></m></m></m><m f='b1' t='c3'><m f='e7' t='e5'><m f='a2' t='a3' /></m><m f='c7' t='c5'><m f='d2' t='d4'><m f='c5' t='d4'><m f='d1' t='d4'><m f='b8' t='c6'><m f='d4' t='h4' /></m></m></m></m></m></m><m f='a2' t='a4'><m f='e7' t='e5'><m f='h2' t='h4' /></m></m><m f='d2' t='d3'><m f='e7' t='e5'><m f='b1' t='d2' /></m><m f='c7' t='c5'><m f='b1' t='c3'>";
             strBook += "<m f='b8' t='c6'><m f='g2' t='g3' /></m></m></m></m><m f='e2' t='e3'><m f='e7' t='e5'><m f='c2' t='c4'><m f='d7' t='d6'><m f='b1' t='c3'><m f='b8' t='c6'><m f='b2' t='b3'><m f='g8' t='f6' /></m></m></m></m></m></m></m><m f='f2' t='f3'><m f='e7' t='e5'><m f='e1' t='f2' /></m></m><m f='b2' t='b3'><m f='e7' t='e5' /><m f='g8' t='f6' /><m f='d7' t='d5' /><m f='c7' t='c5' /><m f='f7' t='f5' /></m><m f='f2' t='f4'><m f='e7' t='e5'><m f='f4' t='e5'><m f='d7' t='d6'><m f='e5' t='d6'><m f='f8' t='d6'><m f='g1' t='f3'><m f='g7' t='g5' /><m f='g8' t='h6' /></m></m></m></m></m></m><m f='f7' t='f5'><m f='e2' t='e4'><m f='f5' t='e4'><m f='b1' t='c3'><m f='g8' t='f6'><m f='g2' t='g4' /></m></m></m></m></m><m f='g7' t='g5' /><m f='d7' t='d5'><m f='c2' t='c4' /><m f='e2' t='e4' /><m f='g1' t='f3'><m f='g8' t='f6'><m f='e2' t='e3'><m f='c7' t='c5' /></m></m></m></m></m><m f='g1' t='f3'>";
@@ -77,27 +54,28 @@ namespace SharpChess.Model.AI
             strBook += "<m f='f2' t='f3'><m f='d7' t='d5' /></m><m f='g1' t='f3' /><m f='d1' t='c2' /><m f='d4' t='d5'><m f='b7' t='b5' /></m><m f='g2' t='g3'><m f='d7' t='d5'><m f='f1' t='g2'><m f='f8' t='g7' /></m></m><m f='f8' t='g7'><m f='f1' t='g2'><m f='d7' t='d5' /></m></m></m><m f='b1' t='c3'><m f='d7' t='d5'><m f='g2' t='g4' /><m f='c1' t='g5'><m f='f6' t='e4' /></m><m f='d1' t='b3' /><m f='c1' t='f4'><m f='f8' t='g7' /></m><m f='c4' t='d5'><m f='f6' t='d5' /></m><m f='g1' t='f3'><m f='c7' t='c6' /><m f='f8' t='g7' /></m></m><m f='f8' t='g7'><m f='g1' t='f3'><m f='d7' t='d6' /></m><m f='e2' t='e4'><m f='d7' t='d6' /></m></m></m></m></m></m></m>";
             strBook += "</root>";
 
-            XmlDocument xmldocBook = new XmlDocument();
+            var xmldocBook = new XmlDocument();
             xmldocBook.LoadXml(strBook);
-
-            BuildHashtable((XmlElement)xmldocBook.FirstChild, Game.PlayerWhite);
+            var xmlNode = xmldocBook.FirstChild;
+            if (xmlNode is XmlElement xmlElement)
+            {
+                BuildHashtable(xmlElement, this.game.PlayerWhite);
+            }
+            else
+            {
+                throw new ApplicationException("Invalid XML format in opening book.");
+            }
         }
 
-        /// <summary>
-        /// Suggest random move from the simple opening book.
-        /// </summary>
-        /// <param name="player">
-        /// The player to play.
-        /// </param>
-        /// <returns>
-        /// Suggested move.
-        /// </returns>
-        public static Move SuggestRandomMove(Player player)
+        /// <summary> Suggest a random move from the simple opening book. </summary>
+        /// <param name="player"> The player to play. </param>
+        /// <returns> Suggested move. </returns>
+        public Move? SuggestRandomMove(Player player)
         {
             Hashtable hashtable = player.Colour == Player.PlayerColourNames.White ? HashtableWhite : HashtableBlack;
-            if (hashtable.ContainsKey(Board.HashCodeA))
+            if (hashtable.ContainsKey(this.board.HashCodeA))
             {
-                Moves moves = (Moves)hashtable[Board.HashCodeA];
+                Moves moves = (Moves)hashtable[this.board.HashCodeA];
                 if (moves.Count > 0)
                 {
                     int intChildCount = CalculateChildNoteTotalScore(moves);
@@ -123,53 +101,62 @@ namespace SharpChess.Model.AI
             return null;
         }
 
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// The build hashtable.
-        /// </summary>
-        /// <param name="xmlnodeParent">
-        /// The xmlnode parent.
-        /// </param>
-        /// <param name="player">
-        /// The player.
-        /// </param>
-        private static void BuildHashtable(XmlElement xmlnodeParent, Player player)
+        /// <summary> Builds the opening hashtable. </summary>
+        /// <param name="xmlnodeParent"> The xmlnode parent. </param>
+        /// <param name="player"> The player. </param>
+        private void BuildHashtable(XmlElement xmlnodeParent, Player player)
         {
             Moves moves;
             Hashtable hashtable = player.Colour == Player.PlayerColourNames.White ? HashtableWhite : HashtableBlack;
 
-            if (!hashtable.ContainsKey(Board.HashCodeA))
+            if (!hashtable.ContainsKey(this.board.HashCodeA))
             {
-                moves = new Moves();
-                hashtable.Add(Board.HashCodeA, moves);
+                moves = [];
+                hashtable.Add(this.board.HashCodeA, moves);
             }
             else
             {
-                moves = (Moves)hashtable[Board.HashCodeA];
+                moves = (Moves)hashtable[this.board.HashCodeA];
+            }
+
+            if (moves is null)
+            {
+                throw new ApplicationException("Invalid opening book structure.");
             }
 
             foreach (XmlElement xmlnodeMove in xmlnodeParent.ChildNodes)
             {
-                Move moveThis = Board.GetSquare(xmlnodeMove.GetAttribute("f")).Piece.Move(Move.MoveNameFromString(xmlnodeMove.GetAttribute("n")), Board.GetSquare(xmlnodeMove.GetAttribute("t")));
+                var square = this.board.GetSquare(xmlnodeMove.GetAttribute("f"));
+                if (square is null)
+                {
+                    throw new ApplicationException("Invalid opening book move: " + xmlnodeMove.OuterXml);
+                }
+
+                var piece = square.Piece;
+                if (piece is null)
+                {
+                    throw new ApplicationException("Invalid opening book move, no piece on from square: " + xmlnodeMove.OuterXml);
+                }
+
+                var toSquare = this.board.GetSquare(xmlnodeMove.GetAttribute("t"));
+                if (toSquare is null)
+                {
+                    throw new ApplicationException("Invalid opening book move: " + xmlnodeMove.OuterXml);
+                }
+
+                Move moveThis = piece.Move(
+                    Move.MoveNameFromString(xmlnodeMove.GetAttribute("n")),
+                    toSquare);
                 moveThis.Score = xmlnodeMove.ChildNodes.Count;
                 moves.Add(moveThis);
                 BuildHashtable(xmlnodeMove, player.OpposingPlayer);
-                Move.Undo(moveThis);
+                moveThis.Undo(moveThis);
             }
         }
 
-        /// <summary>
-        /// Calculates the total score for all child nodes.
-        /// </summary>
-        /// <param name="moves">
-        /// List of moves.
-        /// </param>
-        /// <returns>
-        /// The total score.
-        /// </returns>
+        /// <summary> Calculates the total score for all child nodes. </summary>
+        /// <param name="moves"> List of moves. </param>
+        /// <returns> The total score. </returns>
         private static int CalculateChildNoteTotalScore(Moves moves)
         {
             int intTotal = 0;
@@ -177,83 +164,93 @@ namespace SharpChess.Model.AI
             {
                 intTotal += move.Score;
             }
+
             return intTotal;
         }
 
-        /// <summary>
-        /// Converts the source opening bok into an XML format that SharpChess can processes.
-        /// </summary>
-        /// <returns>
-        /// Converted XML document.
-        /// </returns>
-        private static string Convert()
+        // TODO: Where is this file ? Is the method even used in the UI 
+        /// <summary> Import opening book XML for file. </summary>
+        /// <returns> Imported XML. </returns>
+        public string Import()
         {
-            XmlDocument xmldocSource = new XmlDocument();
-            XmlDocument xmldocTarget = new XmlDocument();
+            //var xmldoc = new XmlDocument();
+            //// Drive D: ??? 
+            //xmldoc.Load(@"d:\OpeningBook_8plys_2014.xml");
+            //Prune((XmlElement)xmldoc.FirstChild, 1);
+            //return xmldoc.OuterXml;
 
-            XmlElement xmlnodeBookRoot = (XmlElement)xmldocTarget.AppendChild(xmldocTarget.CreateElement("root"));
-
-            xmldocSource.Load(@"D:\Chess\My Opening Stuff\OpeningBook.xml");
-
-            XmlNodeList xmlnodelistLine = xmldocSource.SelectNodes("//Line");
-            if (xmlnodelistLine != null)
-            {
-                foreach (XmlElement xmlnodeLine in xmlnodelistLine)
-                {
-                    XmlElement xmlnodeBookPos = xmlnodeBookRoot;
-                    foreach (XmlElement xmlnodeMove in xmlnodeLine.ChildNodes)
-                    {
-                        XmlElement xmlnodeBookChild = (XmlElement)xmlnodeBookPos.SelectSingleNode("m[@f=\"" + xmlnodeMove.GetAttribute("From") + "\" and @t=\"" + xmlnodeMove.GetAttribute("To") + "\"]");
-                        if (xmlnodeBookChild == null)
-                        {
-                            xmlnodeBookChild = (XmlElement)xmlnodeBookPos.AppendChild(xmldocTarget.CreateElement("m"));
-                            xmlnodeBookChild.SetAttribute("f", xmlnodeMove.GetAttribute("From"));
-                            xmlnodeBookChild.SetAttribute("t", xmlnodeMove.GetAttribute("To"));
-                            if (xmlnodeMove.GetAttribute("Name") != "Standard")
-                            {
-                                xmlnodeBookChild.SetAttribute("n", xmlnodeMove.GetAttribute("Name"));
-                            }
-                        }
-
-                        xmlnodeBookPos = xmlnodeBookChild;
-                    }
-                }
-            }
-
-            Prune((XmlElement)xmldocTarget.FirstChild, 1);
-
-            return xmldocTarget.OuterXml;
+            return string.Empty;
         }
 
-        /// <summary>
-        /// Prunes the opening book entries down to to a managable number that can be held im memory, by deleting the leaf nodes that have the fewest children.
-        /// </summary>
-        /// <param name="xmlnodeParent">
-        /// The xmlnode parent.
-        /// </param>
-        /// <param name="depth">
-        /// The depth.
-        /// </param>
-        private static void Prune(XmlElement xmlnodeParent, int depth)
+        // TODO: Same here: Where is this file ? Is the method even used in the UI 
+        /// <summary> Converts the source opening book into an XML format that SharpChess can process. </summary>
+        /// <returns> Converted XML document. </returns>
+        private string Convert()
         {
-            for (int intIndex = xmlnodeParent.ChildNodes.Count - 1; intIndex >= 0; intIndex--)
-            {
-                XmlElement xmlnode = (XmlElement)xmlnodeParent.ChildNodes[intIndex];
+            //XmlDocument xmldocSource = new XmlDocument();
+            //XmlDocument xmldocTarget = new XmlDocument();
 
-                if (xmlnode.ParentNode != null && (xmlnode.ChildNodes.Count == 0 && xmlnode.ParentNode.ChildNodes.Count > 5))
-                {
-                    xmlnode.ParentNode.RemoveChild(xmlnode);
-                }
-                else
-                {
-                    if (depth <= 2)
-                    {
-                        Prune(xmlnode, depth + 1);
-                    }
-                }
-            }
+            //XmlElement xmlnodeBookRoot = (XmlElement)xmldocTarget.AppendChild(xmldocTarget.CreateElement("root"));
+
+            //xmldocSource.Load(@"D:\Chess\My Opening Stuff\OpeningBook.xml");
+
+            //XmlNodeList xmlnodelistLine = xmldocSource.SelectNodes("//Line");
+            //if (xmlnodelistLine != null)
+            //{
+            //    foreach (XmlElement xmlnodeLine in xmlnodelistLine)
+            //    {
+            //        XmlElement xmlnodeBookPos = xmlnodeBookRoot;
+            //        foreach (XmlElement xmlnodeMove in xmlnodeLine.ChildNodes)
+            //        {
+            //            XmlElement xmlnodeBookChild = (XmlElement)xmlnodeBookPos.SelectSingleNode("m[@f=\"" + xmlnodeMove.GetAttribute("From") + "\" and @t=\"" + xmlnodeMove.GetAttribute("To") + "\"]");
+            //            if (xmlnodeBookChild == null)
+            //            {
+            //                xmlnodeBookChild = (XmlElement)xmlnodeBookPos.AppendChild(xmldocTarget.CreateElement("m"));
+            //                xmlnodeBookChild.SetAttribute("f", xmlnodeMove.GetAttribute("From"));
+            //                xmlnodeBookChild.SetAttribute("t", xmlnodeMove.GetAttribute("To"));
+            //                if (xmlnodeMove.GetAttribute("Name") != "Standard")
+            //                {
+            //                    xmlnodeBookChild.SetAttribute("n", xmlnodeMove.GetAttribute("Name"));
+            //                }
+            //            }
+
+            //            xmlnodeBookPos = xmlnodeBookChild;
+            //        }
+            //    }
+            //}
+
+            //Prune((XmlElement)xmldocTarget.FirstChild, 1);
+
+            //return xmldocTarget.OuterXml;
+
+            return string.Empty;
         }
 
-        #endregion
+        // TODO: Maybe not needed, apparently only used in Convert() and Import() which seem unused
+        /// <summary> 
+        /// Prunes the opening book entries down to to a managable number that can be held im memory, 
+        /// by deleting the leaf nodes that have the fewest children.
+        /// </summary>
+        /// <param name="xmlnodeParent"> The xmlnode parent. </param>
+        /// <param name="depth"> The depth. </param>
+        private void Prune(XmlElement xmlnodeParent, int depth)
+        {
+            //for (int intIndex = xmlnodeParent.ChildNodes.Count - 1; intIndex >= 0; intIndex--)
+            //{
+            //    XmlElement xmlnode = (XmlElement)xmlnodeParent.ChildNodes[intIndex];
+
+            //    if (xmlnode.ParentNode != null && (xmlnode.ChildNodes.Count == 0 && xmlnode.ParentNode.ChildNodes.Count > 5))
+            //    {
+            //        xmlnode.ParentNode.RemoveChild(xmlnode);
+            //    }
+            //    else
+            //    {
+            //        if (depth <= 2)
+            //        {
+            //            Prune(xmlnode, depth + 1);
+            //        }
+            //    }
+            //}
+        }
     }
 }

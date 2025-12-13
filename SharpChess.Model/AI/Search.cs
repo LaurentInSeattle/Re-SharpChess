@@ -132,9 +132,14 @@ public class Search
 
         for (this.SearchDepth = MinSearchDepth; this.SearchDepth <= this.MaxSearchDepth; this.SearchDepth++)
         {
-            this.PositionsSearchedThisIteration = 0; // Reset positions searched this iteration.
-            KillerMoves.Clear(); // Clear killer moves from previous iteration.
-            HistoryHeuristic.Clear(); // Clear history when from previous iteration. 
+            // Reset positions searched this iteration.
+            this.PositionsSearchedThisIteration = 0; 
+
+            // Clear killer moves from previous iteration.
+            this.Game.KillerMoves.Clear(); 
+
+            // Clear history when from previous iteration. 
+            this.Game.HistoryHeuristic.Clear(); 
 
             if (Game.CaptureMoveAnalysisData && Game.MoveAnalysis.Count > 0)
             {
@@ -314,7 +319,7 @@ public class Search
         // Check if this node (position) is in the tranposition (hash) table, and if appropriate, return the score stored there.
         if (ply != this.SearchDepth
             &&
-            (val = HashTable.ProbeForScore(Board.HashCodeA, Board.HashCodeB, ply, alpha, beta, player.Colour))
+            (val = this.Game.HashTable.ProbeForScore(Board.HashCodeA, Board.HashCodeB, ply, alpha, beta, player.Colour))
             != HashTable.NotFoundInHashTable)
         {
             // High values of "val" indicate that a checkmate has been found
@@ -372,17 +377,18 @@ public class Search
         }
 
         // Get last iteration's best move from the transposition Table
-        Move moveHash = HashTable.ProbeForBestMove(Board.HashCodeA, Board.HashCodeB, player.Colour);
+        Move? moveHash = this.Game.HashTable.ProbeForBestMove(Board.HashCodeA, Board.HashCodeB, player.Colour);
 
         // Get Killers
-        Move moveKillerA = KillerMoves.RetrieveA(ply);
-        Move moveKillerB = KillerMoves.RetrieveB(ply);
-        Move moveKillerA2 = KillerMoves.RetrieveA(ply + 2);
-        Move moveKillerB2 = KillerMoves.RetrieveB(ply + 2);
+        var killerMoves = this.Game.KillerMoves;
+        Move? moveKillerA = killerMoves.RetrieveA(ply);
+        Move? moveKillerB = killerMoves.RetrieveB(ply);
+        Move? moveKillerA2 = killerMoves.RetrieveA(ply + 2);
+        Move? moveKillerB2 = killerMoves.RetrieveB(ply + 2);
 
         // Get move at same ply from previous iteration's principal variation.
         int indexPv = this.SearchDepth - ply;
-        Move movePv = null;
+        Move? movePv = null;
         if (indexPv < this.LastPrincipalVariation.Count)
         {
             movePv = this.LastPrincipalVariation[indexPv];
@@ -552,10 +558,10 @@ public class Search
                 if (moveMade.PieceCaptured == null)
                 {
                     // Add this cut move to the history heuristic.
-                    HistoryHeuristic.Record(player.Colour, moveMade.From.Ordinal, moveMade.To.Ordinal, ply * ply);
+                    this.Game.HistoryHeuristic.Record(player.Colour, moveMade.From.Ordinal, moveMade.To.Ordinal, ply * ply);
 
                     // Add this cut move to the killer move heuristic.
-                    KillerMoves.RecordPossibleKillerMove(ply, moveMade);
+                    this.Game.KillerMoves.RecordPossibleKillerMove(ply, moveMade);
                 }
 
                 goto Exit;
@@ -611,7 +617,7 @@ public class Search
         // Record best move
         if (bestMove != null)
         {
-            HashTable.RecordHash(
+            this.Game.HashTable.RecordHash(
                 Board.HashCodeA,
                 Board.HashCodeB,
                 ply,
@@ -624,7 +630,7 @@ public class Search
         }
         else
         {
-            HashTable.RecordHash(
+            this.Game.HashTable.RecordHash(
                 Board.HashCodeA,
                 Board.HashCodeB,
                 ply,
@@ -777,7 +783,7 @@ public class Search
         {
             if (legalMovesAttempted > 3)
             {
-                int historyScore = HistoryHeuristic.Retrieve(
+                int historyScore = this.Game.HistoryHeuristic.Retrieve(
                     player.Colour, moveMade.From.Ordinal, moveMade.To.Ordinal);
 
                 if (historyScore == 0)
@@ -964,8 +970,8 @@ public class Search
         }
          * */
 
-        move.Score += ((int)Math.Sqrt(HistoryHeuristic.Retrieve(player.Colour, move.From.Ordinal, move.To.Ordinal)))
-                      * 100;
+        int heuristic = this.Game.HistoryHeuristic.Retrieve(player.Colour, move.From.Ordinal, move.To.Ordinal); 
+        move.Score += ((int)Math.Sqrt(heuristic)) * 100;
         if (move.Score != 0)
         {
             Comment(move, "O-HIST:" + move.Score + " ");
