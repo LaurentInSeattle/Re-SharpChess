@@ -5,8 +5,6 @@ namespace SharpChess.Model;
 /// </summary>
 public class PieceBishop : IPieceTop
 {
-    #region Constants and Fields
-
     /// <summary>
     /// Simple positional piece-square score values.
     /// </summary>
@@ -27,9 +25,8 @@ public class PieceBishop : IPieceTop
     /// </summary>
     public static int[] moveVectors = { 17, -17, 15, -15 };
 
-    #endregion
-
-    #region Constructors and Destructors
+    public readonly Game Game;
+    public readonly Board Board;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PieceBishop"/> class.
@@ -39,12 +36,10 @@ public class PieceBishop : IPieceTop
     /// </param>
     public PieceBishop(Piece pieceBase)
     {
+        this.Game = pieceBase.Player.Game;
+        this.Board = this.Game.Board;
         this.Base = pieceBase;
     }
-
-    #endregion
-
-    #region Public Properties
 
     /// <summary>
     /// Gets Abbreviation.
@@ -157,10 +152,6 @@ public class PieceBishop : IPieceTop
         }
     }
 
-    #endregion
-
-    #region Public Methods
-
     /// <summary>
     /// Generate "lazy" moves for this piece, which is all usual legal moves, but also includes moves that put the king in check.
     /// </summary>
@@ -189,7 +180,9 @@ public class PieceBishop : IPieceTop
             while ((square = Board.GetSquare(intOrdinal)) != null)
             {
                 if (square.Ordinal == target_square.Ordinal)
+                {
                     return true;
+                }
 
                 if (square.Piece == null)
                 {
@@ -203,10 +196,6 @@ public class PieceBishop : IPieceTop
         return false;
     }
 
-    #endregion
-
-    #region Static methods
-
     static private Piece.PieceNames _pieceType = Piece.PieceNames.Bishop;
     
     /// <summary>
@@ -219,7 +208,7 @@ public class PieceBishop : IPieceTop
     {
         for (int i = 0; i < moveVectors.Length; i++)
         {
-            if (Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
+            if (player.Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
             {
                 return true;
             }
@@ -228,21 +217,18 @@ public class PieceBishop : IPieceTop
 
     }
 
-    static public bool DoesPieceAttackSquare(Square square, Player player, out Piece attackingPiece)
+    static public bool DoesPieceAttackSquare(Square square, Player player, out Piece? attackingPiece)
     {
         attackingPiece = null;
         for (int i = 0; i < moveVectors.Length; i++)
         {
-            if (Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
+            if (player.Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
             {
-                attackingPiece = Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]);
+                attackingPiece = player.Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]);
                 return true;
             }
         }
         return false;
 
     }
-
-    #endregion 
-
 }

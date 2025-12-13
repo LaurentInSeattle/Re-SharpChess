@@ -6,8 +6,6 @@ namespace SharpChess.Model.AI;
 /// </summary>
 public static class HistoryHeuristic
 {
-    #region Constants and Fields
-
     /// <summary>
     /// History table entries for black.
     /// </summary>
@@ -17,10 +15,6 @@ public static class HistoryHeuristic
     /// History table entries for white.
     /// </summary>
     private static readonly int[,] HistoryTableEntriesforWhite = new int[Board.SquareCount, Board.SquareCount];
-
-    #endregion
-
-    #region Public Methods
 
     /// <summary>
     /// Clear all history heuristic values.
@@ -89,6 +83,4 @@ public static class HistoryHeuristic
     {
         return colour == Player.PlayerColourNames.White ? HistoryTableEntriesforWhite[ordinalFrom, ordinalTo] : HistoryTableEntriesforBlack[ordinalFrom, ordinalTo];
     }
-
-    #endregion
 }

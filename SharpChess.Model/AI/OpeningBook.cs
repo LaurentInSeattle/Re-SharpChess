@@ -6,8 +6,6 @@ namespace SharpChess.Model.AI;
 /// </summary>
 public class OpeningBook
 {
-    #region Constants and Fields
-
     /// <summary>
     /// The has h_ tabl e_ size.
     /// </summary>
@@ -23,10 +21,6 @@ public class OpeningBook
     /// </summary>
     private static readonly HashEntry[] HashTableEntries = new HashEntry[HashTableSize];
 
-    #endregion
-
-    #region Constructors and Destructors
-
     /// <summary>
     /// Initializes static members of the <see cref="OpeningBook"/> class.
     /// </summary>
@@ -34,10 +28,6 @@ public class OpeningBook
     {
         Clear();
     }
-
-    #endregion
-
-    #region Public Methods
 
     /// <summary>
     /// Load an opening book into memory.
@@ -94,10 +84,6 @@ public class OpeningBook
     {
         return ProbeForBestMove(boardHashCodeA, boardHashCodeB, colour);
     }
-
-    #endregion
-
-    #region Methods
 
     /// <summary>
     /// The probe opening book (hash table) for best move for the specied board position (hash code).
@@ -233,15 +219,11 @@ public class OpeningBook
         return intReturnMove;
     }
 
-    #endregion
-
     /// <summary>
     /// The hash entry.
     /// </summary>
     private struct HashEntry
     {
-        #region Constants and Fields
-
         /// <summary>
         /// The from square ordinal.
         /// </summary>
@@ -266,7 +248,5 @@ public class OpeningBook
         /// The to square ordinal.
         /// </summary>
         public byte To;
-
-        #endregion
     }
 }

@@ -6,118 +6,75 @@
 /// </summary>
 public class Search
 {
-    /// <summary>
-    ///   Maximum score.
-    /// </summary>
+    /// <summary> Maximum score. </summary>
     private const int MaxScore = int.MaxValue;
 
-    /// <summary>
-    ///   Minimum score
-    /// </summary>
+    /// <summary> Minimum score </summary>
     private const int MinScore = int.MinValue + 1;
 
-    /// <summary>
-    ///   Minimum search depth.
-    /// </summary>
+    /// <summary> Minimum search depth. </summary>
     private const int MinSearchDepth = 1;
 
-    /// <summary>
-    ///   When true, instructure search to exit immediately, with the last fully-searched move.
-    /// </summary>
+    /// <summary> When true, instructs search to exit immediately, with the last fully-searched move.</summary>
     private bool forceExitWithMove;
 
-    /// <summary>
-    ///   Initializes a new instance of the <see cref="Search" /> class.
-    /// </summary>
+    public readonly Game Game;
+    public readonly Board Board;
+
+    /// <summary> Initializes a new instance of the <see cref="Search" /> class. </summary>
     /// <param name="brain"> The brain performing this search. </param>
-    public Search(Brain brain)
+    public Search(Brain brain, Game game, Board board)
     {
+        this.Game = game;
+        this.Board = board;
         this.MyBrain = brain;
         this.MaxSearchDepth = 32;
-        this.LastPrincipalVariation = new Moves();
+        this.LastPrincipalVariation = new();
     }
 
-    /// <summary>
-    ///   The delegatetype Search event.
-    /// </summary>
+    /// <summary> The delegatetype Search event. </summary>
     public delegate void SearchEventDelegate();
 
-    /// <summary>
-    ///   The move considered.
-    /// </summary>
+    /// <summary> The move considered. </summary>
     public event SearchEventDelegate SearchMoveConsideredEvent;
 
-    /// <summary>
-    ///   Gets CurrentMoveSearched.
-    /// </summary>
+    /// <summary> Gets CurrentMoveSearched. </summary>
     public Move CurrentMoveSearched { get; private set; }
 
-    /// <summary>
-    ///   Gets or sets Evaluations.
-    /// </summary>
+    /// <summary> Gets or sets Evaluations. </summary>
     public int Evaluations { get; protected set; }
 
-    /// <summary>
-    ///   Gets EvaluationsPerSecond.
-    /// </summary>
+    /// <summary> Gets EvaluationsPerSecond. </summary>
     public double EvaluationsPerSecond
-    {
-        get
-        {
-            return this.Evaluations / this.MyBrain.ThinkingTimeElpased.TotalSeconds;
-        }
-    }
+        => this.Evaluations / this.MyBrain.ThinkingTimeElpased.TotalSeconds;
 
-    /// <summary>
-    ///   Gets MaxExtensions.
-    /// </summary>
+    /// <summary> Gets MaxExtensions. </summary>
     public int MaxExtensions { get; private set; }
 
-    /// <summary>
-    ///   Gets MaxQuiesDepth.
-    /// </summary>
+    /// <summary> Gets MaxQuiesDepth. </summary>
     public int MaxQuiesenceDepthReached { get; private set; }
 
-    /// <summary>
-    ///   Gets MaxSearchDepth.
-    /// </summary>
+    /// <summary> Gets MaxSearchDepth. </summary>
     public int MaxSearchDepth { get; private set; }
 
-    /// <summary>
-    ///   Gets the maximum search time allowed.
-    /// </summary>
+    /// <summary> Gets the maximum search time allowed. </summary>
     public TimeSpan MaxSearchTimeAllowed { get; private set; }
 
-    /// <summary>
-    ///   Gets the player's brain performing this search.
-    /// </summary>
+    /// <summary> Gets the player's brain performing this search. </summary>
     public Brain MyBrain { get; private set; }
 
-    /// <summary>
-    ///   Gets PositionsPerSecond.
-    /// </summary>
+    /// <summary> Gets PositionsPerSecond. </summary>
     public int PositionsPerSecond
-    {
-        get
-        {
-            return this.PositionsSearchedThisTurn
+        => this.PositionsSearchedThisTurn
                    / Math.Max(Convert.ToInt32(this.MyBrain.ThinkingTimeElpased.TotalSeconds), 1);
-        }
-    }
 
-    /// <summary>
-    ///   Gets the number of positions searched this iteration.
-    /// </summary>
+    /// <summary> Gets the number of positions searched this iteration. </summary>
     public int PositionsSearchedThisIteration { get; private set; }
 
-    /// <summary>
-    ///   Gets the number of positions searched this turn.
-    /// </summary>
+    /// <summary> Gets the number of positions searched this turn. </summary>
     public int PositionsSearchedThisTurn { get; private set; }
 
-    /// <summary>
-    ///   Gets the current search depth.
-    /// </summary>
+    /// <summary> Gets the current search depth. </summary>
     public int SearchDepth { get; private set; }
 
     /// <summary>
@@ -199,12 +156,12 @@ public class Search
                 this.LastPrincipalVariation.Add(moveCopy);
             }
 
-            WinBoard.SendThinking(
-                this.SearchDepth,
-                score,
-                DateTime.Now - player.Clock.TurnStartTime,
-                this.PositionsSearchedThisIteration,
-                this.MyBrain.PrincipalVariationText);
+            //WinBoard.SendThinking(
+            //    this.SearchDepth,
+            //    score,
+            //    DateTime.Now - player.Clock.TurnStartTime,
+            //    this.PositionsSearchedThisIteration,
+            //    this.MyBrain.PrincipalVariationText);
 
             if (score > 99999 || score < -99999)
             {
@@ -241,7 +198,7 @@ public class Search
     /// <param name="movesPossible">List of possible modes at this search node.</param>
     /// <param name="moveMade">One of the candidate moves made from this search node.</param>
     /// <param name="parentMove">Move that is the parent of this search node.</param>
-    private static void ApplyExtensions(
+    private void ApplyExtensions(
         ref int extensionOrReduction, Moves movesPossible, Move moveMade, Move parentMove)
     {
         if (Game.EnableExtensions)
@@ -284,7 +241,7 @@ public class Search
     /// </summary>
     /// <param name="move"> Move to comment. </param>
     /// <param name="comment"> Comment to add. </param>
-    private static void Comment(Move move, string comment)
+    private void Comment(Move move, string comment)
     {
         if (Game.CaptureMoveAnalysisData)
         {
@@ -472,7 +429,7 @@ public class Search
             // This move put our player in check, so abort, and skip to next move.
             if (player.IsInCheck)
             {
-                Move.Undo(moveMade);
+                moveMade.Undo(moveMade);
                 continue;
             }
 
@@ -501,7 +458,7 @@ public class Search
 
             // Extensions
             // http://chessprogramming.wikispaces.com/Extensions
-            ApplyExtensions(ref extensionOrReduction, movesPossible, moveMade, parentMove);
+            this.ApplyExtensions(ref extensionOrReduction, movesPossible, moveMade, parentMove);
 
             // Reductions
             // http://chessprogramming.wikispaces.com/Reductions
@@ -580,7 +537,7 @@ public class Search
             move.Score = moveMade.Score = val;
 
             // Take back the move
-            Move.Undo(moveMade);
+            moveMade.Undo(moveMade);
 
             if (val >= beta)
             {
@@ -1052,7 +1009,7 @@ public class Search
             // Debug.WriteLine(move.DebugText + ",");
             this.PerftPly(player.OpposingPlayer, depth - 1);
 
-            Move.Undo(moveUndo);
+            moveUndo.Undo(moveUndo);
         }
     }
 
@@ -1141,7 +1098,7 @@ public class Search
             Move moveThis = move.Piece.Move(move.Name, move.To);
             if (player.IsInCheck)
             {
-                Move.Undo(moveThis);
+                moveThis.Undo(moveThis);
                 continue;
             }
 
@@ -1172,7 +1129,7 @@ public class Search
                     moveThis.Moves);
 
             // Undo the capture move
-            Move.Undo(moveThis);
+            moveThis.Undo(moveThis);
 
             if (moveThis.Score >= beta)
             {

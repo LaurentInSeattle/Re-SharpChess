@@ -6,8 +6,6 @@ namespace SharpChess.Model.AI;
 /// </summary>
 public static class KillerMoves
 {
-    #region Constants and Fields
-
     /// <summary>
     ///   List of primary (A) Killer Moves indexed by search depth.
     /// </summary>
@@ -18,10 +16,6 @@ public static class KillerMoves
     /// </summary>
     private static readonly Move[] SecondaryKillerMovesB = new Move[64];
 
-    #endregion
-
-    #region Constructors and Destructors
-
     /// <summary>
     ///   Initializes static members of the <see cref = "KillerMoves" /> class.
     /// </summary>
@@ -29,10 +23,6 @@ public static class KillerMoves
     {
         Clear();
     }
-
-    #endregion
-
-    #region Public Methods
 
     /// <summary>
     /// The clear.
@@ -155,10 +145,6 @@ public static class KillerMoves
         return SecondaryKillerMovesB[depth + 32];
     }
 
-    #endregion
-
-    #region Methods
-
     /// <summary>
     /// Assign killer move A (primary)
     /// </summary>
@@ -186,6 +172,4 @@ public static class KillerMoves
     {
         SecondaryKillerMovesB[depth + 32] = move;
     }
-
-    #endregion
 }

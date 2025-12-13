@@ -2,13 +2,9 @@
 
 using ThreadState = System.Threading.ThreadState;
 
-/// <summary>
-///   AI for the computer player.
-/// </summary>
+/// <summary> AI for the computer player. </summary>
 public class Brain
 {
-    #region Constants and Fields
-
     /// <summary>
     ///   The m_ulong pondering hash code a.
     /// </summary>
@@ -24,9 +20,8 @@ public class Brain
     /// </summary>
     private Thread threadThought;
 
-    #endregion
-
-    #region Constructors and Destructors
+    public readonly Game Game;
+    public readonly Board Board;
 
     /// <summary>
     ///   Initializes a new instance of the <see cref="Brain" /> class.
@@ -34,23 +29,17 @@ public class Brain
     /// <param name="player"> The player. </param>
     public Brain(Player player)
     {
+        this.Game = player.Game;
+        this.Board = this.Game.Board;
         this.MyPlayer = player;
-        this.Search = new Search(this);
+        this.Search = new Search(this, this.Game, this.Board);
         this.Search.SearchMoveConsideredEvent += this.SearchMoveConsideredHandler;
     }
-
-    #endregion
-
-    #region Delegates
 
     /// <summary>
     ///   The delegatetype Brain event.
     /// </summary>
     public delegate void BrainEvent();
-
-    #endregion
-
-    #region Public Events
 
     /// <summary>
     ///   The move considered.
@@ -66,10 +55,6 @@ public class Brain
     ///   The thinking beginning.
     /// </summary>
     public event BrainEvent ThinkingBeginningEvent;
-
-    #endregion
-
-    #region Public Properties
 
     /// <summary>
     ///   Gets or sets a value indicating whether to use random opening moves.
@@ -159,10 +144,6 @@ public class Brain
         }
     }
 
-    #endregion
-
-    #region Properties
-
     /// <summary>
     ///   Gets or sets the player whose brain this is.
     /// </summary>
@@ -172,10 +153,6 @@ public class Brain
     ///   Gets or sets ThinkingMaxAllowed
     /// </summary>
     private TimeSpan ThinkingTimeMaxAllowed { get; set; }
-
-    #endregion
-
-    #region Public Methods
 
     /// <summary>
     ///   The abort thinking.
@@ -253,26 +230,26 @@ public class Brain
         }
 
         // Send draw result is playing WinBoard
-        if (WinBoard.Active && this.MyPlayer.Intellegence == Player.PlayerIntellegenceNames.Computer)
-        {
-            if (this.MyPlayer.CanClaimThreeMoveRepetitionDraw)
-            {
-                WinBoard.SendDrawByRepetition();
-                return;
-            }
+        //if (WinBoard.Active && this.MyPlayer.Intellegence == Player.PlayerIntellegenceNames.Computer)
+        //{
+        //    if (this.MyPlayer.CanClaimThreeMoveRepetitionDraw)
+        //    {
+        //        WinBoard.SendDrawByRepetition();
+        //        return;
+        //    }
 
-            if (this.MyPlayer.CanClaimFiftyMoveDraw)
-            {
-                WinBoard.SendDrawByFiftyMoveRule();
-                return;
-            }
+        //    if (this.MyPlayer.CanClaimFiftyMoveDraw)
+        //    {
+        //        WinBoard.SendDrawByFiftyMoveRule();
+        //        return;
+        //    }
 
-            if (this.MyPlayer.CanClaimInsufficientMaterialDraw)
-            {
-                WinBoard.SendDrawByFiftyMoveRule();
-                return;
-            }
-        }
+        //    if (this.MyPlayer.CanClaimInsufficientMaterialDraw)
+        //    {
+        //        WinBoard.SendDrawByFiftyMoveRule();
+        //        return;
+        //    }
+        //}
 
         this.threadThought = new Thread(this.Think);
         this.threadThought.Name = (++Game.ThreadCounter).ToString();
@@ -445,7 +422,11 @@ public class Brain
             Debug.WriteLine(x.ToString());
             while (Game.TurnNo > intTurnNo)
             {
-                Move.Undo(Game.MoveHistory.Last);
+                Move? undo = Game.MoveHistory.Last;
+                if ( undo is not null)
+                {
+                    undo.Undo(undo);
+                }
             }
         }
 
@@ -467,16 +448,10 @@ public class Brain
         this.IsPondering = false;
 
         // Send total elapsed time to generate this move.
-        WinBoard.SendMoveTime(DateTime.Now - this.MyPlayer.Clock.TurnStartTime);
+        // WinBoard.SendMoveTime(DateTime.Now - this.MyPlayer.Clock.TurnStartTime);
     }
 
-    #endregion
-
-    #region Methods
-
-    /// <summary>
-    ///   The search move considered handler.
-    /// </summary>
+    /// <summary> The search move considered handler. </summary>
     private void SearchMoveConsideredHandler()
     {
         if (this.MoveConsideredEvent != null)
@@ -484,6 +459,4 @@ public class Brain
             this.MoveConsideredEvent();
         }
     }
-
-    #endregion
 }

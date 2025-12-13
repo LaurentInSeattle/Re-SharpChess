@@ -311,13 +311,13 @@ public sealed class Square
     /// <exception cref="ApplicationException">
     /// An exception indicting that the alogrithm has hit the edge of the board.
     /// </exception>
-    public bool CanSlideToHereFrom(Square squareStart, int directionOffset)
+    public bool CanSlideToHereFrom(Board board, Square squareStart, int directionOffset)
     {
         int intOrdinal = squareStart.Ordinal;
         Square square;
 
         intOrdinal += directionOffset;
-        while ((square = Board.GetSquare(intOrdinal)) != null)
+        while ((square = board.GetSquare(intOrdinal)) != null)
         {
             if (square == this)
             {

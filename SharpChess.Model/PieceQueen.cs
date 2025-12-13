@@ -10,6 +10,9 @@ public class PieceQueen : IPieceTop
     /// </summary>
     private static int[] moveVectors = { 17, -17, 15, -15, 1, -1, 16, -16 };
 
+    public readonly Game Game;
+    public readonly Board Board;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PieceQueen"/> class.
     /// </summary>
@@ -18,6 +21,8 @@ public class PieceQueen : IPieceTop
     /// </param>
     public PieceQueen(Piece pieceBase)
     {
+        this.Game = pieceBase.Player.Game;
+        this.Board = this.Game.Board;
         this.Base = pieceBase;
     }
 
@@ -181,23 +186,24 @@ public class PieceQueen : IPieceTop
     {
         for (int i = 0; i < moveVectors.Length; i++)
         {
-            if (Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
+            if (player.Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
             {
                 return true;
             }
         }
+
         return false;
 
     }
 
-    static public bool DoesPieceAttackSquare(Square square, Player player, out Piece attackingPiece)
+    static public bool DoesPieceAttackSquare(Square square, Player player, out Piece? attackingPiece)
     {
         attackingPiece = null;
         for (int i = 0; i < moveVectors.Length; i++)
         {
-            if (Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
+            if (player.Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]) != null)
             {
-                attackingPiece = Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]);
+                attackingPiece = player.Board.LinesFirstPiece(player.Colour, _pieceType, square, moveVectors[i]);
                 return true;
             }
         }

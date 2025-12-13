@@ -38,6 +38,7 @@ public static class PlayerDebug
     ///   Must be called after moveThis.DoMove() in AlphaBeta
     /// </remarks>
     private static bool DebugMatchLine(
+        Game game, Board board,
         string strVariation, int iPly, Move moveThis, int intSearchDepth, int intMaxSearchDepth)
     {
         const int iSAN_LENGTH = 5; // Length of Abbreviation of the piece + From square + To square
@@ -73,7 +74,7 @@ public static class PlayerDebug
                     {
                         // Number of moves in the variation
                         m_iDbgLevel = intMaxSearchDepth + 1; // Do not recall PlayerDebug utility
-                        BoardDebug.DebugDisplay(); // Display the current position in the "Output Window"
+                        BoardDebug.DebugDisplay(game, board); // Display the current position in the "Output Window"
                         Debug.WriteLine("\nPosition after: " + strVariation);
                         return true; // The current position matches the wished variation
                     }
@@ -92,13 +93,16 @@ public static class PlayerDebug
     /// <param name="intSearchDepth">Search depth.</param>
     /// <param name="intMaxSearchDepth">Max search depth.</param>
     /// <returns> true if the position is reached otherwise false </returns>
-    private static bool DebugMatchVariation(int iPly, Move moveThis, int intSearchDepth, int intMaxSearchDepth)
+    private static bool DebugMatchVariation(
+        Game game, Board board,
+        int iPly, Move moveThis, int intSearchDepth, int intMaxSearchDepth)
     {
         // Syntax of the string strVariation: <iteration> Move1 Move2 ...
 #if !SKIP_MATCH_LINE
 
         // Add or remove the exclamation mark before SKIP_MATCH_LINE
         return DebugMatchLine(
+            game, board,
             "5 Bb3a4 Bc8d7 Ba4xc6 Bd7xc6 Rf1e1 Bf8e7 Bc1d2", iPly, moveThis, intSearchDepth, intMaxSearchDepth);
 
         // The variation/line you want to debug!

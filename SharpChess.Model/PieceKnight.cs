@@ -19,10 +19,17 @@ public class PieceKnight : IPieceTop
     /// <summary> Directional vectors of where the piece can go </summary>
     public static int[] moveVectors = { 33, 18, -14, -31, -33, -18, 14, 31 };
 
+    public readonly Game Game;
+    public readonly Board Board;
+
     /// <summary> Initializes a new instance of the <see cref="PieceKnight"/> class. </summary>
     /// <param name="pieceBase"> The piece base. </param>
     public PieceKnight(Piece pieceBase)
-        => this.Base = pieceBase;
+    {
+        this.Game = pieceBase.Player.Game;
+        this.Board = this.Game.Board;
+        this.Base = pieceBase;
+    }
 
     /// <summary> Gets the piece Abbreviation. </summary>
     public string Abbreviation => "N";

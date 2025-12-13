@@ -519,11 +519,11 @@ public class Piece : IPieceTop
         return false;
     }
 
-    public bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector)
+    public static bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector)
     {
         for (int i = 0; i < vector.Length; i++)
         {
-            Piece? piece = Board.GetPiece(square.Ordinal + vector[i]);
+            Piece? piece = player.Board.GetPiece(square.Ordinal + vector[i]);
             if (piece != null && piece.Name == pieceName && piece.Player.Colour == player.Colour)
             {
                 return true;
@@ -533,12 +533,12 @@ public class Piece : IPieceTop
         return false;
     }
 
-    public bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector, out Piece attackingPiece)
+    public static bool DoesLeaperPieceTypeAttackSquare(Square square, Player player, PieceNames pieceName, int[] vector, out Piece? attackingPiece)
     {
         attackingPiece = null;
         for (int i = 0; i < vector.Length; i++)
         {
-            Piece? piece = Board.GetPiece(square.Ordinal + vector[i]);
+            Piece? piece = player.Board.GetPiece(square.Ordinal + vector[i]);
             if (piece != null && piece.Name == pieceName && piece.Player.Colour == player.Colour)
             {
                 attackingPiece = piece;
@@ -672,7 +672,7 @@ public class Piece : IPieceTop
                 moves.Remove(move);
             }
 
-            Model.Move.Undo(moveUndo);
+            moveUndo.Undo(moveUndo);
         }
     }
 

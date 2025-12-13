@@ -9,8 +9,6 @@ namespace SharpChess.Model.AI;
 /// </summary>
 public static class HashTable
 {
-    #region Constants and Fields
-
     /// <summary>
     ///   Indicates that a position was not found in the Hash Table.
     /// </summary>
@@ -30,10 +28,6 @@ public static class HashTable
     ///   Size of the HashTable.
     /// </summary>
     private static uint hashTableSize;
-
-    #endregion
-
-    #region Enums
 
     /// <summary>
     /// Type of HashTable entry.
@@ -55,10 +49,6 @@ public static class HashTable
         /// </summary>
         Beta
     }
-
-    #endregion
-
-    #region Public Properties
 
     /// <summary>
     ///   Gets the number of hash table Collisions that have occured.
@@ -105,10 +95,6 @@ public static class HashTable
     ///   Gets the number of hash table Writes that have occured.
     /// </summary>
     public static int Writes { get; private set; }
-
-    #endregion
-
-    #region Public Methods
 
     /// <summary>
     /// Clears all entries in the hash table.
@@ -428,15 +414,11 @@ public static class HashTable
         Overwrites = 0;
     }
 
-    #endregion
-
     /// <summary>
     /// The hash table entry.
     /// </summary>
     private struct HashEntry
     {
-        #region Constants and Fields
-
         /// <summary>
         ///   Black from square ordinal.
         /// </summary>
@@ -496,7 +478,5 @@ public static class HashTable
         ///   White to square ordinal.
         /// </summary>
         public sbyte WhiteTo;
-
-        #endregion
     }
 }

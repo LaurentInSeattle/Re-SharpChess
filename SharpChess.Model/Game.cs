@@ -6,6 +6,9 @@ namespace SharpChess.Model
     /// </summary>
     public sealed class Game
     {
+        /// <summary>The available MegaBytes of free computer memory. </summary>
+        public const uint AvailableMegaBytes = 16;
+
         public readonly Board Board;
         public readonly Fen Fen;
 
@@ -135,9 +138,6 @@ namespace SharpChess.Model
             /// <summary> The end. </summary>
             End
         }
-
-        /// <summary> Gets the available MegaBytes of free computer memory. </summary>
-        public uint AvailableMegaBytes => 16;
 
         /// <summary> Gets or sets the Backup Game Path. </summary>
         public string BackupGamePath { private get; set; }
@@ -473,10 +473,10 @@ namespace SharpChess.Model
         public void SettingsUpdate()
         {
             SuspendPondering();
-            if (!WinBoard.Active)
-            {
-                SaveBackup();
-            }
+            //if (!WinBoard.Active)
+            //{
+            //    SaveBackup();
+            //}
 
             SettingsUpdated();
             ResumePondering();
@@ -510,7 +510,7 @@ namespace SharpChess.Model
         /// <summary> Terminate the game. </summary>
         public void TerminateGame()
         {
-            WinBoard.StopListener();
+            // WinBoard.StopListener();
 
             SuspendPondering();
             PlayerWhite.Brain.AbortThinking();
@@ -778,30 +778,30 @@ namespace SharpChess.Model
             MoveHistory.Last.TimeStamp = PlayerToPlay.Clock.TimeElapsed;
             if (PlayerToPlay.Intellegence == Player.PlayerIntellegenceNames.Computer)
             {
-                WinBoard.SendMove(move);
-                if (!PlayerToPlay.OpposingPlayer.CanMove)
-                {
-                    if (PlayerToPlay.OpposingPlayer.IsInCheckMate)
-                    {
-                        WinBoard.SendCheckMate();
-                    }
-                    else if (!PlayerToPlay.OpposingPlayer.IsInCheck)
-                    {
-                        WinBoard.SendCheckStaleMate();
-                    }
-                }
-                else if (PlayerToPlay.OpposingPlayer.CanClaimThreeMoveRepetitionDraw)
-                {
-                    WinBoard.SendDrawByRepetition();
-                }
-                else if (PlayerToPlay.OpposingPlayer.CanClaimFiftyMoveDraw)
-                {
-                    WinBoard.SendDrawByFiftyMoveRule();
-                }
-                else if (PlayerToPlay.OpposingPlayer.CanClaimInsufficientMaterialDraw)
-                {
-                    WinBoard.SendDrawByInsufficientMaterial();
-                }
+                // WinBoard.SendMove(move);
+                //if (!PlayerToPlay.OpposingPlayer.CanMove)
+                //{
+                //    if (PlayerToPlay.OpposingPlayer.IsInCheckMate)
+                //    {
+                //        WinBoard.SendCheckMate();
+                //    }
+                //    else if (!PlayerToPlay.OpposingPlayer.IsInCheck)
+                //    {
+                //        WinBoard.SendCheckStaleMate();
+                //    }
+                //}
+                //else if (PlayerToPlay.OpposingPlayer.CanClaimThreeMoveRepetitionDraw)
+                //{
+                //    WinBoard.SendDrawByRepetition();
+                //}
+                //else if (PlayerToPlay.OpposingPlayer.CanClaimFiftyMoveDraw)
+                //{
+                //    WinBoard.SendDrawByFiftyMoveRule();
+                //}
+                //else if (PlayerToPlay.OpposingPlayer.CanClaimInsufficientMaterialDraw)
+                //{
+                //    WinBoard.SendDrawByInsufficientMaterial();
+                //}
             }
 
             PlayerToPlay = PlayerToPlay.OpposingPlayer;
@@ -903,7 +903,7 @@ namespace SharpChess.Model
         /// <summary> Save a backup of the current game. </summary>
         private void SaveBackup()
         {
-            if (!WinBoard.Active)
+            //if (!WinBoard.Active)
             {
                 // Only save backups if not using WinBoard.
                 SaveGame(BackupGamePath);
@@ -980,7 +980,7 @@ namespace SharpChess.Model
                     throw new ApplicationException("UndoMoveInternal: MoveHistory last move is null.");
                 PlayerToPlay.Clock.Revert();
                 MoveRedoList.Add(moveUndo);
-                Move.Undo(moveUndo);
+                moveUndo.Undo(moveUndo);
                 PlayerToPlay = PlayerToPlay.OpposingPlayer;
                 if (MoveHistory.Count > 1)
                 {

@@ -15,6 +15,9 @@ public class PiecePawn : IPieceTop
     /// </summary>
     private static readonly int[] FileBonus = { 0, 6, 16, 32, 32, 16, 6, 0 };
 
+    public readonly Game Game;
+    public readonly Board Board;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PiecePawn"/> class.
     /// </summary>
@@ -23,6 +26,8 @@ public class PiecePawn : IPieceTop
     /// </param>
     public PiecePawn(Piece pieceBase)
     {
+        this.Game = pieceBase.Player.Game;
+        this.Board = this.Game.Board;
         this.Base = pieceBase;
     }
 
@@ -559,33 +564,34 @@ public class PiecePawn : IPieceTop
     /// <returns></returns>
     static public bool DoesPieceAttackSquare(Square square, Player player)
     {
-        Piece piece;
-        piece = Board.GetPiece(square.Ordinal - player.PawnAttackLeftOffset);
+        Piece? piece;
+        piece = player.Board.GetPiece(square.Ordinal - player.PawnAttackLeftOffset);
         if (piece != null && piece.Name == _pieceType && piece.Player.Colour == player.Colour)
         {
             return true;
         }
 
-        piece = Board.GetPiece(square.Ordinal - player.PawnAttackRightOffset);
+        piece = player.Board.GetPiece(square.Ordinal - player.PawnAttackRightOffset);
         if (piece != null && piece.Name == _pieceType && piece.Player.Colour == player.Colour)
         {
             return true;
         }
+
         return false;
     }
 
-    static public bool DoesPieceAttackSquare(Square square, Player player, out Piece attackingPiece)
+    static public bool DoesPieceAttackSquare(Square square, Player player, out Piece? attackingPiece)
     {
         attackingPiece = null;
-        Piece piece;
-        piece = Board.GetPiece(square.Ordinal - player.PawnAttackLeftOffset);
+        Piece? piece;
+        piece = player.Board.GetPiece(square.Ordinal - player.PawnAttackLeftOffset);
         if (piece != null && piece.Name == _pieceType && piece.Player.Colour == player.Colour)
         {
             attackingPiece = piece;
             return true;
         }
 
-        piece = Board.GetPiece(square.Ordinal - player.PawnAttackRightOffset);
+        piece = player.Board.GetPiece(square.Ordinal - player.PawnAttackRightOffset);
         if (piece != null && piece.Name == _pieceType && piece.Player.Colour == player.Colour)
         {
             attackingPiece = piece;

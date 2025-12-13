@@ -450,15 +450,11 @@ public class PieceKing : IPieceTop
     /// <param name="square"></param>
     /// <param name="player"></param>
     /// <returns></returns>
-    public static bool DoesPieceAttackSquare(Square square, Player player)            
-    {
-        return Piece.DoesLeaperPieceTypeAttackSquare(square, player, _pieceType, moveVectors);
-    }
+    public static bool DoesPieceAttackSquare(Square square, Player player) 
+        => Piece.DoesLeaperPieceTypeAttackSquare(square, player, _pieceType, moveVectors);
 
-    public static bool DoesPieceAttackSquare(Square square, Player player, out Piece attackingPiece)
-    {
-        return Piece.DoesLeaperPieceTypeAttackSquare(square, player, _pieceType, moveVectors, out attackingPiece);
-    }
+    public static bool DoesPieceAttackSquare(Square square, Player player, out Piece attackingPiece) 
+        => Piece.DoesLeaperPieceTypeAttackSquare(square, player, _pieceType, moveVectors, out attackingPiece);
 
     /// <summary>
     /// The move squares.

@@ -1,7 +1,8 @@
 namespace SharpChess.Model.AI
 {
     /// <summary>
-    /// A small, in-memory, book of opening moves, used simply to vary SharpChess's games against human players. Not competition standard by any means!
+    /// A small, in-memory, book of opening moves, used simply to vary SharpChess's games against human players. 
+    /// Not competition standard by any means!
     ///   XML opening book files are created from PGN files using the <see cref = "PGNtoXML" /> class.
     /// </summary>
     public static class OpeningBookSimple

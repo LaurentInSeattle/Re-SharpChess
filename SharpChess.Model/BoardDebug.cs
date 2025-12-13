@@ -1,29 +1,18 @@
 namespace SharpChess.Model;
 
 /// <summary> Helper methods for debuging board positions. </summary>
-public sealed class BoardDebug
+public static class BoardDebug
 {
-    private readonly Game Game;
-    private readonly Board Board;
-
-    public BoardDebug(Game game, Board board)
-    {
-        this.Game = game;
-        this.Board = board;
-    }
-
     /// <summary> Gets a Debug String representing the current board position.</summary>
-    public string DebugString
+    public static string DebugString(Game game, Board board)
     {
-        get
-        {
             string strOutput = string.Empty;
             int intOrdinal = Board.SquareCount - 1;
             for (int intRank = 0; intRank < Board.RankCount; intRank++)
             {
                 for (int intFile = 0; intFile < Board.FileCount; intFile++)
                 {
-                    var square = Board.GetSquare(intOrdinal);
+                    var square = board.GetSquare(intOrdinal);
                     if (square != null)
                     {
                         Piece? piece = square.Piece;
@@ -44,13 +33,12 @@ public sealed class BoardDebug
             }
 
             return strOutput;
-        }
     }
 
     /// <summary> Display the chessboard in the Immediate Windows </summary>
-    public void DebugDisplay()
+    public static void DebugDisplay(Game game, Board board)
     {
-        Debug.Write(DebugGetBoard());
+        Debug.Write(DebugGetBoard(game, board));
         Debug.Write(". ");
     }
 
@@ -58,7 +46,7 @@ public sealed class BoardDebug
     /// <param name="indRank"> the rank in the chessboard </param>
     /// <param name="strbBoard"> output buffer </param>
     /// <remarks> Display the captured pieces and the MoveHistory </remarks>
-    private void DebugGameInfo(int indRank, ref StringBuilder strbBoard)
+    private static void DebugGameInfo(Game game, Board board, int indRank, ref StringBuilder strbBoard)
     {
         strbBoard.Append(':');
         strbBoard.Append(indRank);
@@ -67,9 +55,9 @@ public sealed class BoardDebug
         {
             case 0:
             case 7:
-                Pieces piecesCaptureList = (indRank == 7)
-                                               ? Game.PlayerWhite.CapturedEnemyPieces
-                                               : Game.PlayerBlack.CapturedEnemyPieces;
+                Pieces piecesCaptureList = (indRank == 7) ?
+                    game.PlayerWhite.CapturedEnemyPieces :
+                    game.PlayerBlack.CapturedEnemyPieces;
                 if (piecesCaptureList.Count > 1)
                 {
                     strbBoard.Append("x ");
@@ -85,13 +73,13 @@ public sealed class BoardDebug
                 break;
 
             case 5:
-                int turnNumberOld = Game.TurnNo; // Backup TurNo
-                Game.TurnNo -= Game.PlayerToPlay.Brain.Search.SearchDepth;
-                for (int indMov = Math.Max(1, Game.MoveHistory.Count - Game.PlayerToPlay.Brain.Search.MaxSearchDepth);
-                     indMov < Game.MoveHistory.Count;
+                int turnNumberOld = game.TurnNo; // Backup TurNo
+                game.TurnNo -= game.PlayerToPlay.Brain.Search.SearchDepth;
+                for (int indMov = Math.Max(1, game.MoveHistory.Count - game.PlayerToPlay.Brain.Search.MaxSearchDepth);
+                     indMov < game.MoveHistory.Count;
                      indMov++)
                 {
-                    Move? moveThis = Game.MoveHistory[indMov];
+                    Move? moveThis = game.MoveHistory[indMov];
                     if (moveThis is not null)
                     {
                         if (moveThis.Piece.Player.Colour == Player.PlayerColourNames.White)
@@ -102,11 +90,11 @@ public sealed class BoardDebug
 
                         // moveThis.PgnSanFormat(false); // Contextual to Game.TurNo
                         strbBoard.Append(moveThis.Description + " ");
-                        Game.TurnNo++;
+                        game.TurnNo++;
                     }
                 }
 
-                Game.TurnNo = turnNumberOld; // Restore TurNo
+                game.TurnNo = turnNumberOld; // Restore TurNo
                 break;
         }
 
@@ -115,18 +103,18 @@ public sealed class BoardDebug
 
     /// <summary> A string representation of the board position - useful for debugging. </summary>
     /// <returns> Board position string. </returns>
-    public string DebugGetBoard()
+    public static string DebugGetBoard(Game game, Board board)
     {
         var strbBoard = new StringBuilder(160);
         strbBoard.Append("  0 1 2 3 4 5 6 7 :PlayerToPlay = ");
-        strbBoard.Append((Game.PlayerToPlay.Colour == Player.PlayerColourNames.White) ? "White\n" : "Black\n");
+        strbBoard.Append((game.PlayerToPlay.Colour == Player.PlayerColourNames.White) ? "White\n" : "Black\n");
         for (int indRank = 7; indRank >= 0; indRank--)
         {
             strbBoard.Append(indRank + 1);
             strbBoard.Append(':');
             for (int indFile = 0; indFile < 8; indFile++)
             {
-                Square? square = Board.GetSquare(indFile, indRank);
+                Square? square = board.GetSquare(indFile, indRank);
                 if (square != null)
                 {
                     if (square.Piece == null)
@@ -150,11 +138,11 @@ public sealed class BoardDebug
                 }
             }
 
-            DebugGameInfo(indRank, ref strbBoard);
+            DebugGameInfo(game, board, indRank, ref strbBoard);
         }
 
         strbBoard.Append("  a b c d e f g h :TurnNo = ");
-        strbBoard.Append(Game.TurnNo);
+        strbBoard.Append(game.TurnNo);
         return strbBoard.ToString();
     }
 }
