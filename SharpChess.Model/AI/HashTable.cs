@@ -7,78 +7,68 @@ namespace SharpChess.Model.AI;
 /// Stores information about positions previously considered. Stores scores and "best moves".
 /// http://chessprogramming.wikispaces.com/Transposition+Table
 /// </summary>
-public static class HashTable
+public class HashTable
 {
-    /// <summary>
-    ///   Indicates that a position was not found in the Hash Table.
-    /// </summary>
+    /// <summary> Indicates that a position was not found in the Hash Table. </summary>
     public const int NotFoundInHashTable = int.MinValue;
 
-    /// <summary>
-    ///   The number of chess positions that may be stored against the same hashtable entry key.
-    /// </summary>
+    /// <summary> The number of chess positions that may be stored against the same hashtable entry key. </summary>
     private const int HashTableSlotDepth = 3;
 
-    /// <summary>
-    ///   Pointer to the HashTable
-    /// </summary>
-    private static HashEntry[] hashTableEntries;
+    /// <summary> Pointer to the HashTable ????? </summary>
+    private HashEntry[] hashTableEntries;
 
-    /// <summary>
-    ///   Size of the HashTable.
-    /// </summary>
-    private static uint hashTableSize;
+    /// <summary> Size of the HashTable. </summary>
+    private uint hashTableSize;
 
-    /// <summary>
-    /// Type of HashTable entry.
-    /// </summary>
+    /// <summary> Type of HashTable entry. </summary>
     public enum HashTypeNames
     {
-        /// <summary>
-        ///   Exact value.
-        /// </summary>
+        /// <summary Exact value.</summary>
         Exact, 
 
-        /// <summary>
-        ///   Alpha value.
-        /// </summary>
+        /// <summary> Alpha value. </summary>
         Alpha, 
 
-        /// <summary>
-        ///   Beta value.
-        /// </summary>
+        /// <summary> Beta value.</summary>
         Beta
     }
 
-    /// <summary>
-    ///   Gets the number of hash table Collisions that have occured.
-    /// </summary>
-    public static int Collisions { get; private set; }
+    private readonly Game game;
+    private readonly Board board;
 
-    /// <summary>
-    ///   Gets the number of hash table Hits that have occured.
-    /// </summary>
-    public static int Hits { get; private set; }
+    public HashTable(Game game)
+    {
+        this.game = game;
+        this.board = game.Board;
 
-    /// <summary>
-    ///   Gets the number of hash table Overwrites that have occured.
-    /// </summary>
-    public static int Overwrites { get; private set; }
+        hashTableSize = Game.AvailableMegaBytes * 8_000;
+        hashTableEntries = new HashEntry[hashTableSize];
+        this.Clear();
+    }
 
-    /// <summary>
-    ///   Gets the number of hash table Probes that have occured.
-    /// </summary>
-    public static int Probes { get; private set; }
+    /// <summary> Gets the number of hash table Collisions that have occured. </summary>
+    public int Collisions { get; private set; }
 
-    /// <summary>
-    ///   Gets the number of hash table slots used.
-    /// </summary>
-    public static int SlotsUsed
+    /// <summary> Gets the number of hash table Hits that have occured. </summary>
+    public int Hits { get; private set; }
+
+    /// <summary> Gets the number of hash table Writes that have occured. </summary>
+    public int Writes { get; private set; }
+
+    /// <summary> Gets the number of hash table Overwrites that have occured. </summary>
+    public int Overwrites { get; private set; }
+
+    /// <summary> Gets the number of hash table Probes that have occured. </summary>
+    public int Probes { get; private set; }
+
+    // TODO: Consider making this a method.
+    /// <summary> Gets the number of hash table slots used. </summary>
+    public int SlotsUsed
     {
         get
         {
             int intCounter = 0;
-
             for (uint intIndex = 0; intIndex < hashTableSize; intIndex++)
             {
                 if (hashTableEntries[intIndex].HashCodeA != 0)
@@ -91,15 +81,9 @@ public static class HashTable
         }
     }
 
-    /// <summary>
-    ///   Gets the number of hash table Writes that have occured.
-    /// </summary>
-    public static int Writes { get; private set; }
 
-    /// <summary>
-    /// Clears all entries in the hash table.
-    /// </summary>
-    public static void Clear()
+    /// <summary> Clears all entries in the hash table. </summary>
+    public void Clear()
     {
         ResetStats();
 
@@ -120,35 +104,15 @@ public static class HashTable
         }
     }
 
-    /// <summary>
-    /// Initialises the HashTable.
-    /// </summary>
-    public static void Initialise()
+    /// <summary> Search for best move in hash table. </summary>
+    /// <param name="hashCodeA"> Hash Code for Board position A </param>
+    /// <param name="hashCodeB"> Hash Code for Board position B </param>
+    /// <param name="colour"> The player colour. </param>
+    /// <returns> Best move, or null. </returns>
+    public unsafe Move? ProbeForBestMove(ulong hashCodeA, ulong hashCodeB, Player.PlayerColourNames colour)
     {
-        hashTableSize = Game.AvailableMegaBytes * 8_000;
-        hashTableEntries = new HashEntry[hashTableSize];
-        Clear();
-    }
-
-    /// <summary>
-    /// Search for best move in hash table.
-    /// </summary>
-    /// <param name="hashCodeA">
-    /// Hash Code for Board position A
-    /// </param>
-    /// <param name="hashCodeB">
-    /// Hash Code for Board position B
-    /// </param>
-    /// <param name="colour">
-    /// The player colour.
-    /// </param>
-    /// <returns>
-    /// Best move, or null.
-    /// </returns>
-    public static unsafe Move? ProbeForBestMove(ulong hashCodeA, ulong hashCodeB, Player.PlayerColourNames colour)
-    {
-        // Disable if this feature when switched off.
-        if (!Game.EnableTranspositionTable)
+        //  Disable if this feature when switched off.
+        if (!game.EnableTranspositionTable)
         {
             return null;
         }
@@ -186,10 +150,10 @@ public static class HashTable
                             0, 
                             0, 
                             phashEntry->WhiteMoveName, 
-                            Board.GetPiece(phashEntry->WhiteFrom), 
-                            Board.GetSquare(phashEntry->WhiteFrom), 
-                            Board.GetSquare(phashEntry->WhiteTo), 
-                            Board.GetSquare(phashEntry->WhiteTo).Piece, 
+                            board.GetPiece(phashEntry->WhiteFrom), 
+                            board.GetSquare(phashEntry->WhiteFrom), 
+                            board.GetSquare(phashEntry->WhiteTo), 
+                            board.GetSquare(phashEntry->WhiteTo).Piece, 
                             0, 
                             phashEntry->Result);
                     }
@@ -202,10 +166,10 @@ public static class HashTable
                             0, 
                             0, 
                             phashEntry->BlackMoveName, 
-                            Board.GetPiece(phashEntry->BlackFrom), 
-                            Board.GetSquare(phashEntry->BlackFrom), 
-                            Board.GetSquare(phashEntry->BlackTo), 
-                            Board.GetSquare(phashEntry->BlackTo).Piece, 
+                            board.GetPiece(phashEntry->BlackFrom), 
+                            board.GetSquare(phashEntry->BlackFrom), 
+                            board.GetSquare(phashEntry->BlackTo), 
+                            board.GetSquare(phashEntry->BlackTo).Piece, 
                             0, 
                             phashEntry->Result);
                     }
@@ -216,35 +180,19 @@ public static class HashTable
         return null;
     }
 
-    /// <summary>
-    /// Search Hash table for a previously stored score.
-    /// </summary>
-    /// <param name="hashCodeA">
-    /// Hash Code for Board position A
-    /// </param>
-    /// <param name="hashCodeB">
-    /// Hash Code for Board position B
-    /// </param>
-    /// <param name="depth">
-    /// The search depth.
-    /// </param>
-    /// <param name="alpha">
-    /// Apha value.
-    /// </param>
-    /// <param name="beta">
-    /// Beta value.
-    /// </param>
-    /// <param name="colour">
-    /// The player colour.
-    /// </param>
-    /// <returns>
-    /// The positional score.
-    /// </returns>
-    public static unsafe int ProbeForScore(
+    /// <summary> Search Hash table for a previously stored score. </summary>
+    /// <param name="hashCodeA"> Hash Code for Board position A </param>
+    /// <param name="hashCodeB"> Hash Code for Board position B </param>
+    /// <param name="depth"> The search depth. </param>
+    /// <param name="alpha"> Apha value. </param>
+    /// <param name="beta"> Beta value. </param>
+    /// <param name="colour"> The player colour. </param>
+    /// <returns> The positional score. </returns>
+    public unsafe int ProbeForScore(
         ulong hashCodeA, ulong hashCodeB, int depth, int alpha, int beta, Player.PlayerColourNames colour)
     {
         // Disable if this feature when switched off.
-        if (!Game.EnableTranspositionTable)
+        if (!game.EnableTranspositionTable)
         {
             return NotFoundInHashTable;
         }
@@ -304,37 +252,17 @@ public static class HashTable
         return NotFoundInHashTable;
     }
 
-    /// <summary>
-    /// Record a hash new hash entry in the hash table.
-    /// </summary>
-    /// <param name="hashCodeA">
-    /// Hash Code for Board position A
-    /// </param>
-    /// <param name="hashCodeB">
-    /// Hash Code for Board position B
-    /// </param>
-    /// <param name="depth">
-    /// The search depth.
-    /// </param>
-    /// <param name="val">
-    /// The score of the position to record.
-    /// </param>
-    /// <param name="type">
-    /// The position type: alpha, beta or exact value.
-    /// </param>
-    /// <param name="from">
-    /// From square ordinal.
-    /// </param>
-    /// <param name="to">
-    /// To square ordinal.
-    /// </param>
-    /// <param name="moveName">
-    /// The move name.
-    /// </param>
-    /// <param name="colour">
-    /// The player colour.
-    /// </param>
-    public static unsafe void RecordHash(
+    /// <summary> Record a hash new hash entry in the hash table. </summary>
+    /// <param name="hashCodeA"> Hash Code for Board position A </param>
+    /// <param name="hashCodeB"> Hash Code for Board position B </param>
+    /// <param name="depth"> The search depth. </param>
+    /// <param name="val"> The score of the position to record. </param>
+    /// <param name="type"> The position type: alpha, beta or exact value. </param>
+    /// <param name="from"> From square ordinal. </param>
+    /// <param name="to"> To square ordinal. </param>
+    /// <param name="moveName"> The move name. </param>
+    /// <param name="colour"> The player colour. </param>
+    public unsafe void RecordHash(
         ulong hashCodeA, 
         ulong hashCodeB, 
         int depth, 
@@ -402,81 +330,53 @@ public static class HashTable
         }
     }
 
-    /// <summary>
-    /// Reset hash table stats.
-    /// </summary>
-    public static void ResetStats()
+    /// <summary> Reset the hash table statistics. </summary>
+    public void ResetStats()
     {
-        Probes = 0;
-        Hits = 0;
-        Writes = 0;
-        Collisions = 0;
-        Overwrites = 0;
+        this.Probes = 0;
+        this.Hits = 0;
+        this.Writes = 0;
+        this.Collisions = 0;
+        this.Overwrites = 0;
     }
 
-    /// <summary>
-    /// The hash table entry.
-    /// </summary>
+    /// <summary> The hash table entry. </summary>
     private struct HashEntry
     {
-        /// <summary>
-        ///   Black from square ordinal.
-        /// </summary>
+        /// <summary> Black from square ordinal. </summary>
         public sbyte BlackFrom;
 
-        /// <summary>
-        ///   Black move name.
-        /// </summary>
+        /// <summary> Black move name. </summary>
         public Move.MoveNames BlackMoveName;
 
-        /// <summary>
-        ///   Black to square ordinal.
-        /// </summary>
+        /// <summary> Black to square ordinal. </summary>
         public sbyte BlackTo;
 
-        /// <summary>
-        ///   Player colour.
-        /// </summary>
+        /// <summary> Player colour. </summary>
         public Player.PlayerColourNames Colour;
 
-        /// <summary>
-        ///   Search depth.
-        /// </summary>
+        /// <summary> Search depth. </summary>
         public sbyte Depth;
 
-        /// <summary>
-        ///   The hash code a.
-        /// </summary>
+        /// <summary> The hash code A. </summary>
         public ulong HashCodeA;
 
-        /// <summary>
-        ///   The hash code b.
-        /// </summary>
+        /// <summary> The hash code b. </summary>
         public ulong HashCodeB;
 
-        /// <summary>
-        ///   The result (positional score).
-        /// </summary>
+        /// <summary> The result (positional score). </summary>
         public int Result;
 
-        /// <summary>
-        ///   The hash table entry type.
-        /// </summary>
+        /// <summary> The hash table entry type. </summary>
         public HashTypeNames Type;
 
-        /// <summary>
-        ///   White from square ordinal.
-        /// </summary>
+        /// <summary> White from square ordinal. </summary>
         public sbyte WhiteFrom;
 
-        /// <summary>
-        ///   White move name.
-        /// </summary>
+        /// <summary> White move name. </summary>
         public Move.MoveNames WhiteMoveName;
 
-        /// <summary>
-        ///   White to square ordinal.
-        /// </summary>
+        /// <summary> White to square ordinal. </summary>
         public sbyte WhiteTo;
     }
 }

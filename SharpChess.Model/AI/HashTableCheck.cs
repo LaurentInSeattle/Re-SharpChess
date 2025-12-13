@@ -1,56 +1,37 @@
 namespace SharpChess.Model.AI; 
 
-/// <summary>
-/// The hash table (also know as Transposition table) specifically for check positions.
-/// </summary>
-public static class HashTableCheck
+/// <summary> The hash table (also know as Transposition table) specifically for check positions. </summary>
+public sealed class HashTableCheck
 {
-    #region Constants and Fields
+    /// <summary> The hash table size. </summary>
+    private readonly uint hashTableSize;
 
-    /// <summary>
-    /// The m_ hash table size.
-    /// </summary>
-    private static uint hashTableSize;
+    /// <summary> The array of hash entries. </summary>
+    private readonly HashEntry[] hashTableEntries;
 
-    /// <summary>
-    /// The m_arr hash entry.
-    /// </summary>
-    private static HashEntry[] hashTableEntries;
-
-    #endregion
-
-    #region Public Properties
-
-    /// <summary>
-    ///   Gets the number of hash table Hits that have occured.
-    /// </summary>
-    public static int Hits { get; private set; }
-
-    /// <summary>
-    ///   Gets the number of hash table Overwrites that have occured.
-    /// </summary>
-    public static int Overwrites { get; private set; }
-
-    /// <summary>
-    ///   Gets the number of hash table Probes that have occured.
-    /// </summary>
-    public static int Probes { get; private set; }
-
-    /// <summary>
-    ///   Gets the number of hash table Writes that have occured.
-    /// </summary>
-    public static int Writes { get; private set; }
-
-    #endregion
-
-    #region Public Methods
-
-    /// <summary>
-    /// Clears all entries in the hash table.
-    /// </summary>
-    public static void Clear()
+    public HashTableCheck()
     {
-        ResetStats();
+        this.hashTableSize = Game.AvailableMegaBytes * 4000;
+        this.hashTableEntries = new HashEntry[hashTableSize];
+        this.Clear();
+    }
+
+    /// <summary> Gets the number of hash table Hits that have occured. </summary>
+    public int Hits { get; private set; }
+
+    /// <summary> Gets the number of hash table Overwrites that have occured. </summary>
+    public int Overwrites { get; private set; }
+
+    /// <summary> Gets the number of hash table Probes that have occured. </summary>
+    public int Probes { get; private set; }
+
+    /// <summary> Gets the number of hash table Writes that have occured.</summary>
+    public int Writes { get; private set; }
+
+    /// <summary> Clears all entries in the hash table. </summary>
+    public void Clear()
+    {
+        this.ResetStats();
         for (uint intIndex = 0; intIndex < hashTableSize; intIndex++)
         {
             hashTableEntries[intIndex].HashCodeA = 0;
@@ -59,32 +40,12 @@ public static class HashTableCheck
         }
     }
 
-    /// <summary>
-    /// Initialises the HashTable.
-    /// </summary>
-    public static void Initialise()
-    {
-        hashTableSize = Game.AvailableMegaBytes * 4000;
-        hashTableEntries = new HashEntry[hashTableSize];
-        Clear();
-    }
-
-    /// <summary>
-    /// Checks if the player is in check for the specified position, and caches the result.
-    /// </summary>
-    /// <param name="hashCodeA">
-    /// Hash Code for Board position A
-    /// </param>
-    /// <param name="hashCodeB">
-    /// Hash Code for Board position B
-    /// </param>
-    /// <param name="player">
-    /// The player.
-    /// </param>
-    /// <returns>
-    /// Returns whether the player in check.
-    /// </returns>
-    public static unsafe bool QueryandCachePlayerInCheckStatusForPosition(ulong hashCodeA, ulong hashCodeB, Player player)
+    /// <summary> Checks if the player is in check for the specified position, and caches the result. </summary>
+    /// <param name="hashCodeA"> Hash Code for Board position A </param>
+    /// <param name="hashCodeB"> Hash Code for Board position B </param>
+    /// <param name="player"> The player.  </param>
+    /// <returns> Returns whether the player in check. </returns>
+    public unsafe bool QueryandCachePlayerInCheckStatusForPosition(ulong hashCodeA, ulong hashCodeB, Player player)
     {
         fixed (HashEntry* phashBase = &hashTableEntries[0])
         {
@@ -125,41 +86,25 @@ public static class HashTableCheck
         }
     }
 
-    /// <summary>
-    /// The reset stats.
-    /// </summary>
-    public static void ResetStats()
+    /// <summary> Resets the hashtable statistics. </summary>
+    public void ResetStats()
     {
-        Probes = 0;
-        Hits = 0;
-        Writes = 0;
-        Overwrites = 0;
+        this.Probes = 0;
+        this.Hits = 0;
+        this.Writes = 0;
+        this.Overwrites = 0;
     }
 
-    #endregion
-
-    /// <summary>
-    /// Reset hash table stats.
-    /// </summary>
+    /// <summary> Content of the hashtable </summary>
     private struct HashEntry
     {
-        #region Constants and Fields
-
-        /// <summary>
-        /// The hash code a.
-        /// </summary>
+        /// <summary> The hash code a. </summary>
         public ulong HashCodeA;
 
-        /// <summary>
-        /// The hash code b.
-        /// </summary>
+        /// <summary> The hash code b. </summary>
         public ulong HashCodeB;
 
-        /// <summary>
-        /// The is in check.
-        /// </summary>
+        /// <summary> Boolean indicating that the player is in check. </summary>
         public bool IsInCheck;
-
-        #endregion
     }
 }

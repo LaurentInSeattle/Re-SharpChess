@@ -11,6 +11,9 @@ namespace SharpChess.Model
 
         public readonly Board Board;
         public readonly Fen Fen;
+        public readonly HashTable HashTable;
+        public readonly HashTablePawn HashTablePawn;
+        public readonly HashTableCheck HashTableCheck;
 
         /// <summary> The file name.
         private string saveGameFileName = string.Empty;
@@ -21,21 +24,21 @@ namespace SharpChess.Model
             this.Board = board;
             this.Fen = Fen;
 
-            EnableFeatures();
-            ClockIncrementPerMove = new TimeSpan(0, 0, 0);
-            ClockFixedTimePerMove = new TimeSpan(0, 0, 0);
-            DifficultyLevel = 1;
-            ClockTime = new TimeSpan(0, 5, 0);
-            ClockMaxMoves = 40;
-            UseRandomOpeningMoves = true;
-            MoveRedoList = [];
-            MaximumSearchDepth = 1;
-            MoveAnalysis = [];
-            MoveHistory = [];
-            FenStartPosition = string.Empty;
-            HashTable.Initialise();
-            HashTablePawn.Initialise();
-            HashTableCheck.Initialise();
+            this.EnableFeatures();
+            this.ClockIncrementPerMove = new TimeSpan(0, 0, 0);
+            this.ClockFixedTimePerMove = new TimeSpan(0, 0, 0);
+            this.DifficultyLevel = 1;
+            this.ClockTime = new TimeSpan(0, 5, 0);
+            this.ClockMaxMoves = 40;
+            this.UseRandomOpeningMoves = true;
+            this.MoveRedoList = [];
+            this.MaximumSearchDepth = 1;
+            this.MoveAnalysis = [];
+            this.MoveHistory = [];
+            this.FenStartPosition = string.Empty;
+            this.HashTable = new HashTable(this);
+            this.HashTablePawn = new HashTablePawn();
+            this.HashTableCheck = new HashTableCheck();
 
             PlayerWhite = new PlayerWhite(this);
             PlayerBlack = new PlayerBlack(this);
