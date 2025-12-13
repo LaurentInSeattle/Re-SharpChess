@@ -10,7 +10,6 @@ namespace SharpChess.Model
         public const uint AvailableMegaBytes = 16;
 
         public readonly Board Board;
-        public readonly Fen Fen;
         public readonly HashTable HashTable;
         public readonly HashTablePawn HashTablePawn;
         public readonly HashTableCheck HashTableCheck;
@@ -22,10 +21,9 @@ namespace SharpChess.Model
         private string saveGameFileName = string.Empty;
 
         /// <summary> Initializes members of the <see cref="Game" /> class. </summary>
-        public Game(Board board, Fen Fen)
+        public Game(Board board)
         {
             this.Board = board;
-            this.Fen = Fen;
 
             this.EnableFeatures();
             this.ClockIncrementPerMove = new TimeSpan(0, 0, 0);
@@ -42,12 +40,14 @@ namespace SharpChess.Model
             this.HashTable = new HashTable(this);
             this.HashTablePawn = new HashTablePawn();
             this.HashTableCheck = new HashTableCheck();
-            this.OpeningBookSimple = new OpeningBookSimple(this);
             this.HistoryHeuristic = new HistoryHeuristic(this);
             this.KillerMoves = new KillerMoves(this);
             this.PlayerWhite = new PlayerWhite(this);
             this.PlayerBlack = new PlayerBlack(this);
             this.PlayerToPlay = PlayerWhite;
+
+            // Initialize the opening book: Players must exists 
+            this.OpeningBookSimple = new OpeningBookSimple(this);
             this.Board.EstablishHashKey();
 
             this.PlayerWhite.Brain.ReadyToMakeMoveEvent += PlayerReadyToMakeMove;
@@ -830,7 +830,7 @@ namespace SharpChess.Model
 
         /// <summary> Start a new game from the specified FEN string position. For internal use only. </summary>
         /// <param name="fenString"> The str fen. </param>
-        private void NewInternal(string fenString)
+        public void NewInternal(string fenString)
         {
             if (string.IsNullOrWhiteSpace(fenString))
             {
@@ -848,7 +848,7 @@ namespace SharpChess.Model
             UndoAllMovesInternal();
             MoveRedoList.Clear();
             saveGameFileName = string.Empty;
-            Fen.SetBoardPosition(fenString);
+            Fen.SetBoardPosition(this, fenString);
             PlayerWhite.Clock.Reset();
             PlayerBlack.Clock.Reset();
         }

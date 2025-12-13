@@ -3,32 +3,22 @@ namespace SharpChess.Model;
 /// <summary> Represents the chess board using a 0x88 represenation. http://chessprogramming.wikispaces.com/0x88  </summary>
 public sealed class Board
 {
-    /// <summary>
-    ///   Number of files on the chess board.
-    /// </summary>
+    /// <summary> Number of files on the chess board. </summary>
     public const byte FileCount = 8;
 
-    /// <summary>
-    ///   Width of board matrix.
-    /// </summary>
+    /// <summary> Width of board matrix. </summary>
     public const byte MatrixWidth = 16;
 
-    /// <summary>
-    ///   Number of ranks on the chess board.
-    /// </summary>
+    /// <summary> Number of ranks on the chess board. </summary>
     public const byte RankCount = 8;
 
-    /// <summary>
-    ///   Number of square in the board matrix.
-    /// </summary>
+    /// <summary> Number of square in the board matrix. </summary>
     public const byte SquareCount = 128;
 
     /// <summary> List of squares on the board. </summary>
     private static readonly Square[] Squares = new Square[RankCount * MatrixWidth];
 
-    /// <summary>
-    ///   Orientation of the board. Black or White at the bottom.
-    /// </summary>
+    /// <summary> Orientation of the board. Black or White at the bottom. </summary>
     private OrientationNames orientation = OrientationNames.White;
 
     /// <summary> Initializes members of the <see cref = "Board" /> class. </summary>
@@ -206,20 +196,20 @@ public sealed class Board
 
     /// <summary> Gets a square from an ordinal. </summary>
     /// <param name="ordinal"> The ordinal. </param>
-    /// <returns> The corresponding square or or exception thrown </returns>
-    public Square GetSquare(int ordinal)
-        => (ordinal & 0x88) == 0 ? 
-            Squares[ordinal] 
-            : throw new ApplicationException("Invalid file and/or rank ");
+    /// <returns> The corresponding square or null </returns>
+    public Square? GetSquare(int ordinal)
+        => (ordinal & 0x88) == 0 ?
+            Squares[ordinal]
+            : null; 
 
     /// <summary> Gets a square from a file and a rank. </summary>
     /// <param name="file"> The file. </param>
     /// <param name="rank"> The rank. </param>
-    /// <returns> The corresponding square or exception thrown </returns>
-    public Square GetSquare(int file, int rank)
+    /// <returns> The corresponding square or null </returns>
+    public Square? GetSquare(int file, int rank)
         => (OrdinalFromFileRank(file, rank) & 0x88) == 0 ? 
                 Squares[OrdinalFromFileRank(file, rank)] :
-                throw new ApplicationException("Invalid file and/or rank ");
+                null;
 
     /// <summary> Gets a square from a label string. </summary>
     /// <param name="label"> The label. </param>
@@ -330,6 +320,7 @@ public sealed class Board
     /// <param name="file"> The file. </param>
     /// <param name="rank"> The rank. </param>
     /// <returns> the Ordinal value from file and rank. </returns>
-    private int OrdinalFromFileRank(int file, int rank)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int OrdinalFromFileRank(int file, int rank)
         => (rank << 4) | file;
 }

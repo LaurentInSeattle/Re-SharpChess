@@ -4,19 +4,10 @@ namespace SharpChess.Model;
 /// Converts a Forsyth–Edwards Notation (FEN) string into a SharpChess board position.
 /// http://chessprogramming.wikispaces.com/Forsyth-Edwards+Notation
 /// </summary>
-public sealed class Fen
+public static class Fen
 {
     /// <summary> Gets GameStartPosition. </summary>
     public static string GameStartPosition => "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-    private readonly Game Game;
-    private readonly Board Board;
-
-    public Fen(Game game, Board board)
-    {
-        this.Game = game;
-        this.Board = board;
-    }
 
     /// <summary>Extraction the current position in FEN: Forsyth-Edwards Notation </summary>
     /// <returns>
@@ -67,52 +58,53 @@ public sealed class Fen
     ///     </item>
     /// </list>
     /// </example>
-    public string GetBoardPosition()
+    public static string GetBoardPosition(Game game)
     {
-        Game.SuspendPondering();
+        game.SuspendPondering();
         var strbFen = new StringBuilder();
 
         // Field 1: Piece placement data
-        FenGet1Pieces(strbFen);
+        FenGet1Pieces(game.Board, strbFen);
 
         // Field 2: Active color
-        strbFen.Append((Game.PlayerToPlay.Colour == Player.PlayerColourNames.White) ? " w " : " b ");
+        strbFen.Append((game.PlayerToPlay.Colour == Player.PlayerColourNames.White) ? " w " : " b ");
 
         // Field 3: Castling availability
-        bool whiteCanCastle = FenGet3CastlingIsPossible(Game.PlayerWhite.King, strbFen);
-        bool blackCanCastle = FenGet3CastlingIsPossible(Game.PlayerBlack.King, strbFen);
+        bool whiteCanCastle = FenGet3CastlingIsPossible(game.PlayerWhite.King, strbFen);
+        bool blackCanCastle = FenGet3CastlingIsPossible(game.PlayerBlack.King, strbFen);
         if (!whiteCanCastle && !blackCanCastle)
         {
             strbFen.Append('-'); // No castling availability for either side
         }
 
         // Field 4: En passant target square coordonates
-        strbFen.Append(FenGet4EnPassant());
+        strbFen.Append(FenGet4EnPassant(game));
 
         // Field 5: number of Halfmove clock or ply since the last pawn advance or capturing move.
-        strbFen.Append(FenGet5Counter50MoveDraw());
+        strbFen.Append(FenGet5Counter50MoveDraw(game));
 
         // Field 6: Full move number
-        strbFen.Append((Game.TurnNo >> 1) + 1); // Incremented at each move of Blacks
+        strbFen.Append((game.TurnNo >> 1) + 1); // Incremented at each move of Blacks
 
-        Game.ResumePondering();
+        game.ResumePondering();
         return strbFen.ToString();
     }
 
     /// <summary> Set board position from the provided FEN string.</summary>
     /// <param name="fenString"> The FEN string. </param>
-    public void SetBoardPosition(string fenString)
+    public static void SetBoardPosition(Game game, string fenString)
     {
+        var board = game.Board;
         string strActiveColour = "w";
         string strCastlingRights = string.Empty;
         string strEnPassant = "-";
         string strHalfMoveClock = "0";
         string strFullMoveNumber = "1";
 
-        Game.FenStartPosition = fenString;
+        game.FenStartPosition = fenString;
 
-        Game.CaptureAllPieces();
-        Game.DemoteAllPieces();
+        game.CaptureAllPieces();
+        game.DemoteAllPieces();
 
         // Break up the string into its various parts
         // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
@@ -165,43 +157,46 @@ public sealed class Fen
         // Match FEN pieces against actual pieces, and move them onto the board
 
         // Pass 1: Match piece name and location exactly
-        SetPiecePlacement(ref acharPiecePlacement, false, false);
+        SetPiecePlacement(game, ref acharPiecePlacement, false, false);
 
         // Pass 2: Match piece name
-        SetPiecePlacement(ref acharPiecePlacement, true, false);
+        SetPiecePlacement(game, ref acharPiecePlacement, true, false);
 
         // Pass 3: For non-pawns and not the king, allow pawns to be promoted to the named piece
-        SetPiecePlacement(ref acharPiecePlacement, true, true);
+        SetPiecePlacement(game, ref acharPiecePlacement, true, true);
 
         // Set player to play
-        Game.PlayerToPlay = strActiveColour == "b" ? Game.PlayerBlack : Game.PlayerWhite;
+        game.PlayerToPlay = strActiveColour == "b" ? game.PlayerBlack : game.PlayerWhite;
 
         // Set castling rights
-        Piece? pieceRook;
+        Piece? pieceRook = board.GetPiece(7, 0);
 
         // White King's Rook
-        if ((pieceRook = Board.GetPiece(7, 0)) != null && pieceRook.Name == Piece.PieceNames.Rook
+        if (pieceRook is not null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.White)
         {
             pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('K') >= 0 ? 0 : 1;
         }
 
         // Black King's Rook
-        if ((pieceRook = Board.GetPiece(7, 7)) != null && pieceRook.Name == Piece.PieceNames.Rook
+        pieceRook = board.GetPiece(7, 0);
+        if (pieceRook is not null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.Black)
         {
             pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('k') >= 0 ? 0 : 1;
         }
 
         // White Queen's Rook
-        if ((pieceRook = Board.GetPiece(0, 0)) != null && pieceRook.Name == Piece.PieceNames.Rook
+        pieceRook = board.GetPiece(0, 0);
+        if (pieceRook is not null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.White)
         {
             pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('Q') >= 0 ? 0 : 1;
         }
 
         // Black Queen's Rook
-        if ((pieceRook = Board.GetPiece(0, 7)) != null && pieceRook.Name == Piece.PieceNames.Rook
+        pieceRook = board.GetPiece(0, 7);
+        if (pieceRook is not null && pieceRook.Name == Piece.PieceNames.Rook
             && pieceRook.Player.Colour == Player.PlayerColourNames.Black)
         {
             pieceRook.NoOfMoves = strCastlingRights.LastIndexOf('q') >= 0 ? 0 : 1;
@@ -211,16 +206,16 @@ public sealed class Fen
         Game.FiftyMoveDrawBase = int.Parse(strHalfMoveClock);
 
         // Full move number. Default 1. Must be defined before En Passant.
-        Game.TurnNo = (int.Parse(strFullMoveNumber) - 1) << 1;
-        if (Game.PlayerToPlay.Colour == Player.PlayerColourNames.Black)
+        game.TurnNo = (int.Parse(strFullMoveNumber) - 1) << 1;
+        if (game.PlayerToPlay.Colour == Player.PlayerColourNames.Black)
         {
-            Game.TurnNo++; // Always odd for the previous White's move 
+            game.TurnNo++; // Always odd for the previous White's move 
         }
 
         // En Passant
         if (strEnPassant[0] != '-')
         {
-            int indFile = Board.FileFromName(Convert.ToString(strEnPassant[0]));
+            int indFile = board.FileFromName(Convert.ToString(strEnPassant[0]));
             int indRank = int.Parse(Convert.ToString(strEnPassant[1]));
             if (indRank == 6)
             {
@@ -229,16 +224,16 @@ public sealed class Fen
             }
 
             // else if indRank = 3, fenString = "e3" last move was e2-e4 so indRank = 3
-            Piece? piecePassed = Board.GetPiece(indFile, indRank);
+            Piece? piecePassed = board.GetPiece(indFile, indRank);
             if (piecePassed != null)
             {
                 piecePassed.NoOfMoves = 1;
-                piecePassed.LastMoveTurnNo = Game.TurnNo;
+                piecePassed.LastMoveTurnNo = game.TurnNo;
             } 
         }
 
         // Recalculate the hashkey for the current position.
-        Board.EstablishHashKey();
+        board.EstablishHashKey();
 
         VerifyPiecePlacement(ref acharPiecePlacement);
     }
@@ -591,7 +586,7 @@ public sealed class Fen
     ///     </item>
     /// </list>
     /// </remarks>
-    private void FenGet1Pieces(StringBuilder strbFen)
+    private static void FenGet1Pieces(Board board, StringBuilder strbFen)
     {
         for (int emptySquare = 0, indRank = Board.RankCount - 1; indRank >= 0; indRank--)
         {
@@ -603,7 +598,7 @@ public sealed class Fen
             for (int indFile = 0; indFile < Board.FileCount; indFile++)
             {
                 // Browse by column
-                Square? squareThis = Board.GetSquare(indFile, indRank);
+                Square? squareThis = board.GetSquare(indFile, indRank);
                 if (squareThis == null)
                 {
                     continue; 
@@ -700,19 +695,20 @@ public sealed class Fen
     ///     </item>
     /// </list>
     /// </returns>
-    private string FenGet4EnPassant()
+    private static string FenGet4EnPassant(Game game)
     {
-        if ((Game.MoveHistory.Count > 0) && (Game.MoveHistory.Last.Piece.Name == Piece.PieceNames.Pawn)
-            && (Game.MoveHistory.Last.From.File == Game.MoveHistory.Last.To.File)
+
+        if ((game.MoveHistory.Count > 0) && (game.MoveHistory.Last.Piece.Name == Piece.PieceNames.Pawn)
+            && (game.MoveHistory.Last.From.File == game.MoveHistory.Last.To.File)
             &&
-            (((Game.MoveHistory.Last.From.Rank == Game.MoveHistory.Last.To.Rank + 2)
-              && (Game.MoveHistory.Last.Piece.Player.Colour == Player.PlayerColourNames.Black))
+            (((game.MoveHistory.Last.From.Rank == game.MoveHistory.Last.To.Rank + 2)
+              && (game.MoveHistory.Last.Piece.Player.Colour == Player.PlayerColourNames.Black))
              ||
-             ((Game.MoveHistory.Last.From.Rank == Game.MoveHistory.Last.To.Rank - 2)
-              && (Game.MoveHistory.Last.Piece.Player.Colour == Player.PlayerColourNames.White))))
+             ((game.MoveHistory.Last.From.Rank == game.MoveHistory.Last.To.Rank - 2)
+              && (game.MoveHistory.Last.Piece.Player.Colour == Player.PlayerColourNames.White))))
         {
-            return " " + Game.MoveHistory.Last.From.FileName
-                   + ((Game.MoveHistory.Last.Piece.Player.Colour == Player.PlayerColourNames.White) ? "3 " : "6 ");
+            return " " + game.MoveHistory.Last.From.FileName
+                   + ((game.MoveHistory.Last.Piece.Player.Colour == Player.PlayerColourNames.White) ? "3 " : "6 ");
                 
                 // The case between From and To
         }
@@ -722,11 +718,11 @@ public sealed class Fen
 
     /// <summary> FEN string of the number of ply since the last pawn advance or capturing move </summary>
     /// <returns> Return 50 move draw </returns>
-    private string FenGet5Counter50MoveDraw()
+    private static string FenGet5Counter50MoveDraw(Game game)
         => string.Format(
             "{0} ", 
-            Game.MoveHistory.Count > 0 ? 
-                Game.MoveHistory.Last.FiftyMoveDrawCounter : 
+            game.MoveHistory.Count > 0 ? 
+                game.MoveHistory.Last.FiftyMoveDrawCounter : 
                 Game.FiftyMoveDrawBase);
 
     /// <summary> FEN helper naming each field </summary>
@@ -753,12 +749,15 @@ public sealed class Fen
     /// <param name="intRank"> The rank. </param>
     /// <param name="blnAnyLocation"> An indicator for any location. </param>
     /// <param name="blnAllowPromotion"> The allow promotion indicator. </param>
-    private void MovePieceToFenPosition(
+    private static void MovePieceToFenPosition(
+        Game game,
         ref char charToken, int intFile, int intRank, bool blnAnyLocation, bool blnAllowPromotion)
     {
+        Board board = game.Board;
+
         Piece.PieceNames piecename = Piece.PieceNames.King;
         char upperCharToken = char.ToUpper(charToken);
-        Player player = charToken == upperCharToken ? Game.PlayerWhite : Game.PlayerBlack;
+        Player player = charToken == upperCharToken ? game.PlayerWhite : game.PlayerBlack;
 
         switch (upperCharToken)
         {
@@ -788,7 +787,7 @@ public sealed class Fen
         foreach (Piece pieceCaptured in player.OpposingPlayer.CapturedEnemyPieces)
         {
             if ((pieceCaptured.Name == piecename || (blnAllowPromotion && pieceCaptured.Name == Piece.PieceNames.Pawn))
-                && (pieceCaptured.StartLocation == Board.GetSquare(intFile, intRank) || blnAnyLocation))
+                && (pieceCaptured.StartLocation == board.GetSquare(intFile, intRank) || blnAnyLocation))
             {
                 pieceToUse = pieceCaptured;
                 break;
@@ -797,7 +796,7 @@ public sealed class Fen
 
         if (pieceToUse != null)
         {
-            Square? square = Board.GetSquare(intFile, intRank);
+            Square? square = board.GetSquare(intFile, intRank);
             if (square != null)
             {
                 pieceToUse.Uncapture(0);
@@ -820,7 +819,8 @@ public sealed class Fen
     /// <param name="blnAnyLocation"> True if any location. </param>
     /// <param name="blnAllowPromotion"> True if allow promotion. </param>
     /// <exception cref="ValidationException"> thrown if any Unknow character in FEN string. </exception>
-    private void SetPiecePlacement(
+    private static void SetPiecePlacement(
+        Game game,
         ref char[] acharPiecePlacement, bool blnAnyLocation, bool blnAllowPromotion)
     {
         // Setup piece placement
@@ -854,6 +854,7 @@ public sealed class Fen
                 case 'n':
                 case 'p':
                     MovePieceToFenPosition(
+                        game,
                         ref acharPiecePlacement[intIndex], intFile, intRank, blnAnyLocation, blnAllowPromotion);
                     intFile++;
                     break;
