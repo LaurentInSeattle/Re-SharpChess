@@ -9,6 +9,9 @@ namespace SharpChess.Model
         /// <summary>The available MegaBytes of free computer memory. </summary>
         public const uint AvailableMegaBytes = 16;
 
+        /// <summary> The largest valid Material Count. </summary>
+        public const int MaxMaterialCount = 7;
+
         public readonly Board Board;
         public readonly HashTable HashTable;
         public readonly HashTablePawn HashTablePawn;
@@ -44,14 +47,14 @@ namespace SharpChess.Model
             this.KillerMoves = new KillerMoves(this);
             this.PlayerWhite = new PlayerWhite(this);
             this.PlayerBlack = new PlayerBlack(this);
-            this.PlayerToPlay = PlayerWhite;
+            this.PlayerToPlay = this.PlayerWhite;
 
             // Initialize the opening book: Players must exists 
             this.OpeningBookSimple = new OpeningBookSimple(this);
             this.Board.EstablishHashKey();
 
-            this.PlayerWhite.Brain.ReadyToMakeMoveEvent += PlayerReadyToMakeMove;
-            this.PlayerBlack.Brain.ReadyToMakeMoveEvent += PlayerReadyToMakeMove;
+            this.PlayerWhite.Brain.ReadyToMakeMoveEvent += this.PlayerReadyToMakeMove;
+            this.PlayerBlack.Brain.ReadyToMakeMoveEvent += this.PlayerReadyToMakeMove;
 
             this.BackupGamePath = string.Empty;
 
@@ -249,21 +252,18 @@ namespace SharpChess.Model
         public bool IsInAnalyseMode { get; set; }
 
         /// <summary> Gets a value indicating whether the game is paused.</summary>
-        public bool IsPaused => !PlayerToPlay.Clock.IsTicking;
+        public bool IsPaused => !this.PlayerToPlay.Clock.IsTicking;
 
         /// <summary> Gets the lowest material count for black or white. </summary>
         public int LowestMaterialCount
         {
             get
             {
-                int intWhiteMaterialCount = PlayerWhite.MaterialCount;
-                int intBlackMaterialCount = PlayerBlack.MaterialCount;
+                int intWhiteMaterialCount = this.PlayerWhite.MaterialCount;
+                int intBlackMaterialCount = this.PlayerBlack.MaterialCount;
                 return intWhiteMaterialCount < intBlackMaterialCount ? intWhiteMaterialCount : intBlackMaterialCount;
             }
         }
-
-        /// <summary> Gets the largest valid Material Count. </summary>
-        public int MaxMaterialCount => 7;
 
         /// <summary> Gets or sets the maximum search depth. </summary>
         public int MaximumSearchDepth { get; set; }
@@ -275,7 +275,7 @@ namespace SharpChess.Model
         public Moves MoveHistory { get; private set; }
 
         /// <summary> Gets the current move number. </summary>
-        public int MoveNo =>  TurnNo >> 1;
+        public int MoveNo => this.TurnNo >> 1;
 
         /// <summary> Gets the move redo list. </summary>
         public Moves MoveRedoList { get; private set; }
@@ -297,12 +297,12 @@ namespace SharpChess.Model
         {
             get
             {
-                if (LowestMaterialCount >= MaxMaterialCount)
+                if (this.LowestMaterialCount >= Game.MaxMaterialCount)
                 {
                     return GameStageNames.Opening;
                 }
 
-                return LowestMaterialCount <= 3 ? GameStageNames.End : GameStageNames.Middle;
+                return this.LowestMaterialCount <= 3 ? GameStageNames.End : GameStageNames.Middle;
             }
         }
 
@@ -318,15 +318,15 @@ namespace SharpChess.Model
         /// <summary> Captures all pieces. </summary>
         public void CaptureAllPieces()
         {
-            PlayerWhite.CaptureAllPieces();
-            PlayerBlack.CaptureAllPieces();
+            this.PlayerWhite.CaptureAllPieces();
+            this.PlayerBlack.CaptureAllPieces();
         }
 
         /// <summary> Demotes all pieces. </summary>
         public void DemoteAllPieces()
         {
-            PlayerWhite.DemoteAllPieces();
-            PlayerBlack.DemoteAllPieces();
+            this.PlayerWhite.DemoteAllPieces();
+            this.PlayerBlack.DemoteAllPieces();
         }
 
         /// <summary> Load a saved game. </summary>
@@ -334,25 +334,24 @@ namespace SharpChess.Model
         /// <returns> Returns True is game loaded successfully. </returns>
         public bool Load(string fileName)
         {
-            SuspendPondering();
+            this.SuspendPondering();
 
-            NewInternal();
+            this.NewInternal();
             saveGameFileName = fileName;
-            bool blnSuccess = LoadGame(fileName);
+            bool blnSuccess = this.LoadGame(fileName);
             if (blnSuccess)
             {
-                SaveBackup();
-                SendBoardPositionChangeEvent();
+                this.SaveBackup();
+                this.SendBoardPositionChangeEvent();
             }
 
-            PausePlay();
-
+            this.PausePlay();
             return blnSuccess;
         }
 
         /// <summary> Load backup game. </summary>
         /// <returns> Returns True is game loaded successfully. </returns>
-        public bool LoadBackup() =>  LoadGame(BackupGamePath);
+        public bool LoadBackup() => this.LoadGame(this.BackupGamePath);
 
         /// <summary> Make a move.</summary>
         /// <param name="moveName"> The move name. </param>
@@ -360,103 +359,103 @@ namespace SharpChess.Model
         /// <param name="square"> The square to move to. </param>
         public void MakeAMove(Move.MoveNames moveName, Piece piece, Square square)
         {
-            SuspendPondering();
-            MakeAMoveInternal(moveName, piece, square);
-            SaveBackup();
-            SendBoardPositionChangeEvent();
-            CheckIfAutoNextMove();
+            this.SuspendPondering();
+            this.MakeAMoveInternal(moveName, piece, square);
+            this.SaveBackup();
+            this.SendBoardPositionChangeEvent();
+            this.CheckIfAutoNextMove();
         }
 
         /// <summary> Start a new game. </summary>
-        public void New() =>  New(string.Empty);
+        public void New() => this.New(string.Empty);
 
         /// <summary> Start a new game using a FEN string. </summary>
         /// <param name="fenString"> The FEN string. </param>
         public void New(string fenString)
         {
-            SuspendPondering();
-            NewInternal(fenString);
-            SaveBackup();
-            SendBoardPositionChangeEvent();
-            ResumePondering();
+            this.SuspendPondering();
+            this.NewInternal(fenString);
+            this.SaveBackup();
+            this.SendBoardPositionChangeEvent();
+            this.ResumePondering();
         }
 
         /// <summary> Pause the game. </summary>
         public void PausePlay()
         {
-            PlayerToPlay.Clock.Stop();
-            PlayerToPlay.Brain.ForceImmediateMove();
-            GamePaused();
+            this.PlayerToPlay.Clock.Stop();
+            this.PlayerToPlay.Brain.ForceImmediateMove();
+            this.GamePaused();
         }
 
         /// <summary> Redo all moves. </summary>
         public void RedoAllMoves()
         {
-            SuspendPondering();
-            while (MoveRedoList.Count > 0)
+            this.SuspendPondering();
+            while (this.MoveRedoList.Count > 0)
             {
-                RedoMoveInternal();
+                this.RedoMoveInternal();
             }
 
-            SaveBackup();
-            SendBoardPositionChangeEvent();
-            ResumePondering();
+            this.SaveBackup();
+            this.SendBoardPositionChangeEvent();
+            this.ResumePondering();
         }
 
         /// <summary> Redo a move. </summary>
         public void RedoMove()
         {
-            SuspendPondering();
-            RedoMoveInternal();
-            SaveBackup();
-            SendBoardPositionChangeEvent();
-            ResumePondering();
+            this.SuspendPondering();
+            this.RedoMoveInternal();
+            this.SaveBackup();
+            this.SendBoardPositionChangeEvent();
+            this.ResumePondering();
         }
 
         /// <summary> Resume the game. </summary>
         public void ResumePlay()
         {
-            PlayerToPlay.Clock.Start();
-            GameResumed();
-            if (PlayerToPlay.Intellegence == Player.PlayerIntellegenceNames.Computer)
+            this.PlayerToPlay.Clock.Start();
+            this.GameResumed();
+            if (this.PlayerToPlay.Intellegence == Player.PlayerIntellegenceNames.Computer)
             {
-                MakeNextComputerMove();
+                this.MakeNextComputerMove();
             }
             else
             {
-                ResumePondering();
+                this.ResumePondering();
             }
         }
 
         /// <summary> Resume pondering. </summary>
         public void ResumePondering()
         {
-            if (IsPaused)
+            if (this.IsPaused)
             {
                 return;
             }
 
-            if (!EnablePondering)
+            if (!this.EnablePondering)
             {
                 return;
             }
 
-            if (!PlayerToPlay.CanMove)
+            if (!this.PlayerToPlay.CanMove)
             {
                 return;
             }
 
-            if (PlayerWhite.Intellegence == Player.PlayerIntellegenceNames.Computer
-                && PlayerBlack.Intellegence == Player.PlayerIntellegenceNames.Computer)
+            if (this.PlayerWhite.Intellegence == Player.PlayerIntellegenceNames.Computer
+                && this.PlayerBlack.Intellegence == Player.PlayerIntellegenceNames.Computer)
             {
                 return;
             }
 
-            if (PlayerToPlay.OpposingPlayer.Intellegence == Player.PlayerIntellegenceNames.Computer)
+            if (this.PlayerToPlay.OpposingPlayer.Intellegence == Player.PlayerIntellegenceNames.Computer)
             {
-                if (!PlayerToPlay.Brain.IsPondering)
+                if (!this.PlayerToPlay.Brain.IsPondering)
                 {
-                    PlayerToPlay.Brain.StartPondering();
+                    this.PlayerToPlay.Brain.StartPondering();
                 }
             }
         }
@@ -465,28 +464,25 @@ namespace SharpChess.Model
         /// <param name="fileName"> The file name. </param>
         public void Save(string fileName)
         {
-            SuspendPondering();
-
-            SaveBackup();
-            SaveGame(fileName);
-            saveGameFileName = fileName;
-
-            GameSaved();
-
-            ResumePondering();
+            this.SuspendPondering();
+            this.SaveBackup();
+            this.SaveGame(fileName);
+            this.saveGameFileName = fileName;
+            this.GameSaved();
+            this.ResumePondering();
         }
 
         /// <summary> Called when settings have been changed in the UI. </summary>
         public void SettingsUpdate()
         {
-            SuspendPondering();
+            this.SuspendPondering();
             //if (!WinBoard.Active)
             //{
             //    SaveBackup();
             //}
 
-            SettingsUpdated();
-            ResumePondering();
+            this.SettingsUpdated();
+            this.ResumePondering();
         }
 
         // TODO
@@ -503,14 +499,14 @@ namespace SharpChess.Model
         /// <summary> Suspend pondering. </summary>
         public void SuspendPondering()
         {
-            if (PlayerToPlay.Brain.IsPondering)
+            if (this.PlayerToPlay.Brain.IsPondering)
             {
-                PlayerToPlay.Brain.ForceImmediateMove();
+                this.PlayerToPlay.Brain.ForceImmediateMove();
             }
-            else if (PlayerToPlay.Brain.IsThinking)
+            else if (this.PlayerToPlay.Brain.IsThinking)
             {
-                PlayerToPlay.Brain.ForceImmediateMove();
-                UndoMove();
+                this.PlayerToPlay.Brain.ForceImmediateMove();
+                this.UndoMove();
             }
         }
 
@@ -519,9 +515,9 @@ namespace SharpChess.Model
         {
             // WinBoard.StopListener();
 
-            SuspendPondering();
-            PlayerWhite.Brain.AbortThinking();
-            PlayerBlack.Brain.AbortThinking();
+            this.SuspendPondering();
+            this.PlayerWhite.Brain.AbortThinking();
+            this.PlayerBlack.Brain.AbortThinking();
 
             #region Commented out: Save Settings to Registry
 
@@ -545,41 +541,38 @@ namespace SharpChess.Model
         /// </summary>
         public void Think()
         {
-            SuspendPondering();
-            MakeNextComputerMove();
+            this.SuspendPondering();
+            this.MakeNextComputerMove();
         }
 
         /// <summary> Toggle edit mode. </summary>
-        public void ToggleEditMode()
-        {
-            EditModeActive = !EditModeActive;
-        }
+        public void ToggleEditMode() => this.EditModeActive = !this.EditModeActive;
 
         /// <summary> Undo all moves. </summary>
         public void UndoAllMoves()
         {
-            SuspendPondering();
-            UndoAllMovesInternal();
-            SaveBackup();
-            SendBoardPositionChangeEvent();
-            ResumePondering();
+            this.SuspendPondering();
+            this.UndoAllMovesInternal();
+            this.SaveBackup();
+            this.SendBoardPositionChangeEvent();
+            this.ResumePondering();
         }
 
         /// <summary> Undo the last move. </summary>
         public void UndoMove()
         {
-            SuspendPondering();
-            UndoMoveInternal();
-            SaveBackup();
-            SendBoardPositionChangeEvent();
-            ResumePondering();
+            this.SuspendPondering();
+            this.UndoMoveInternal();
+            this.SaveBackup();
+            this.SendBoardPositionChangeEvent();
+            this.ResumePondering();
         }
 
         /// <summary> Add a move node to the save game XML document. </summary>
         /// <param name="xmldoc"> Xml document representing the save game file. </param>
         /// <param name="xmlnodeGame"> Parent game xmlnode. </param>
         /// <param name="move"> Move to append to the save game Xml document. </param>
-        private void AddSaveGameNode(XmlDocument xmldoc, XmlElement xmlnodeGame, Move move)
+        private static void AddSaveGameNode(XmlDocument xmldoc, XmlElement xmlnodeGame, Move move)
         {
             XmlElement xmlnodeMove = xmldoc.CreateElement("Move");
             xmlnodeGame.AppendChild(xmlnodeMove);
@@ -593,18 +586,18 @@ namespace SharpChess.Model
         /// <summary> Start then next move automatically, if it is the computers turn. </summary>
         private void CheckIfAutoNextMove()
         {
-            if (PlayerWhite.Intellegence == Player.PlayerIntellegenceNames.Computer
-                && PlayerBlack.Intellegence == Player.PlayerIntellegenceNames.Computer)
+            if (this.PlayerWhite.Intellegence == Player.PlayerIntellegenceNames.Computer
+                && this.PlayerBlack.Intellegence == Player.PlayerIntellegenceNames.Computer)
             {
-                // Dont want an infinate loop of Computer moves
+                // Dont want an infinite loop of Computer moves
                 return;
             }
 
-            if (PlayerToPlay.Intellegence == Player.PlayerIntellegenceNames.Computer)
+            if (this.PlayerToPlay.Intellegence == Player.PlayerIntellegenceNames.Computer)
             {
-                if (PlayerToPlay.CanMove)
+                if (this.PlayerToPlay.CanMove)
                 {
-                    MakeNextComputerMove();
+                    this.MakeNextComputerMove();
                 }
             }
         }
@@ -632,7 +625,7 @@ namespace SharpChess.Model
         /// <returns> True if load was successful. </returns>
         private bool LoadGame(string strFileName)
         {
-            MoveRedoList.Clear();
+            this.MoveRedoList.Clear();
             var xmldoc = new XmlDocument();
             try
             {
@@ -651,63 +644,66 @@ namespace SharpChess.Model
 
             if (xmlnodeGame.GetAttribute("FEN") != string.Empty)
             {
-                NewInternal(xmlnodeGame.GetAttribute("FEN"));
+                this.NewInternal(xmlnodeGame.GetAttribute("FEN"));
             }
 
             if (xmlnodeGame.GetAttribute("WhitePlayer") != string.Empty)
             {
-                PlayerWhite.Intellegence = xmlnodeGame.GetAttribute("WhitePlayer") == "Human"
-                                               ? Player.PlayerIntellegenceNames.Human
-                                               : Player.PlayerIntellegenceNames.Computer;
+                this.PlayerWhite.Intellegence = 
+                    xmlnodeGame.GetAttribute("WhitePlayer") == "Human"
+                        ? Player.PlayerIntellegenceNames.Human
+                        : Player.PlayerIntellegenceNames.Computer;
             }
 
             if (xmlnodeGame.GetAttribute("BlackPlayer") != string.Empty)
             {
-                PlayerBlack.Intellegence = xmlnodeGame.GetAttribute("BlackPlayer") == "Human"
-                                               ? Player.PlayerIntellegenceNames.Human
-                                               : Player.PlayerIntellegenceNames.Computer;
+                this.PlayerBlack.Intellegence = 
+                    xmlnodeGame.GetAttribute("BlackPlayer") == "Human"
+                        ? Player.PlayerIntellegenceNames.Human
+                        : Player.PlayerIntellegenceNames.Computer;
             }
 
             if (xmlnodeGame.GetAttribute("BoardOrientation") != string.Empty)
             {
-                Board.Orientation = xmlnodeGame.GetAttribute("BoardOrientation") == "White"
-                                        ? Board.OrientationNames.White
-                                        : Board.OrientationNames.Black;
+                this.Board.Orientation = 
+                    xmlnodeGame.GetAttribute("BoardOrientation") == "White"
+                        ? Board.OrientationNames.White
+                        : Board.OrientationNames.Black;
             }
 
             if (xmlnodeGame.GetAttribute("DifficultyLevel") != string.Empty)
             {
-                DifficultyLevel = int.Parse(xmlnodeGame.GetAttribute("DifficultyLevel"));
+                this.DifficultyLevel = int.Parse(xmlnodeGame.GetAttribute("DifficultyLevel"));
             }
 
             if (xmlnodeGame.GetAttribute("ClockMoves") != string.Empty)
             {
-                ClockMaxMoves = int.Parse(xmlnodeGame.GetAttribute("ClockMoves"));
+                this.ClockMaxMoves = int.Parse(xmlnodeGame.GetAttribute("ClockMoves"));
             }
 
             if (xmlnodeGame.GetAttribute("ClockMinutes") != string.Empty)
             {
-                ClockTime = new TimeSpan(0, int.Parse(xmlnodeGame.GetAttribute("ClockMinutes")), 0);
+                this.ClockTime = new TimeSpan(0, int.Parse(xmlnodeGame.GetAttribute("ClockMinutes")), 0);
             }
 
             if (xmlnodeGame.GetAttribute("ClockSeconds") != string.Empty)
             {
-                ClockTime = new TimeSpan(0, 0, int.Parse(xmlnodeGame.GetAttribute("ClockSeconds")));
+                this.ClockTime = new TimeSpan(0, 0, int.Parse(xmlnodeGame.GetAttribute("ClockSeconds")));
             }
 
             if (xmlnodeGame.GetAttribute("MaximumSearchDepth") != string.Empty)
             {
-                MaximumSearchDepth = int.Parse(xmlnodeGame.GetAttribute("MaximumSearchDepth"));
+                this.MaximumSearchDepth = int.Parse(xmlnodeGame.GetAttribute("MaximumSearchDepth"));
             }
 
             if (xmlnodeGame.GetAttribute("Pondering") != string.Empty)
             {
-                EnablePondering = xmlnodeGame.GetAttribute("Pondering") == "1";
+                this.EnablePondering = xmlnodeGame.GetAttribute("Pondering") == "1";
             }
 
             if (xmlnodeGame.GetAttribute("UseRandomOpeningMoves") != string.Empty)
             {
-                UseRandomOpeningMoves = xmlnodeGame.GetAttribute("UseRandomOpeningMoves") == "1";
+                this.UseRandomOpeningMoves = xmlnodeGame.GetAttribute("UseRandomOpeningMoves") == "1";
             }
 
             XmlNodeList? xmlnodelist = xmldoc.SelectNodes("/Game/Move");
@@ -719,17 +715,17 @@ namespace SharpChess.Model
                     Square? to;
                     if (xmlnode.GetAttribute("FromFile") != string.Empty)
                     {
-                        from = Board.GetSquare(
+                        from = this.Board.GetSquare(
                             Convert.ToInt32(xmlnode.GetAttribute("FromFile")),
                             Convert.ToInt32(xmlnode.GetAttribute("FromRank")));
-                        to = Board.GetSquare(
+                        to = this.Board.GetSquare(
                             Convert.ToInt32(xmlnode.GetAttribute("ToFile")),
                             Convert.ToInt32(xmlnode.GetAttribute("ToRank")));
                     }
                     else
                     {
-                        from = Board.GetSquare(xmlnode.GetAttribute("From"));
-                        to = Board.GetSquare(xmlnode.GetAttribute("To"));
+                        from = this.Board.GetSquare(xmlnode.GetAttribute("From"));
+                        to = this.Board.GetSquare(xmlnode.GetAttribute("To"));
                     }
 
                     if ( from is null || to is null || from.Piece is null)
@@ -738,17 +734,17 @@ namespace SharpChess.Model
                         return false;
                     }
 
-                    MakeAMoveInternal(Move.MoveNameFromString(xmlnode.GetAttribute("Name")), from.Piece, to);
+                    this.MakeAMoveInternal(Move.MoveNameFromString(xmlnode.GetAttribute("Name")), from.Piece, to);
                     TimeSpan tsnTimeStamp;
                     if (xmlnode.GetAttribute("SecondsElapsed") == string.Empty)
                     {
-                        if (MoveHistory.Count <= 2)
+                        if (this.MoveHistory.Count <= 2)
                         {
                             tsnTimeStamp = new TimeSpan(0);
                         }
                         else
                         {
-                            tsnTimeStamp = MoveHistory.PenultimateForSameSide.TimeStamp + (new TimeSpan(0, 0, 30));
+                            tsnTimeStamp = this.MoveHistory.PenultimateForSameSide.TimeStamp + (new TimeSpan(0, 0, 30));
                         }
                     }
                     else
@@ -756,17 +752,18 @@ namespace SharpChess.Model
                         tsnTimeStamp = new TimeSpan(0, 0, int.Parse(xmlnode.GetAttribute("SecondsElapsed")));
                     }
 
-                    MoveHistory.Last.TimeStamp = tsnTimeStamp;
-                    MoveHistory.Last.Piece.Player.Clock.TimeElapsed = tsnTimeStamp;
+                    this.MoveHistory.Last.TimeStamp = tsnTimeStamp;
+                    this.MoveHistory.Last.Piece.Player.Clock.TimeElapsed = tsnTimeStamp;
                 }
 
-                int intTurnNo = xmlnodeGame.GetAttribute("TurnNo") != string.Empty
-                                    ? int.Parse(xmlnodeGame.GetAttribute("TurnNo"))
-                                    : xmlnodelist.Count;
+                int intTurnNo = 
+                    xmlnodeGame.GetAttribute("TurnNo") != string.Empty
+                        ? int.Parse(xmlnodeGame.GetAttribute("TurnNo"))
+                        : xmlnodelist.Count;
 
                 for (int intIndex = xmlnodelist.Count; intIndex > intTurnNo; intIndex--)
                 {
-                    UndoMoveInternal();
+                    this.UndoMoveInternal();
                 }
             }
 
@@ -779,12 +776,12 @@ namespace SharpChess.Model
         /// <param name="square"> The square to move to. </param>
         private void MakeAMoveInternal(Move.MoveNames moveName, Piece piece, Square square)
         {
-            MoveRedoList.Clear();
+            this.MoveRedoList.Clear();
             Move move = piece.Move(moveName, square);
             move.EnemyStatus = move.Piece.Player.OpposingPlayer.Status;
-            PlayerToPlay.Clock.Stop();
-            MoveHistory.Last.TimeStamp = PlayerToPlay.Clock.TimeElapsed;
-            if (PlayerToPlay.Intellegence == Player.PlayerIntellegenceNames.Computer)
+            this.PlayerToPlay.Clock.Stop();
+            this.MoveHistory.Last.TimeStamp = this.PlayerToPlay.Clock.TimeElapsed;
+            if (this.PlayerToPlay.Intellegence == Player.PlayerIntellegenceNames.Computer)
             {
                 // WinBoard.SendMove(move);
                 //if (!PlayerToPlay.OpposingPlayer.CanMove)
@@ -812,21 +809,21 @@ namespace SharpChess.Model
                 //}
             }
 
-            PlayerToPlay = PlayerToPlay.OpposingPlayer;
-            PlayerToPlay.Clock.Start();
+            this.PlayerToPlay = this.PlayerToPlay.OpposingPlayer;
+            this.PlayerToPlay.Clock.Start();
         }
 
         /// <summary> Instruct the computer to make its next move. </summary>
         private void MakeNextComputerMove()
         {
-            if (PlayerToPlay.CanMove)
+            if (this.PlayerToPlay.CanMove)
             {
-                PlayerToPlay.Brain.StartThinking();
+                this.PlayerToPlay.Brain.StartThinking();
             }
         }
 
         /// <summary> Start a new game. For internal use only. </summary>
-        private void NewInternal() => NewInternal(string.Empty);
+        private void NewInternal() => this.NewInternal(string.Empty);
 
         /// <summary> Start a new game from the specified FEN string position. For internal use only. </summary>
         /// <param name="fenString"> The str fen. </param>
@@ -845,12 +842,12 @@ namespace SharpChess.Model
             this.KillerMoves.Clear();
             this.HistoryHeuristic.Clear();
 
-            UndoAllMovesInternal();
-            MoveRedoList.Clear();
+            this.UndoAllMovesInternal();
+            this.MoveRedoList.Clear();
             saveGameFileName = string.Empty;
             Fen.SetBoardPosition(this, fenString);
-            PlayerWhite.Clock.Reset();
-            PlayerBlack.Clock.Reset();
+            this.PlayerWhite.Clock.Reset();
+            this.PlayerBlack.Clock.Reset();
         }
 
         /// <summary> Called when the computer has finished thinking, and is ready to make its move. </summary>
@@ -858,9 +855,9 @@ namespace SharpChess.Model
         private void PlayerReadyToMakeMove()
         {
             Move? move;
-            if (PlayerToPlay.Brain.PrincipalVariation.Count > 0)
+            if (this.PlayerToPlay.Brain.PrincipalVariation.Count > 0)
             {
-                move = PlayerToPlay.Brain.PrincipalVariation[0];
+                move = this.PlayerToPlay.Brain.PrincipalVariation[0];
                 if ( move is null)
                 {
                     throw new ApplicationException("Player_ReadToMakeMove: Principal Variation first move is null.");
@@ -871,39 +868,34 @@ namespace SharpChess.Model
                 throw new ApplicationException("Player_ReadToMakeMove: Principal Variation is empty.");
             }
 
-            MakeAMoveInternal(move.Name, move.Piece, move.To);
-            SaveBackup();
-            SendBoardPositionChangeEvent();
-            ResumePondering();
+            this.MakeAMoveInternal(move.Name, move.Piece, move.To);
+            this.SaveBackup();
+            this.SendBoardPositionChangeEvent();
+            this.ResumePondering();
         }
 
         /// <summary> Redo move. For internal use only. </summary>
         private void RedoMoveInternal()
         {
-            if (MoveRedoList.Count > 0)
+            if (this.MoveRedoList.Count > 0)
             {
-                Move? moveRedo = MoveRedoList[MoveRedoList.Count - 1];
-                if ( moveRedo is null)
-                {
+                Move? moveRedo = 
+                    this.MoveRedoList[^1] ?? 
                     throw new ApplicationException("RedoMoveInternal: MoveRedoList last move is null.");
-                }
-
-                PlayerToPlay.Clock.Revert();
+                this.PlayerToPlay.Clock.Revert();
                 moveRedo.Piece.Move(moveRedo.Name, moveRedo.To);
-                PlayerToPlay.Clock.TimeElapsed = moveRedo.TimeStamp;
-                Move? last = MoveHistory.Last;
-                if ( last is null)
-                {
+                this.PlayerToPlay.Clock.TimeElapsed = moveRedo.TimeStamp;
+                Move? last = 
+                    this.MoveHistory.Last ??
                     throw new ApplicationException("RedoMoveInternal: MoveRedoList last move is null.");
-                }
                 
                 last.TimeStamp = moveRedo.TimeStamp;
                 last.EnemyStatus = moveRedo.Piece.Player.OpposingPlayer.Status; // 14Mar05 Nimzo
-                PlayerToPlay = PlayerToPlay.OpposingPlayer;
-                MoveRedoList.RemoveLast();
-                if (!IsPaused)
+                this.PlayerToPlay = this.PlayerToPlay.OpposingPlayer;
+                this.MoveRedoList.RemoveLast();
+                if (!this.IsPaused)
                 {
-                    PlayerToPlay.Clock.Start();
+                    this.PlayerToPlay.Clock.Start();
                 }
             }
         }
@@ -914,7 +906,7 @@ namespace SharpChess.Model
             //if (!WinBoard.Active)
             {
                 // Only save backups if not using WinBoard.
-                SaveGame(BackupGamePath);
+                this.SaveGame(this.BackupGamePath);
             }
         }
 
@@ -929,34 +921,34 @@ namespace SharpChess.Model
 
             xmldoc.AppendChild(xmlnodeGame);
 
-            xmlnodeGame.SetAttribute("FEN", FenStartPosition == Fen.GameStartPosition ? string.Empty : FenStartPosition);
-            xmlnodeGame.SetAttribute("TurnNo", TurnNo.ToString(CultureInfo.InvariantCulture));
+            xmlnodeGame.SetAttribute("FEN", this.FenStartPosition == Fen.GameStartPosition ? string.Empty : this.FenStartPosition);
+            xmlnodeGame.SetAttribute("TurnNo", this.TurnNo.ToString(CultureInfo.InvariantCulture));
             xmlnodeGame.SetAttribute(
-                "WhitePlayer", PlayerWhite.Intellegence == Player.PlayerIntellegenceNames.Human ? "Human" : "Computer");
+                "WhitePlayer", this.PlayerWhite.Intellegence == Player.PlayerIntellegenceNames.Human ? "Human" : "Computer");
             xmlnodeGame.SetAttribute(
-                "BlackPlayer", PlayerBlack.Intellegence == Player.PlayerIntellegenceNames.Human ? "Human" : "Computer");
+                "BlackPlayer", this.PlayerBlack.Intellegence == Player.PlayerIntellegenceNames.Human ? "Human" : "Computer");
             xmlnodeGame.SetAttribute(
-                "BoardOrientation", Board.Orientation == Board.OrientationNames.White ? "White" : "Black");
+                "BoardOrientation", this.Board.Orientation == Board.OrientationNames.White ? "White" : "Black");
             xmlnodeGame.SetAttribute("Version", assemblyVersionString);
-            xmlnodeGame.SetAttribute("DifficultyLevel", DifficultyLevel.ToString(CultureInfo.InvariantCulture));
-            xmlnodeGame.SetAttribute("ClockMoves", ClockMaxMoves.ToString(CultureInfo.InvariantCulture));
-            xmlnodeGame.SetAttribute("ClockSeconds", ClockTime.TotalSeconds.ToString(CultureInfo.InvariantCulture));
-            xmlnodeGame.SetAttribute("MaximumSearchDepth", MaximumSearchDepth.ToString(CultureInfo.InvariantCulture));
-            xmlnodeGame.SetAttribute("Pondering", EnablePondering ? "1" : "0");
-            xmlnodeGame.SetAttribute("UseRandomOpeningMoves", UseRandomOpeningMoves ? "1" : "0");
+            xmlnodeGame.SetAttribute("DifficultyLevel", this.DifficultyLevel.ToString(CultureInfo.InvariantCulture));
+            xmlnodeGame.SetAttribute("ClockMoves", this.ClockMaxMoves.ToString(CultureInfo.InvariantCulture));
+            xmlnodeGame.SetAttribute("ClockSeconds", this.ClockTime.TotalSeconds.ToString(CultureInfo.InvariantCulture));
+            xmlnodeGame.SetAttribute("MaximumSearchDepth", this.MaximumSearchDepth.ToString(CultureInfo.InvariantCulture));
+            xmlnodeGame.SetAttribute("Pondering", this.EnablePondering ? "1" : "0");
+            xmlnodeGame.SetAttribute("UseRandomOpeningMoves", this.UseRandomOpeningMoves ? "1" : "0");
 
-            foreach (Move move in MoveHistory)
+            foreach (Move move in this.MoveHistory)
             {
-                AddSaveGameNode(xmldoc, xmlnodeGame, move);
+                Game.AddSaveGameNode(xmldoc, xmlnodeGame, move);
             }
 
             // Redo moves
-            for (int intIndex = MoveRedoList.Count - 1; intIndex >= 0; intIndex--)
+            for (int intIndex = this.MoveRedoList.Count - 1; intIndex >= 0; intIndex--)
             {
-                var move = MoveRedoList[intIndex];
+                var move = this.MoveRedoList[intIndex];
                 if (move is not null)
                 {
-                    AddSaveGameNode(xmldoc, xmlnodeGame, move);
+                    Game.AddSaveGameNode(xmldoc, xmlnodeGame, move);
                 }
             }
 
@@ -964,47 +956,44 @@ namespace SharpChess.Model
         }
 
         /// <summary> Raises the send board position change event. </summary>
-        private void SendBoardPositionChangeEvent()
-        {
-            BoardPositionChanged();
-        }
+        private void SendBoardPositionChangeEvent() => this.BoardPositionChanged();
 
         /// <summary> Undo all moves. For internal use only. </summary>
         private void UndoAllMovesInternal()
         {
-            while (MoveHistory.Count > 0)
+            while (this.MoveHistory.Count > 0)
             {
-                UndoMoveInternal();
+                this.UndoMoveInternal();
             }
         }
 
         /// <summary> Undo move. For internal use only. </summary>
         private void UndoMoveInternal()
         {
-            if (MoveHistory.Count > 0)
+            if (this.MoveHistory.Count > 0)
             {
-                Move? moveUndo = 
-                    MoveHistory.Last ?? 
+                Move? moveUndo =
+                    this.MoveHistory.Last ?? 
                     throw new ApplicationException("UndoMoveInternal: MoveHistory last move is null.");
-                PlayerToPlay.Clock.Revert();
-                MoveRedoList.Add(moveUndo);
+                this.PlayerToPlay.Clock.Revert();
+                this.MoveRedoList.Add(moveUndo);
                 moveUndo.Undo(moveUndo);
-                PlayerToPlay = PlayerToPlay.OpposingPlayer;
-                if (MoveHistory.Count > 1)
+                this.PlayerToPlay = this.PlayerToPlay.OpposingPlayer;
+                if (this.MoveHistory.Count > 1)
                 {
-                    Move? movePenultimate = 
-                        MoveHistory[MoveHistory.Count - 2] ?? 
+                    Move? movePenultimate =
+                        this.MoveHistory[^2] ?? 
                         throw new ApplicationException("UndoMoveInternal: MoveHistory penultimate move is null.");
-                    PlayerToPlay.Clock.TimeElapsed = movePenultimate.TimeStamp;
+                    this.PlayerToPlay.Clock.TimeElapsed = movePenultimate.TimeStamp;
                 }
                 else
                 {
-                    PlayerToPlay.Clock.TimeElapsed = new TimeSpan(0);
+                    this.PlayerToPlay.Clock.TimeElapsed = new TimeSpan(0);
                 }
 
-                if (!IsPaused)
+                if (!this.IsPaused)
                 {
-                    PlayerToPlay.Clock.Start();
+                    this.PlayerToPlay.Clock.Start();
                 }
             }
         }

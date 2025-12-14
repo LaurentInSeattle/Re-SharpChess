@@ -215,7 +215,7 @@ public static class Fen
         // En Passant
         if (strEnPassant[0] != '-')
         {
-            int indFile = board.FileFromName(Convert.ToString(strEnPassant[0]));
+            int indFile = Board.FileFromName(Convert.ToString(strEnPassant[0]));
             int indRank = int.Parse(Convert.ToString(strEnPassant[1]));
             if (indRank == 6)
             {

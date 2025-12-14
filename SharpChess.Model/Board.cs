@@ -1,97 +1,58 @@
-namespace SharpChess.Model; 
+namespace SharpChess.Model;
 
 /// <summary> Represents the chess board using a 0x88 represenation. http://chessprogramming.wikispaces.com/0x88  </summary>
 public sealed class Board
 {
+    /// <summary> Valid values for orientation of the board. Black or White at the bottom. </summary>
+    public enum OrientationNames
+    {
+        /// <summary> White at the bottom. </summary>
+        White,
+
+        /// <summary> Black at the bottom. </summary>
+        Black
+    }
+
     /// <summary> Number of files on the chess board. </summary>
-    public const byte FileCount = 8;
+    public const int FileCount = 8;
 
     /// <summary> Width of board matrix. </summary>
-    public const byte MatrixWidth = 16;
+    public const int MatrixWidth = 16;
 
     /// <summary> Number of ranks on the chess board. </summary>
-    public const byte RankCount = 8;
+    public const int RankCount = 8;
 
     /// <summary> Number of square in the board matrix. </summary>
-    public const byte SquareCount = 128;
+    public const int SquareCount = 128;
 
-    /// <summary> List of squares on the board. </summary>
-    private static readonly Square[] Squares = new Square[RankCount * MatrixWidth];
-
-    /// <summary> Orientation of the board. Black or White at the bottom. </summary>
-    private OrientationNames orientation = OrientationNames.White;
+    /// <summary> Array of squares on the board. </summary>
+    private readonly Square[] Squares;
 
     /// <summary> Initializes members of the <see cref = "Board" /> class. </summary>
     public Board()
     {
+        this.Orientation = OrientationNames.White;
+        this.Squares = new Square[RankCount * MatrixWidth];
         for (int intOrdinal = 0; intOrdinal < SquareCount; intOrdinal++)
         {
             Squares[intOrdinal] = new Square(intOrdinal);
         }
     }
 
-    /// <summary> Valid values for orientation of the board. Black or White at the bottom. </summary>
-    public enum OrientationNames
-    {
-        /// <summary> White at the bottom. </summary>
-        White, 
-
-        /// <summary> Black at the bottom. </summary>
-        Black
-    }
-
-    public string DebugString
-    {
-        get
-        {
-            string strOutput = string.Empty;
-            int intOrdinal = SquareCount - 1;
-
-            for (int intRank = 0; intRank < RankCount; intRank++)
-            {
-                for (int intFile = 0; intFile < FileCount; intFile++)
-                {
-                    Square? square = GetSquare(intOrdinal);
-                    if (square != null)
-                    {
-                        Piece? piece = square.Piece;
-                        if (piece is not null)
-                        {
-                            strOutput += piece.Abbreviation;
-                        }
-                        else
-                        {
-                            strOutput += square.Colour == Square.ColourNames.White ? "." : "#";
-                        }
-                    }
-
-                    strOutput += Convert.ToChar(13) + Convert.ToChar(10);
-                    intOrdinal--;
-                }
-            }
-
-            return strOutput;
-        }
-    }
-
     /// <summary> Gets or sets the hash code a. </summary>
-    public  ulong HashCodeA { get; set; }
+    public ulong HashCodeA { get; set; }
 
     /// <summary> Gets or sets the hash code b. </summary>
-    public  ulong HashCodeB { get; set; }
+    public ulong HashCodeB { get; set; }
 
-    /// <summary> Gets or sets Orientation. </summary>
-    public  OrientationNames Orientation
-    {
-        get => orientation;
-        set => orientation = value;
-    }
+    /// <summary> Gets or sets the orientation of the board. Black or White at the bottom. </summary>
+    public OrientationNames Orientation { get; set; }
 
     /// <summary> Gets or sets the pawn hash code a. </summary>
-    public  ulong PawnHashCodeA { get; set; }
+    public ulong PawnHashCodeA { get; set; }
 
     /// <summary> Gets or sets the pawn hash code b. </summary>
-    public  ulong PawnHashCodeB { get; set; }
+    public ulong PawnHashCodeB { get; set; }
 
     /// <summary> Append piece path. </summary>
     /// <param name="moves"> The moves. </param>
@@ -99,14 +60,14 @@ public sealed class Board
     /// <param name="player"> The player. </param>
     /// <param name="offset"> The offset. </param>
     /// <param name="movesType"> The moves type. </param>
-    public  void AppendPiecePath(
+    public void AppendPiecePath(
         Moves moves, Piece piece, Player player, int offset, Moves.MoveListNames movesType)
     {
         int intOrdinal = piece.Square.Ordinal;
         Square? square;
 
         intOrdinal += offset;
-        while ((square = GetSquare(intOrdinal)) != null)
+        while ((square = this.GetSquare(intOrdinal)) != null)
         {
             if (square.Piece == null)
             {
@@ -130,23 +91,23 @@ public sealed class Board
     }
 
     /// <summary> Establish the hash key. </summary>
-    public  void EstablishHashKey()
+    public void EstablishHashKey()
     {
-        HashCodeA = 0UL;
-        HashCodeB = 0UL;
-        PawnHashCodeA = 0UL;
-        PawnHashCodeB = 0UL;
+        this.HashCodeA = 0UL;
+        this.HashCodeB = 0UL;
+        this.PawnHashCodeA = 0UL;
+        this.PawnHashCodeB = 0UL;
         for (int intOrdinal = 0; intOrdinal < SquareCount; intOrdinal++)
         {
-            Piece? piece = GetPiece(intOrdinal);
+            Piece? piece = this.GetPiece(intOrdinal);
             if (piece != null)
             {
-                HashCodeA ^= piece.HashCodeAForSquareOrdinal(intOrdinal);
-                HashCodeB ^= piece.HashCodeBForSquareOrdinal(intOrdinal);
+                this.HashCodeA ^= piece.HashCodeAForSquareOrdinal(intOrdinal);
+                this.HashCodeB ^= piece.HashCodeBForSquareOrdinal(intOrdinal);
                 if (piece.Name == Piece.PieceNames.Pawn)
                 {
-                    PawnHashCodeA ^= piece.HashCodeAForSquareOrdinal(intOrdinal);
-                    PawnHashCodeB ^= piece.HashCodeBForSquareOrdinal(intOrdinal);
+                    this.PawnHashCodeA ^= piece.HashCodeAForSquareOrdinal(intOrdinal);
+                    this.PawnHashCodeB ^= piece.HashCodeBForSquareOrdinal(intOrdinal);
                 }
             }
         }
@@ -155,7 +116,7 @@ public sealed class Board
     /// <summary> Gets the Board File number from a file name. </summary>
     /// <param name="fileName"> The file name. </param>
     /// <returns> The file number. </returns>
-    public int FileFromName(string fileName)
+    public static int FileFromName(string fileName)
     {
         return fileName switch
         {
@@ -172,17 +133,18 @@ public sealed class Board
     }
 
     /// <summary> Flip the board orientation. </summary>
-    public void Flip() 
-        => orientation = Orientation == OrientationNames.White ? 
-            OrientationNames.Black : 
-            OrientationNames.White;
+    public void Flip()
+        => this.Orientation =
+            this.Orientation == OrientationNames.White ?
+                OrientationNames.Black :
+                OrientationNames.White;
 
     /// <summary> Gets a piece from an ordinal. </summary>
     /// <param name="ordinal"> The ordinal. </param>
     /// <returns> The corresponding piece or null if the square is empty </returns>
-    public Piece? GetPiece(int ordinal) 
-        => (ordinal & 0x88) == 0 ? 
-                Squares[ordinal].Piece : 
+    public Piece? GetPiece(int ordinal)
+        => (ordinal & 0x88) == 0 ?
+                this.Squares[ordinal].Piece :
                 null;
 
     /// <summary> Gets a piece from a file and a rank. </summary>
@@ -190,8 +152,8 @@ public sealed class Board
     /// <param name="rank"> The rank. </param>
     /// <returns> The corresponding piece or null if the square is empty </returns>
     public Piece? GetPiece(int file, int rank)
-        => (OrdinalFromFileRank(file, rank) & 0x88) == 0 ? 
-                Squares[OrdinalFromFileRank(file, rank)].Piece : 
+        => (OrdinalFromFileRank(file, rank) & 0x88) == 0 ?
+                this.Squares[OrdinalFromFileRank(file, rank)].Piece :
                 null;
 
     /// <summary> Gets a square from an ordinal. </summary>
@@ -199,23 +161,23 @@ public sealed class Board
     /// <returns> The corresponding square or null </returns>
     public Square? GetSquare(int ordinal)
         => (ordinal & 0x88) == 0 ?
-            Squares[ordinal]
-            : null; 
+            this.Squares[ordinal]
+            : null;
 
     /// <summary> Gets a square from a file and a rank. </summary>
     /// <param name="file"> The file. </param>
     /// <param name="rank"> The rank. </param>
     /// <returns> The corresponding square or null </returns>
     public Square? GetSquare(int file, int rank)
-        => (OrdinalFromFileRank(file, rank) & 0x88) == 0 ? 
-                Squares[OrdinalFromFileRank(file, rank)] :
+        => (OrdinalFromFileRank(file, rank) & 0x88) == 0 ?
+                this.Squares[OrdinalFromFileRank(file, rank)] :
                 null;
 
     /// <summary> Gets a square from a label string. </summary>
     /// <param name="label"> The label. </param>
     /// <returns> The corresponding Matching Square or null </returns>
     public Square? GetSquare(string label)
-            => Squares[OrdinalFromFileRank(FileFromName(label[..1]), int.Parse(label.Substring(1, 1)) - 1)];
+            => this.Squares[OrdinalFromFileRank(FileFromName(label[..1]), int.Parse(label.Substring(1, 1)) - 1)];
 
     /// <summary> Populate the provided list of squares with squares for the line threatened by the provided player. </summary>
     /// <param name="player"> The player. </param>
@@ -227,7 +189,7 @@ public sealed class Board
         int intOrdinal = squareStart.Ordinal;
         Square? square;
         intOrdinal += offset;
-        while ((square = GetSquare(intOrdinal)) != null)
+        while ((square = this.GetSquare(intOrdinal)) != null)
         {
             if (square.Piece == null)
             {
@@ -259,7 +221,7 @@ public sealed class Board
         int intOrdinal = squareStart.Ordinal;
         Square? square;
         intOrdinal += vectorOffset;
-        while ((square = GetSquare(intOrdinal)) != null)
+        while ((square = this.GetSquare(intOrdinal)) != null)
         {
             if (square.Piece == null)
             {
@@ -302,7 +264,7 @@ public sealed class Board
         intOrdinal += directionOffset;
         while (intSquareCount <= 2
                &&
-               ((square = GetSquare(intOrdinal)) != null
+               ((square = this.GetSquare(intOrdinal)) != null
                 &&
                 (square.Piece == null
                  || (square.Piece.Name != Piece.PieceNames.Pawn && square.Piece.Name != Piece.PieceNames.Rook)
@@ -323,4 +285,38 @@ public sealed class Board
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int OrdinalFromFileRank(int file, int rank)
         => (rank << 4) | file;
+
+    public string DebugString
+    {
+        get
+        {
+            string strOutput = string.Empty;
+            int intOrdinal = SquareCount - 1;
+
+            for (int intRank = 0; intRank < RankCount; intRank++)
+            {
+                for (int intFile = 0; intFile < FileCount; intFile++)
+                {
+                    Square? square = this.GetSquare(intOrdinal);
+                    if (square != null)
+                    {
+                        Piece? piece = square.Piece;
+                        if (piece is not null)
+                        {
+                            strOutput += piece.Abbreviation;
+                        }
+                        else
+                        {
+                            strOutput += square.Colour == Square.ColourNames.White ? "." : "#";
+                        }
+                    }
+
+                    strOutput += Convert.ToChar(13) + Convert.ToChar(10);
+                    intOrdinal--;
+                }
+            }
+
+            return strOutput;
+        }
+    }
 }

@@ -89,7 +89,7 @@ public sealed class Move : IComparable
     {
         get
         {
-            StringBuilder strbMove = new StringBuilder();
+            StringBuilder strbMove = new();
             switch (this.Name)
             {
                 case MoveNames.CastleKingSide:
