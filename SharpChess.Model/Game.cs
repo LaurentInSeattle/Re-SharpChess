@@ -21,11 +21,11 @@ namespace SharpChess.Model
         private string saveGameFileName = string.Empty;
 
         /// <summary> Initializes members of the <see cref="Game" /> class. </summary>
-        public Game(Board board)
+        public Game()
         {
-            this.Board = board;
-
             this.EnableFeatures();
+
+            this.Board = new Board();
             this.ClockIncrementPerMove = new TimeSpan(0, 0, 0);
             this.ClockFixedTimePerMove = new TimeSpan(0, 0, 0);
             this.DifficultyLevel = 1;

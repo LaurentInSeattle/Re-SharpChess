@@ -1,7 +1,10 @@
 ﻿namespace SharpChess.Model.Tests;
 
 [TestClass]
+#pragma warning disable MSTEST0016 
+// Test class should have test method
 public sealed class TemplateForOptionalFixtures
+#pragma warning restore MSTEST0016 
 {
     [AssemblyInitialize]
     public static void AssemblyInit(TestContext context)
@@ -37,10 +40,5 @@ public sealed class TemplateForOptionalFixtures
     public void TestCleanup()
     {
         // This method is called after each test method.
-    }
-
-    [TestMethod]
-    public void TestMethod1()
-    {
     }
 }

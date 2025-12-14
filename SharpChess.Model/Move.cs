@@ -18,13 +18,17 @@ public sealed class Move : IComparable
     /// <param name="score"> The positional score. </param>
     public Move(
         int turnNo, int lastMoveTurnNo, MoveNames moveName, 
-        Piece piece, 
+        Piece? piece, 
         Square from, Square to, 
         Piece? pieceCaptured, int pieceCapturedOrdinal, 
         int score)
     {
-        this.Game = piece.Game;
-        this.Board = piece.Game.Board;
+        if ( piece is not null)
+        {
+            // Sillyness For Unit test checking sorting  
+            this.Game = piece.Game;
+            this.Board = piece.Game.Board;
+        }
 
         this.EnemyStatus = Player.PlayerStatusNames.Normal;
         this.TurnNo = turnNo;
