@@ -1,4 +1,7 @@
 <Solution>
+  <Project Path="MinimalChess/MinimalChess.csproj" Id="b591ed76-e519-4bf3-9e4e-e38b0832f6fc" />
+  <Project Path="MinimalChessEngine/MinimalChessEngine.csproj" Id="e96cc259-e973-4ca7-a16a-d5d06e3fe11e" />
+  <Project Path="MinimalChessEngineConsole/MinimalChessEngineConsole.csproj" Id="dc8fdfaf-3db9-4649-9d7b-fcee4f32938f" />
   <Project Path="SharpChess.Model.Tests/SharpChess.Model.Tests.csproj" Id="d4f56f77-80d6-43fb-bab6-aafa8069d066" />
   <Project Path="SharpChess.Model/SharpChess.Model.csproj" Id="e44a81fd-4172-4142-b260-2d562c29e3e8" />
 </Solution>
