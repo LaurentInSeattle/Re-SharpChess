@@ -19,4 +19,5 @@ global using System.Text.Json.Serialization;
 global using System.Threading.Tasks;
 global using System.Xml;
 
+global using Lyt.UciInterfaces;
 global using MinimalChess;

@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Lyt.UciInterfaces\Lyt.UciInterfaces.csproj" />
     <ProjectReference Include="..\MinimalChessEngine\MinimalChessEngine.csproj" />
     <ProjectReference Include="..\MinimalChess\MinimalChess.csproj" />
   </ItemGroup>

@@ -1,145 +1,169 @@
-﻿
-namespace MinimalChessEngine; 
+﻿namespace MinimalChessEngine;
 
-public sealed class Engine
+public sealed partial class Engine(IUciResponder uciResponder) : IUciRequester
 {
-    IterativeSearch _search = null;
-    Thread _searching = null;
-    Move _best = default;
-    int _maxSearchDepth;
-    TimeControl _time = new TimeControl();
-    Board _board = new Board(Board.STARTING_POS_FEN);
-    List<Board> _history = new List<Board>();
+
+    private readonly IUciResponder uciResponder = uciResponder;
+    private readonly TimeControl time = new();
+    private readonly List<Board> history = [];
+
+    private Board board = new(Board.STARTING_POS_FEN);
+
+    private IterativeSearch? iterativeSearch ;
+    private Thread? searchingThread ;
+    private Move bestMove = default;
+    private int maxSearchDepth;
 
     public bool Running { get; private set; }
-    public Color SideToMove => _board.SideToMove;
+    public Color SideToMove => board.SideToMove;
 
     public void Start()
     {
-        Stop();
-        Running = true;
+        this.Stop();
+        this.Running = true;
     }
 
     public void Quit()
     {
-        Stop();
-        Running = false;
+        this.Stop();
+        this.Running = false;
     }
 
     public void SetupPosition(Board board)
     {
-        Stop();
-        _board = new Board(board);//make a copy
-        _history.Clear();
-        _history.Add(new Board(_board));
+        this.Stop();
+
+        // make a deep copy
+        this.board = new Board(board);
+        this.history.Clear();
+        this.history.Add(new Board(this.board));
     }
 
     public void Play(Move move)
     {
-        Stop();
-        _board.Play(move);
-        _history.Add(new Board(_board));
+        this.Stop();
+        this.board.Play(move);
+        this.history.Add(new Board(board));
     }
 
     public void Go(int maxDepth, int maxTime, long maxNodes)
     {
-        Stop();
-        _time.Go(maxTime);
-        StartSearch(maxDepth, maxNodes);
+        this.Stop();
+        this.time.Go(maxTime);
+        this.StartSearch(maxDepth, maxNodes);
     }
 
     public void Go(int maxTime, int increment, int movesToGo, int maxDepth, long maxNodes)
     {
-        Stop();
-        _time.Go(maxTime, increment, movesToGo);
-        StartSearch(maxDepth, maxNodes);
+        this.Stop();
+        this.time.Go(maxTime, increment, movesToGo);
+        this.StartSearch(maxDepth, maxNodes);
     }
 
     public void Stop()
     {
-        if (_searching != null)
+        if (searchingThread != null)
         {
             //this will cause the thread to terminate via CheckTimeBudget
-            _time.Stop();
-            _searching.Join();
-            _searching = null;
+            time.Stop();
+            searchingThread.Join();
+            searchingThread = null;
         }
     }
 
     private void StartSearch(int maxDepth, long maxNodes)
     {
-        //do the first iteration. it's cheap, no time check, no thread
-        Uci.Log($"Search scheduled to take {_time.TimePerMoveWithMargin}ms!");
+        // do the first iteration. it's cheap, no time check, no thread
+        this.UciLog($"Search scheduled to take {time.TimePerMoveWithMargin}ms!");
 
         //add all history positions with a score of 0 (Draw through 3-fold repetition) and freeze them by setting a depth that is never going to be overwritten
-        foreach (var position in _history)
+        foreach (var position in history)
+        {
             Transpositions.Store(position.ZobristHash, Transpositions.HISTORY, 0, SearchWindow.Infinite, 0, default);
-        
-        _search = new IterativeSearch(_board, maxNodes);
-        _time.StartInterval();
-        _search.SearchDeeper();
-        Collect();
+        }
 
-        //start the search thread
-        _maxSearchDepth = maxDepth;
-        _searching = new Thread(Search) {Priority = ThreadPriority.Highest};
-        _searching.Start();
+        iterativeSearch = new IterativeSearch(board, maxNodes);
+        time.StartInterval();
+        iterativeSearch.SearchDeeper();
+        this.Collect();
+
+        // start the search thread
+        this.maxSearchDepth = maxDepth;
+        this.searchingThread = new Thread(this.Search) { Priority = ThreadPriority.BelowNormal };
+        this.searchingThread.Start();
     }
 
     private void Search()
     {
-        while (CanSearchDeeper())
+        while (this.CanSearchDeeper())
         {
-            _time.StartInterval();
-            _search.SearchDeeper(_time.CheckTimeBudget);
+            time.StartInterval();
+            if (iterativeSearch is null)
+            {
+                break;
+            }
+
+            iterativeSearch.SearchDeeper(time.CheckTimeBudget);
 
             //aborted?
-            if (_search.Aborted)
+            if (iterativeSearch.Aborted)
             {
                 break;
             }
 
             //collect PV
-            Collect();
+            this.Collect();
         }
 
-        //Done searching!
-        Uci.BestMove(_best);
-        _search = null;
+        // Done searching!
+        this.BestMove(bestMove);
+
+        iterativeSearch = null;
     }
 
     private bool CanSearchDeeper()
     {
-        //max depth reached or game over?
-        if (_search.Depth >= _maxSearchDepth)
+        // max depth reached or game over?
+        if (iterativeSearch is null)
+        {
+            return false;
+        }
+
+        if (iterativeSearch.Depth >= maxSearchDepth)
         {
             return false;
         }
 
         //otherwise it's only time that can stop us!
-        return _time.CanSearchDeeper();
+        return time.CanSearchDeeper();
     }
 
     private void Collect()
     {
-        _best = _search.PrincipalVariation[0];
+        if (iterativeSearch is null)
+        {
+            return;
+        }
 
-        Uci.Info(
-            depth:  _search.Depth, 
-            score:  (int)SideToMove * _search.Score, 
-            nodes:  _search.NodesVisited, 
-            timeMs: _time.Elapsed, 
-            pv:     GetPrintablePV(_search.PrincipalVariation, _search.Depth)
+        bestMove = iterativeSearch.PrincipalVariation[0];
+
+        this.Info(
+            depth:  iterativeSearch.Depth, 
+            score:  (int)this.SideToMove * iterativeSearch.Score, 
+            nodes:  iterativeSearch.NodesVisited, 
+            timeMs: time.Elapsed, 
+            pv:     this.GetPrintablePV(iterativeSearch.PrincipalVariation, iterativeSearch.Depth)
         );
     }
 
     private Move[] GetPrintablePV(Move[] pv, int depth)
     {
-        List<Move> result = new(pv);
+        List<Move> result = [.. pv];
+
         //Try to extend from TT to reach the desired depth?
         if (result.Count < depth)
         {
-            Board position = new Board(_board);
+            var position = new Board(board);
             foreach (Move move in pv)
             {
                 position.Play(move);
@@ -151,6 +175,8 @@ public sealed class Engine
                 result.Add(move);
             }
         }
-        return result.ToArray();
+
+        return [.. result];
     }
+
 }

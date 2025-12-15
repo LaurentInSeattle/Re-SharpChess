@@ -2,24 +2,27 @@
 
 public sealed class TimeControl
 {
-    const int TIME_MARGIN = 20;
-    const int BRANCHING_FACTOR_ESTIMATE = 3;
-    const int MAX_TIME_REMAINING = int.MaxValue / 3; //large but not too large to cause overflow issues
+    private const int TIME_MARGIN = 20;
+    private const int BRANCHING_FACTOR_ESTIMATE = 3;
+    private const int MAX_TIME_REMAINING = int.MaxValue / 3; //large but not too large to cause overflow issues
 
-    private int _movesToGo;
-    private int _increment;
-    private int _remaining;
-    private long _t0 = -1;
-    private long _tN = -1;
+    private int movesToGo;
+    private int increment;
+    private int remaining;
+    private long t0 = -1;
+    private long tN = -1;
 
-    public int TimePerMoveWithMargin => (_remaining + (_movesToGo - 1) * _increment) / _movesToGo - TIME_MARGIN;
-    public int TimeRemainingWithMargin => _remaining - TIME_MARGIN;
+    public int TimePerMoveWithMargin => (remaining + (movesToGo - 1) * increment) / movesToGo - TIME_MARGIN;
 
-    private long Now => Stopwatch.GetTimestamp();
-    public int Elapsed => MilliSeconds(Now - _t0);
-    public int ElapsedInterval => MilliSeconds(Now - _tN);
+    public int TimeRemainingWithMargin => remaining - TIME_MARGIN;
 
-    private int MilliSeconds(long ticks)
+    private static long Now => Stopwatch.GetTimestamp();
+
+    public int Elapsed => MilliSeconds(Now - t0);
+    
+    public int ElapsedInterval => MilliSeconds(Now - tN);
+
+    private static int MilliSeconds(long ticks)
     {
         double dt = ticks / (double)Stopwatch.Frequency;
         return (int)(1000 * dt);
@@ -27,69 +30,78 @@ public sealed class TimeControl
 
     private void Reset()
     {
-        _movesToGo = 1;
-        _increment = 0;
-        _remaining = MAX_TIME_REMAINING; 
-        _t0 = Now;
-        _tN = _t0;
+        this.movesToGo = 1;
+        this.increment = 0;
+        this.remaining = MAX_TIME_REMAINING; 
+        this.t0 = Now;
+        this.tN = t0;
     }
 
-    public void StartInterval()
-    {
-        _tN = Now;
-    }
+    public void StartInterval() => tN = Now;
 
-    public void Stop()
-    {
+    public void Stop() =>
         //this will cause CanSearchDeeper() and CheckTimeBudget() to evaluate to 'false'
-        _remaining = 0;
-    }
+        remaining = 0;
 
     internal void Go(int timePerMove)
     {
-        Reset();
-        _remaining = Math.Min(timePerMove, MAX_TIME_REMAINING);
+        this.Reset();
+        remaining = Math.Min(timePerMove, MAX_TIME_REMAINING);
     }
 
     internal void Go(int time, int increment, int movesToGo)
     {
-        Reset();
-        _remaining = Math.Min(time, MAX_TIME_REMAINING);
-        _increment = increment;
-        _movesToGo = movesToGo;
+        this.Reset();
+        remaining = Math.Min(time, MAX_TIME_REMAINING);
+        this.increment = increment;
+        this.movesToGo = movesToGo;
     }
 
     public bool CanSearchDeeper()
     {
-        int elapsed = Elapsed;
-
-        //estimate the branching factor, if only one move to go we yolo with a low estimate
-        int multi = (_movesToGo == 1) ? 1 : BRANCHING_FACTOR_ESTIMATE;
-        int estimate = multi * ElapsedInterval;
+        // estimate the branching factor, if only one move to go we yolo with a low estimate
+        int multi = (movesToGo == 1) ? 1 : BRANCHING_FACTOR_ESTIMATE;
+        int estimate = multi * this.ElapsedInterval;
+        int elapsed = this.Elapsed;
         int total = elapsed + estimate;
 
         //no increment... we need to stay within the per-move time budget
-        if (_increment == 0 && total > TimePerMoveWithMargin)
+        if (increment == 0 && total > this.TimePerMoveWithMargin)
+        {
             return false;
-        //we have already exceeded the average move
-        if (elapsed > TimePerMoveWithMargin)
-            return false;
-        //shouldn't spend more then the 2x the average on a move
-        if (total > 2 * TimePerMoveWithMargin)
-            return false;
-        //can't afford the estimate
-        if (total > TimeRemainingWithMargin)
-            return false;
+        }
 
-        //all conditions fulfilled
+        //we have already exceeded the average move
+        if (elapsed > this.TimePerMoveWithMargin)
+        {
+            return false;
+        }
+
+        //shouldn't spend more then the 2x the average on a move
+        if (total > 2 * this.TimePerMoveWithMargin)
+        {
+            return false;
+        }
+
+        //can't afford the estimate
+        if (total > this.TimeRemainingWithMargin)
+        {
+            return false;
+        }
+
+        // all conditions fulfilled
         return true;
     }
 
     public bool CheckTimeBudget()
     {
-        if (_increment == 0)
-            return Elapsed > TimePerMoveWithMargin;
+        if (increment == 0)
+        {
+            return this.Elapsed > this.TimePerMoveWithMargin;
+        }
         else
-            return Elapsed > TimeRemainingWithMargin;
+        {
+            return this.Elapsed > this.TimeRemainingWithMargin;
+        }
     }
 }

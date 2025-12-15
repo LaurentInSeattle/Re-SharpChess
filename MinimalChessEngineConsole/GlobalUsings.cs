@@ -20,5 +20,5 @@ global using System.Threading.Tasks;
 global using System.Runtime;
 global using System.Xml;
 
-global using MinimalChess;
+global using Lyt.UciInterfaces;
 global using MinimalChessEngine;
