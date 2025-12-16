@@ -1,0 +1,154 @@
+﻿<UserControl 
+	x:Class="Lyt.Chess.Workflow.Play.PlayToolbarView"
+	xmlns:vm="clr-namespace:Lyt.Chess.Workflow.Play"
+	x:DataType="vm:PlayToolbarViewModel" 
+
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+
+	xmlns:glyphs="using:Lyt.Avalonia.Controls.Glyphs"	
+	xmlns:controls="clr-namespace:Lyt.Chess.Controls"
+	>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="72" />
+			<RowDefinition Height="16" />
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<!-- Background -->
+			<ColumnDefinition Width="60" />
+			<ColumnDefinition Width="120" />
+			<ColumnDefinition Width="60" />
+			<!-- Spacer -->
+			<ColumnDefinition Width="10" />
+			<!-- Help / Hints Buttons -->
+			<ColumnDefinition Width="100" />
+			<ColumnDefinition Width="100" />
+			<ColumnDefinition Width="100" />
+		  <!-- Spacer -->
+		  <ColumnDefinition Width="10" />
+		  <!-- Progress -->
+		  <ColumnDefinition Width="130" />
+		  <!-- Spacer -->
+		  <ColumnDefinition Width="10" />
+		  <!-- Zoom -->
+		  <ColumnDefinition Width="320" />
+		  <!-- Spacer -->
+		  <ColumnDefinition Width="10" />
+		  <!-- Fullscreen -->
+		  <ColumnDefinition Width="200" />
+    </Grid.ColumnDefinitions>
+
+		<!-- 
+		<TextBlock
+			Grid.Row="0" Grid.Column="0" 
+			Margin="4"
+			Theme="{StaticResource H4}"
+			HorizontalAlignment="Right" VerticalAlignment="Center"
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			Text="{DynamicResource Puzzle.Toolbar.Dark}"  
+			/>
+		<Slider 
+			Grid.Row="0" Grid.Column="1" 
+			Margin="4 8 4 4 "
+			VerticalAlignment="Center" HorizontalAlignment="Stretch"
+			TickFrequency="0.05"
+			TickPlacement="None"
+			IsSnapToTickEnabled="False"
+			SmallChange="0.05" LargeChange="2.0"
+			Minimum="0.0"
+			Maximum="1.0"
+			Value="{Binding BackgroundSliderValue}"
+			/>
+		<TextBlock
+			Grid.Row="0" Grid.Column="2" 
+			Margin="4"
+			Theme="{StaticResource H4}"
+			HorizontalAlignment="Left" VerticalAlignment="Center"
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			Text="{DynamicResource Puzzle.Toolbar.Light}"  
+			/>
+		<controls:ExtendedTextBlock
+			Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1"
+			Text="{DynamicResource Puzzle.Toolbar.Background}"
+			Typography="{StaticResource Medium}"
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			/>
+		<glyphs:GlyphButton
+			Grid.Column="4"
+			Style="{StaticResource AppToolbarIconButton}"
+			Behaviour="Continuous"
+			GlyphSource="wallpaper"
+			GlyphStrokeThickness="0.1"
+			Text="{DynamicResource Puzzle.Toolbar.ShowImage}"  
+			Command="{Binding OnShowImage}"
+			/>
+		<glyphs:GlyphButton
+			Grid.Column="5"
+			Style="{StaticResource AppToolbarIconButton}"
+			GlyphSource="border_all"
+			GlyphStrokeThickness="0.1"
+			Text="{DynamicResource Puzzle.Toolbar.ToggleEdges}"  
+			Command="{Binding OnShowEdges}"
+			/>
+		<glyphs:GlyphButton
+			Grid.Column="6"
+			Style="{StaticResource AppToolbarIconButton}"
+			GlyphSource="lightbulb_filament"
+			GlyphStrokeThickness="0.1"
+			Text="{DynamicResource Puzzle.Toolbar.Hint}"  
+			Command="{Binding OnHint}"
+			/>
+		<controls:ExtendedTextBlock
+			Grid.Column="4" Grid.ColumnSpan="3" Grid.Row="1"
+			Text=" ¯\_(ツ)_/¯ "
+			Typography="{StaticResource Medium}"
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			/>
+		<TextBlock
+			Grid.Row="0" Grid.Column="8"
+			Margin="4"
+			Theme="{StaticResource Title}"
+			HorizontalAlignment="Center" VerticalAlignment="Center"      
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			Text="{Binding Progress}"
+			/>
+	    <controls:ExtendedTextBlock
+			Grid.Column="8" Grid.ColumnSpan="1" Grid.Row="1"
+			Text="{DynamicResource Puzzle.Toolbar.Progress}"  
+			Typography="{StaticResource Medium}"
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			/>
+
+		<controls:ZoomController
+			x:Name="ZoomController"
+			Grid.Column="10" Grid.Row="0"
+			VerticalAlignment="Center" HorizontalAlignment="Center"
+			Min="1.0" Max="2.0"
+			/>
+		<controls:ExtendedTextBlock
+			Grid.Column="10" Grid.ColumnSpan="1" Grid.Row="1"
+			Text="{DynamicResource Puzzle.Toolbar.Zoom}"  
+			Typography="{StaticResource Medium}"
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			/>
+		-->
+		<glyphs:GlyphButton
+			Grid.Column="12"
+			Style="{StaticResource AppToolbarIconButton}"
+			GlyphSource="full_screen_maximize"
+			GlyphStrokeThickness="0.1"
+			Text="{DynamicResource Puzzle.Toolbar.FullScreen}"  
+			Command="{Binding OnFullscreen}"
+			/>
+		<controls:ExtendedTextBlock
+			Grid.Column="12" Grid.ColumnSpan="2" Grid.Row="1"
+			Text="{DynamicResource Puzzle.Toolbar.EscToReturn}"  
+			Typography="{StaticResource Medium}"
+			Foreground="{StaticResource PastelOrchid_0_080}"
+			/>
+  </Grid>
+</UserControl>
