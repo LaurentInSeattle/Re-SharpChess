@@ -1,0 +1,56 @@
+<UserControl 
+	x:Class="Lyt.Chess.BoardView"
+	xmlns:vm="clr-namespace:Lyt.Chess.Workflow.Play"
+	x:DataType="vm:PlayViewModel"
+
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+	
+	>
+	<Grid
+		x:Name="OuterGrid"
+		ShowGridLines="True"
+		Width="900" Height="900"
+		> 
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="50" />
+			<ColumnDefinition Width="*" />
+			<ColumnDefinition Width="50" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="50" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="50" />
+		</Grid.RowDefinitions>
+		<!-- The 8 by 8 chess board grid -->
+		<Grid
+			x:Name="BoardGrid"
+			ShowGridLines="True"
+			Grid.Column="1" Grid.Row="1"
+			> 
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*" />
+				<RowDefinition Height="*" />
+				<RowDefinition Height="*" />
+				<RowDefinition Height="*" />
+				<RowDefinition Height="*" />
+				<RowDefinition Height="*" />
+				<RowDefinition Height="*" />
+				<RowDefinition Height="*" />
+			</Grid.RowDefinitions>
+		</Grid>
+	</Grid>
+</UserControl>

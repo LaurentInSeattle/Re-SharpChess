@@ -7,7 +7,7 @@
 
     <system:String x:Key="Toast.Dismiss">Fermer</system:String>
 
-    <system:String x:Key="Shell.AppName">Puzzle</system:String>
+    <system:String x:Key="Shell.AppName">Echecs</system:String>
 
     <system:String x:Key="Shell.About">A propos...</system:String>
 

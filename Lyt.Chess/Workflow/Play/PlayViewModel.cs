@@ -16,22 +16,9 @@ public sealed partial class PlayViewModel : ViewModel<PlayView>,
     [ObservableProperty]
     private double zoomFactor;
 
-    [ObservableProperty]
-    private double backgroundOpacity;
-
-    [ObservableProperty]
-    private SolidColorBrush backgroundBrush;
-
-    [ObservableProperty]
-    private WriteableBitmap? puzzleImage;
-
-    [ObservableProperty]
-    private bool puzzleImageIsVisible;
-
     public PlayViewModel(ChessModel chessModel)
     {
         this.chessModel = chessModel;
-
         this.Subscribe<ToolbarCommandMessage>();
     }
 

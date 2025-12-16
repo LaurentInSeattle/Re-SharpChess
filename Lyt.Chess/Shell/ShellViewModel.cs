@@ -75,7 +75,8 @@ public sealed partial class ShellViewModel
         //    5_000, InformationLevel.Info);
 
         this.isFirstActivation = true;
-        Select(this.jigsawModel.IsFirstRun ? ActivatedView.Language : ActivatedView.Setup);
+        Select(ActivatedView.Play);
+        //Select(this.jigsawModel.IsFirstRun ? ActivatedView.Language : ActivatedView.Setup);
 
         this.Logger.Debug("OnViewLoaded complete");
     }
@@ -135,7 +136,7 @@ public sealed partial class ShellViewModel
                 selectableViews,
                 this.OnViewSelected);
 
-        ViewSelector<ActivatedView>.Disable(ActivatedView.Play); 
+        // ViewSelector<ActivatedView>.Disable(ActivatedView.Play); 
     }
 
     private void OnViewSelected(ActivatedView activatedView)

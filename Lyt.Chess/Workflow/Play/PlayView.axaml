@@ -4,44 +4,28 @@
 	x:DataType="vm:PlayViewModel"
 
 	xmlns="https://github.com/avaloniaui"
+    xmlns:chess="using:Lyt.Chess"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-
-	xmlns:panzoom="using:Lyt.Avalonia.Controls.PanZoom"
 	
 	Background="Transparent"
-  Focusable="True"
+    Focusable="True"
 	>
 	<Grid
 		x:Name="OuterGrid"
-		Background="{Binding BackgroundBrush}"
 		>
-		<panzoom:PanZoomControl
-			x:Name="PanAndZoom"
-			Grid.Column="1" Grid.Row="1" 
-			ZoomFactor="{Binding ZoomFactor}"
-			VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-			>
-			<panzoom:PanZoomControl.ZoomableContent
-				>				
-				<Canvas
-					x:Name="InnerCanvas"
-					ClipToBounds="False"
-					RenderOptions.BitmapInterpolationMode="LowQuality"
-					Width="{Binding CanvasWidth}" 
-					Height="{Binding CanvasHeight}"
-					>
-				</Canvas>
-			</panzoom:PanZoomControl.ZoomableContent>
-		</panzoom:PanZoomControl>
-		<Image
-			Grid.Column="0" Grid.Row="0" 
-			Margin="8"
-			Source="{Binding PuzzleImage}"
-			IsVisible="{Binding PuzzleImageIsVisible}"
-			/>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*" />
+			<ColumnDefinition Width="300"/>
+		</Grid.ColumnDefinitions>
+		<Viewbox
+			Grid.Column="0"
 
+			>
+			<chess:BoardView
+				/>
+		</Viewbox>			
 	</Grid>
 </UserControl>
