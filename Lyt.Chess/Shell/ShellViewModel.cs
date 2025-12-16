@@ -75,7 +75,7 @@ public sealed partial class ShellViewModel
         //    5_000, InformationLevel.Info);
 
         this.isFirstActivation = true;
-        Select(this.jigsawModel.IsFirstRun ? ActivatedView.Language : ActivatedView.Collection);
+        Select(this.jigsawModel.IsFirstRun ? ActivatedView.Language : ActivatedView.Setup);
 
         this.Logger.Debug("OnViewLoaded complete");
     }
@@ -115,10 +115,10 @@ public sealed partial class ShellViewModel
         //}
 
         Setup<SetupViewModel, SetupView, SetupToolbarViewModel, SetupToolbarView>(
-            ActivatedView.Collection, view.CollectionButton);
+            ActivatedView.Setup, view.CollectionButton);
 
         Setup<PlayViewModel, PlayView, PlayToolbarViewModel, PlayToolbarView>(
-            ActivatedView.Puzzle, null);
+            ActivatedView.Play, null);
 
         Setup<LanguageViewModel, LanguageView, LanguageToolbarViewModel, LanguageToolbarView>(
             ActivatedView.Language, view.FlagButton);
@@ -135,7 +135,7 @@ public sealed partial class ShellViewModel
                 selectableViews,
                 this.OnViewSelected);
 
-        ViewSelector<ActivatedView>.Disable(ActivatedView.Puzzle); 
+        ViewSelector<ActivatedView>.Disable(ActivatedView.Play); 
     }
 
     private void OnViewSelected(ActivatedView activatedView)
@@ -161,7 +161,7 @@ public sealed partial class ShellViewModel
 #pragma warning disable CA1822 // Mark members as static
 
     [RelayCommand]
-    public void OnCollection() => Select(ActivatedView.Collection);
+    public void OnCollection() => Select(ActivatedView.Setup);
 
     [RelayCommand]
     public void OnInfo() => Select(ActivatedView.Intro);

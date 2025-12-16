@@ -2,7 +2,7 @@
 
 public sealed partial class LanguageInfoViewModel : ViewModel<LanguageInfoView>
 {
-    private const string UriPath = "avares://Lyt.Jigsaw/Assets/Images/Flags/";
+    private const string UriPath = "avares://Lyt.Chess/Assets/Images/Flags/";
 
     [ObservableProperty]
     private string key;

@@ -243,8 +243,8 @@ public sealed partial class SetupViewModel :
 
     private static void ActivateGameView()
     {
-        ViewSelector<ActivatedView>.Enable(ActivatedView.Puzzle);
-        ApplicationMessagingExtensions.Select(ActivatedView.Puzzle);
+        ViewSelector<ActivatedView>.Enable(ActivatedView.Play);
+        ApplicationMessagingExtensions.Select(ActivatedView.Play);
     }
 
     internal void ClearSelection()

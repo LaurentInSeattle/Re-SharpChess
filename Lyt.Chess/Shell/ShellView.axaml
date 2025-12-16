@@ -82,7 +82,7 @@
                     />
                 <Image
                     Stretch="UniformToFill"
-                    Source="\Assets\Images\puzzle.png"
+                    Source="\Assets\Images\chess.png"
                     Grid.Row="0" Grid.Column="0"
                     Width="64" Height="64"
                     HorizontalAlignment="Center" VerticalAlignment="Center"

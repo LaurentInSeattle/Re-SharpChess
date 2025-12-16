@@ -6,7 +6,7 @@ public enum ActivatedView : int
     Exit,
 
     Intro,
-    Puzzle,
-    Collection,
+    Play,
+    Setup,
     Language,
 }

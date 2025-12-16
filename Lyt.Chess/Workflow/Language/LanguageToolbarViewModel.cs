@@ -9,7 +9,7 @@ public sealed partial class LanguageToolbarViewModel : ViewModel<LanguageToolbar
         var model = App.GetRequiredService<ChessModel>();
         model.ClearFirstRun();
         // FOR NOW 
-        ViewSelector<ActivatedView>.Select(ActivatedView.Collection);
+        ViewSelector<ActivatedView>.Select(ActivatedView.Setup);
         // LATER 
         // public void OnNext() => ViewSelector<ActivatedView>.Select(ActivatedView.Intro);
     }

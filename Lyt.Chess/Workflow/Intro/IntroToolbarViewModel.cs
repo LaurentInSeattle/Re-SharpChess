@@ -11,6 +11,6 @@ public sealed partial class IntroToolbarViewModel : ViewModel<IntroToolbarView>
         chessModel.IsFirstRun = false;
         chessModel.Save();
 
-        ViewSelector<ActivatedView>.Select(ActivatedView.Collection);
+        ViewSelector<ActivatedView>.Select(ActivatedView.Setup);
     }
 }
