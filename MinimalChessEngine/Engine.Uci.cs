@@ -98,6 +98,10 @@ public sealed partial class Engine : IUciRequester
         // Emit an info string message providing all legal moves in the new current position
         string legalMoves = this.LegalMoves();
         this.RespondUci(string.Format("info string legal: {0}", legalMoves));
+
+        // TODO: Emit an info string message about the check status in the new current position
+        // TODO: Emit an info string message about the castle status in the new current position
+        // TODO: Emit an info string message about the squares under attack in the new current position
     }
 
     private string LegalMoves()
