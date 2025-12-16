@@ -10,7 +10,7 @@ public sealed partial class Engine : IUciRequester
 
     public void UciCommand(string command)
     {
-        // remove leading & trailing whitecases and split using ' ' as delimiter
+        // remove leading & trailing whitecases and split using the space char as delimiter
         string[] tokens = command.Trim().Split();
         switch (tokens[0])
         {
@@ -94,6 +94,26 @@ public sealed partial class Engine : IUciRequester
             var move = new Move(tokens[i]);
             this.Play(move);
         }
+
+        // Emit an info string message providing all legal moves in the new current position
+        string legalMoves = this.LegalMoves();
+        this.RespondUci(string.Format("info string legal: {0}", legalMoves));
+    }
+
+    private string LegalMoves()
+    {
+
+        var sb = new StringBuilder();
+        var search = new IterativeSearch(1, this.board);
+
+        // Maybe not needed? If absent, search will warn about not used variable
+        _ = search.PrincipalVariation;
+        foreach (var move in new LegalMoves(board))
+        {
+            _ = sb.Append(move.ToString()).Append(' ');
+        }
+
+        return sb.ToString().TrimEnd();
     }
 
     private void UciGo(string[] tokens)
@@ -106,7 +126,9 @@ public sealed partial class Engine : IUciRequester
         TryParse(tokens, "depth", out int maxDepth, 99);
         TryParse(tokens, "movetime", out int maxTime, int.MaxValue);
         TryParse(tokens, "nodes", out long maxNodes, long.MaxValue);
-        TryParse(tokens, "movestogo", out int movesToGo, 40); //assuming 30 e.g. spend 1/30th of total budget on the move
+
+        // assuming 30 e.g. spend 1/30th of total budget on the move
+        TryParse(tokens, "movestogo", out int movesToGo, 40); 
 
         if (this.SideToMove == Color.White && TryParse(tokens, "wtime", out int whiteTime))
         {
@@ -123,6 +145,15 @@ public sealed partial class Engine : IUciRequester
             //Searching infinite within optional constraints
             this.Go(maxDepth, maxTime, maxNodes);
         }
+    }
+
+    public void BestMove(Move move) => this.RespondUci($"bestmove {move}");
+
+    public void Info(int depth, int score, long nodes, int timeMs, Move[] pv)
+    {
+        double tS = Math.Max(1, timeMs) / 1000.0;
+        int nps = (int)(nodes / tS);
+        this.RespondUci($"info depth {depth} score {ScoreToString(score)} nodes {nodes} nps {nps} time {timeMs} pv {string.Join(' ', pv)}");
     }
 
     private static bool TryParse(string[] tokens, string name, out int value, int defaultValue = 0)
@@ -159,15 +190,6 @@ public sealed partial class Engine : IUciRequester
 
         int iValue = iParam + 1;
         return (iValue < tokens.Length) ? tokens[iValue] : null;
-    }
-
-    public void BestMove(Move move) => this.RespondUci($"bestmove {move}");
-
-    public void Info(int depth, int score, long nodes, int timeMs, Move[] pv)
-    {
-        double tS = Math.Max(1, timeMs) / 1000.0;
-        int nps = (int)(nodes / tS);
-        this.RespondUci($"info depth {depth} score {ScoreToString(score)} nodes {nodes} nps {nps} time {timeMs} pv {string.Join(' ', pv)}");
     }
 
     private static string ScoreToString(int score)

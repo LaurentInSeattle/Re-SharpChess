@@ -4,6 +4,7 @@ public sealed partial class Evaluation
 {
     private const int CheckmateBase = 9000;
     private const int CheckmateScore = 9999;
+
     public static int GetMateDistance(int score)
     {
         int plies = CheckmateScore - Math.Abs(score);

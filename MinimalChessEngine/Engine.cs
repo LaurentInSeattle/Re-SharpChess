@@ -2,7 +2,6 @@
 
 public sealed partial class Engine(IUciResponder uciResponder) : IUciRequester
 {
-
     private readonly IUciResponder uciResponder = uciResponder;
     private readonly TimeControl time = new();
     private readonly List<Board> history = [];

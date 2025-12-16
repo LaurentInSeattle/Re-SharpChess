@@ -6,6 +6,7 @@ public sealed class History
     private const int Pieces = 12;
 
     private readonly int[,] Positive = new int[Squares, Pieces];
+
     private readonly int[,] Negative = new int[Squares, Pieces];
     
     public void Scale()

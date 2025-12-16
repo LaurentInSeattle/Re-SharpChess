@@ -12,7 +12,7 @@ public static class Playmaker
         }
 
         //2. Try all captures ordered by Mvv-Lva
-        foreach (var capture in MoveList.SortedCaptures(position))
+        foreach (var capture in SortedMoveList.SortedCaptures(position))
         {
             var nextPosition = new Board(position, capture);
             if (!nextPosition.IsChecked(position.SideToMove))
@@ -37,7 +37,7 @@ public static class Playmaker
         }
 
         //4. Play the remaining quiet moves ordered by history
-        foreach (var move in MoveList.SortedQuiets(position, history))
+        foreach (var move in SortedMoveList.SortedQuiets(position, history))
         {
             if (killers.Contains(depth, move))
             {
@@ -54,7 +54,7 @@ public static class Playmaker
 
     internal static IEnumerable<Board> Play(Board position)
     {
-        foreach (var capture in MoveList.SortedCaptures(position))
+        foreach (var capture in SortedMoveList.SortedCaptures(position))
         {
             var nextPosition = new Board(position, capture);
             if (!nextPosition.IsChecked(position.SideToMove))
@@ -63,7 +63,7 @@ public static class Playmaker
             }
         }
 
-        foreach (var move in MoveList.Quiets(position))
+        foreach (var move in SortedMoveList.Quiets(position))
         {
             var nextPosition = new Board(position, move);
             if (!nextPosition.IsChecked(position.SideToMove))
@@ -75,7 +75,7 @@ public static class Playmaker
 
     internal static IEnumerable<Board> PlayCaptures(Board position)
     {
-        foreach (var capture in MoveList.SortedCaptures(position))
+        foreach (var capture in SortedMoveList.SortedCaptures(position))
         {
             var nextPosition = new Board(position, capture);
             if (!nextPosition.IsChecked(position.SideToMove))

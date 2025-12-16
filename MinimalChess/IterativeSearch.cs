@@ -5,20 +5,20 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
     private const int QUERY_TC_FREQUENCY = 25;
     private const int MAX_GAIN_PER_PLY = 70;
 
-    private readonly Board _root = new(board);
+    private readonly Board rootBoard = new(board);
     private readonly long _maxNodes = maxNodes;
 
-    private readonly KillerMoves _killers = new(4);
-    private readonly History _history = new();
+    private readonly KillerMoves killerMoves = new(4);
+    private readonly History history = new();
 
-    private KillSwitch _killSwitch;
-    private int _mobilityBonus;
+    private KillSwitch killSwitch;
+    private int mobilityBonus;
 
     public IterativeSearch(int searchDepth, Board board) : this(board)
     {
-        while (Depth < searchDepth)
+        while (this.Depth < searchDepth)
         {
-            SearchDeeper();
+            this.SearchDeeper();
         }
     }
 
@@ -31,28 +31,30 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
     public Move[] PrincipalVariation { get; private set; } = [];
 
     public bool Aborted 
-        => NodesVisited >= _maxNodes || _killSwitch.Get(NodesVisited % QUERY_TC_FREQUENCY == 0);
+        =>  this.NodesVisited >= _maxNodes || 
+            killSwitch.Get(this.NodesVisited % QUERY_TC_FREQUENCY == 0);
 
     public bool GameOver 
-        => Evaluation.IsCheckmate(Score);
+        => Evaluation.IsCheckmate(this.Score);
 
     public void SearchDeeper(Func<bool>? killSwitch = null)
     {
-        Depth++;
-        _killers.Expand(Depth);
-        _history.Scale();
-        StorePVinTT(PrincipalVariation, Depth);
-        _killSwitch = new KillSwitch(killSwitch);
-        (Score, PrincipalVariation) = EvalPosition(_root, 0, Depth, SearchWindow.Infinite);
+        this.Depth++;
+        this.killerMoves.Expand(this.Depth);
+        this.history.Scale();
+        this.StorePVinTT(this.PrincipalVariation, this.Depth);
+        this.killSwitch = new KillSwitch(killSwitch);
+        (this.Score, this.PrincipalVariation) = 
+            this.EvalPosition(this.rootBoard, 0, this.Depth, SearchWindow.Infinite);
     }
 
     private void StorePVinTT(Move[] pv, int depth)
     {
-        var position = new Board(_root);
+        var position = new Board(rootBoard);
         for (int ply = 0; ply < pv.Length; ply++)
         {
             Move move = pv[ply];
-            Transpositions.Store(position.ZobristHash, --depth, ply, SearchWindow.Infinite, Score, move);
+            Transpositions.Store(position.ZobristHash, --depth, ply, SearchWindow.Infinite, this.Score, move);
             position.Play(move);
         }
     }
@@ -64,8 +66,8 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
             return (ttScore, Array.Empty<Move>());
         }
 
-        var result = EvalPosition(position, ply, depth, window);
-        if(!Aborted)
+        var result = this.EvalPosition(position, ply, depth, window);
+        if(!this.Aborted)
         {
             Transpositions.Store(
                 position.ZobristHash, depth, ply, window, 
@@ -80,12 +82,12 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
     {
         if (depth <= 0)
         {
-            _mobilityBonus = Evaluation.ComputeMobility(position);
-            return (QEval(position, ply, window), Array.Empty<Move>());
+            this.mobilityBonus = Evaluation.ComputeMobility(position);
+            return (this.QEval(position, ply, window), Array.Empty<Move>());
         }
 
-        NodesVisited++;
-        if (Aborted)
+        this.NodesVisited++;
+        if (this.Aborted)
         {
             return (0, Array.Empty<Move>());
         }
@@ -95,7 +97,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
         
         // if the previous iteration found a mate we check the first few plys without null move to try
         // and find the shortest mate or escape
-        bool allowNullMove = !Evaluation.IsCheckmate(Score) || (ply > Depth/4);
+        bool allowNullMove = !Evaluation.IsCheckmate(this.Score) || (ply > this.Depth /4);
 
         // should we try null move pruning?           
         if (allowNullMove && depth >= 2 && !isChecked && window.CanFailHigh(color))
@@ -105,7 +107,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
             SearchWindow beta = window.GetUpperBound(color);
             //skip making a move
             Board nullChild = Playmaker.PlayNullMove(position);
-            (int score, _) = EvalPositionTT(nullChild, ply + 1, depth - R - 1, beta);
+            (int score, _) = this.EvalPositionTT(nullChild, ply + 1, depth - R - 1, beta);
 
             //is the evaluation "too good" despite null-move?
             //then don't waste time on a branch that is likely going to fail-high
@@ -119,7 +121,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
         //do a regular expansion...
         Move[] pv = []; 
         int expandedNodes = 0;
-        foreach ((Move move, Board child) in Playmaker.Play(position, depth, _killers, _history))
+        foreach ((Move move, Board child) in Playmaker.Play(position, depth, killerMoves, history))
         {
             expandedNodes++;
             bool interesting = expandedNodes == 1 || isChecked || child.IsChecked(child.SideToMove);
@@ -135,14 +137,14 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
                 }
             }
             
-            //moves after the PV node are unlikely to raise alpha. 
-            //avoid a full evaluation by searching with a null-sized window around alpha first
-            //...we expect it to fail low but if it does not we have to research it!
+            // moves after the PV node are unlikely to raise alpha. 
+            // avoid a full evaluation by searching with a null-sized window around alpha first
+            // ...we expect it to fail low but if it does not we have to research it!
             if (depth >= 2 && expandedNodes > 1)
             {
-                //non-tactical late moves are searched at a reduced depth to make this test even faster!
+                // non-tactical late moves are searched at a reduced depth to make this test even faster!
                 int R = (interesting || expandedNodes < 4) ? 0 : 2;
-                (int score, _) = EvalPositionTT(child, ply + 1, depth - R - 1, window.GetLowerBound(color));
+                (int score, _) = this.EvalPositionTT(child, ply + 1, depth - R - 1, window.GetLowerBound(color));
                 if (window.FailLow(score, color))
                 {
                     continue;
@@ -150,23 +152,24 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
             }
 
             //this move is expected to raise alpha so we search it at full depth!
-            var eval = EvalPositionTT(child, ply + 1, depth - 1, window);
+            var eval = this.EvalPositionTT(child, ply + 1, depth - 1, window);
             if (window.FailLow(eval.Score, color))
             {
-                _history.Bad(position, move, depth);
+                history.Bad(position, move, depth);
                 continue;
             }
 
             //set the PV to this move, followed by the PV of the childnode
             pv = Merge(move, eval.PV);
+
             //...and maybe we even get a beta cutoff
             if (window.Cut(eval.Score, color))
             {
                 //we remember killers like hat!
                 if (position[move.ToSquare] == Piece.None)
                 {
-                    _history.Good(position, move, depth);
-                    _killers.Add(move, depth);
+                    this.history.Good(position, move, depth);
+                    this.killerMoves.Add(move, depth);
                 }
 
                 return (GetScore(window, color), pv);
@@ -182,11 +185,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
         return (GetScore(window, color), pv);
     }
 
-    private static int GetScore(SearchWindow window, Color color)
-    {
-        int score = window.GetScore(color);
-        return score;
-    }
+    private static int GetScore(SearchWindow window, Color color) => window.GetScore(color);
 
     private static Move[] Merge(Move move, Move[] pv)
     {
@@ -198,18 +197,19 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
 
     private int QEval(Board position, int ply, SearchWindow window)
     {
-        NodesVisited++;
-        if (Aborted)
+        this.NodesVisited++;
+        if (this.Aborted)
         {
             return 0;
         }
 
         Color color = position.SideToMove;
         bool inCheck = position.IsChecked(color);
-        //if inCheck we can't use standPat, need to escape check!
+
+        // if inCheck we can't use standPat, need to escape check!
         if (!inCheck)
         {
-            int standPatScore = position.Score + _mobilityBonus;
+            int standPatScore = position.Score + mobilityBonus;
             //Cut will raise alpha and perform beta cutoff when standPatScore is too good
             if (window.Cut(standPatScore, color))
             {
@@ -218,12 +218,14 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
         }
 
         int expandedNodes = 0;
-        //play remaining captures (or any moves if king is in check)
+
+        // play remaining captures (or any moves if king is in check)
         foreach (Board child in inCheck ? Playmaker.Play(position) : Playmaker.PlayCaptures(position))
         {
             expandedNodes++;
+           
             //recursively evaluate the resulting position (after the capture) with QEval
-            int score = QEval(child, ply + 1, window);
+            int score = this.QEval(child, ply + 1, window);
 
             //Cut will raise alpha and perform beta cutoff when the move is too good
             if (window.Cut(score, color))
@@ -232,7 +234,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
             }
         }
 
-        //checkmate?
+        // checkmate?
         if (expandedNodes == 0 && inCheck)
         {
             return Evaluation.Checkmate(color, ply);
@@ -244,7 +246,8 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
             return 0;
         }
 
-        //can't capture. We return the 'alpha' which may have been raised by "stand pat"
+        //can't capture.
+        //We return the 'alpha' which may have been raised by "stand pat"
         return GetScore(window, color);
     }
 }
