@@ -1,5 +1,7 @@
 namespace Lyt.Chess.Workflow.Play;
 
+using global::Avalonia.Styling;
+
 public partial class BoardView : View
 {
     // No need to localize these strings (FIDE official notation)
@@ -16,9 +18,11 @@ public partial class BoardView : View
 
     internal void AddRankFileTextBoxes(int index)
     {
+        var controlTheme = Lyt.Avalonia.Controls.Utilities.FindResource<ControlTheme>("Medium"); 
         string fileText = fileStrings[index];
         var textFileBottom = new TextBlock()
         {
+            Theme = controlTheme,
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center, 
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = fileText,
@@ -29,6 +33,7 @@ public partial class BoardView : View
 
         var textFileTop = new TextBlock()
         {
+            Theme = controlTheme,
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = fileText,
@@ -40,6 +45,7 @@ public partial class BoardView : View
         string rankText = rankStrings[index];
         var textRankLeft = new TextBlock()
         {
+            Theme = controlTheme,
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = rankText,
@@ -50,6 +56,7 @@ public partial class BoardView : View
 
         var textRankRight = new TextBlock()
         {
+            Theme = controlTheme,
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = rankText,

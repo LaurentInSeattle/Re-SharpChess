@@ -9,7 +9,43 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 	>
-	<Rectangle
-		Fill="{Binding Background}"
-		/>
+	<Grid>
+		<Rectangle
+			Fill="{Binding Background}"
+			/>
+		<Ellipse
+			IsVisible="{Binding IsValidMove}"
+			Width="20" Height="20"
+			Fill="LightGreen"
+			Opacity="0.7"
+			/>
+		<Rectangle
+			IsVisible="{Binding IsInCheck}"
+			Stroke="Firebrick"
+			Fill="Transparent"
+			StrokeThickness="2"
+			Margin="4"
+			RadiusX="16" RadiusY="16" 
+			/>
+		<Rectangle
+			IsVisible="{Binding IsInvalidMove}"
+			Width="20" Height="3"
+			Fill="Firebrick"
+			Opacity="0.7"
+			>
+			<Rectangle.RenderTransform>
+				<RotateTransform Angle="45" />
+			</Rectangle.RenderTransform>
+		</Rectangle>
+		<Rectangle
+			IsVisible="{Binding IsInvalidMove}"
+			Width="20" Height="3"
+			Fill="Firebrick"
+			Opacity="0.7"
+			>
+			<Rectangle.RenderTransform>
+				<RotateTransform Angle="-45" />
+			</Rectangle.RenderTransform>
+		</Rectangle>
+	</Grid>
 </UserControl>

@@ -5,6 +5,15 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     [ObservableProperty]
     private SolidColorBrush background;
 
+    [ObservableProperty]
+    private bool isValidMove;
+
+    [ObservableProperty]
+    private bool isInvalidMove;
+
+    [ObservableProperty]
+    private bool isInCheck;
+
     public SquareViewModel(int rank, int file) 
     {
         this.Rank = rank;
@@ -19,6 +28,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
             squareColor == PlayerColor.White ? 
                 new SolidColorBrush (Colors.BurlyWood) :
                 new SolidColorBrush(Colors.SaddleBrown);
+        this.IsValidMove = true;
+        this.IsInvalidMove = true;
+        this.IsInCheck = true;
     }
 
     public int Rank { get; private set; } 
