@@ -14,7 +14,7 @@ public sealed partial class Evaluation
 
     public static bool IsCheckmate(int score) => Math.Abs(score) > CheckmateBase;
 
-    public static int Checkmate(Color color, int ply) => (int)color * (ply - CheckmateScore);
+    public static int Checkmate(PlayerColor color, int ply) => (int)color * (ply - CheckmateScore);
 
     public static double Linstep(double edge0, double edge1, double value) 
         => Math.Min(1, Math.Max(0, (value - edge0) / (edge1 - edge0)));

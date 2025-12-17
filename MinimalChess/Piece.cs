@@ -1,6 +1,6 @@
 ﻿namespace MinimalChess; 
 
-public enum Color
+public enum PlayerColor
 {
     Black = -1,
     White = +1
@@ -57,7 +57,7 @@ public static class Pieces
     public static int Order(Piece piece) => (int)piece >> 2;
 
     //subtracting 2 maps Piece.White (3) to Color.White (1) and Piece.Black (1) to Color.Black (-1)
-    public static Color Color(this Piece piece) => (Color)((piece & Piece.ColorMask) - 2);
+    public static PlayerColor Color(this Piece piece) => (PlayerColor)((piece & Piece.ColorMask) - 2);
 
     public static bool IsWhite(this Piece piece) => (piece & Piece.ColorMask) == Piece.White;
 
@@ -65,9 +65,9 @@ public static class Pieces
 
     //Use Piece.TypeMask to clear the two bits used for color, then set correct color bits
     //adding 2 maps Color.White (1) to Piece.White (3) and Color.Black (-1) to Piece.Black (1)
-    public static Piece OfColor(this Piece piece, Color color) => (piece & Piece.TypeMask) | (Piece)(color + 2);
+    public static Piece OfColor(this Piece piece, PlayerColor color) => (piece & Piece.TypeMask) | (Piece)(color + 2);
 
-    public static Color Flip(Color color) => (Color)(-(int)color);
+    public static PlayerColor Flip(PlayerColor color) => (PlayerColor)(-(int)color);
 
     public static bool IsColor(this Piece piece, Piece other) => (piece & Piece.ColorMask) == (other & Piece.ColorMask);
 }

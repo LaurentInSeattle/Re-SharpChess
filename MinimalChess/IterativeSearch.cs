@@ -92,7 +92,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
             return (0, Array.Empty<Move>());
         }
 
-        Color color = position.SideToMove;
+        PlayerColor color = position.SideToMove;
         bool isChecked = position.IsChecked(color);
         
         // if the previous iteration found a mate we check the first few plys without null move to try
@@ -185,7 +185,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
         return (GetScore(window, color), pv);
     }
 
-    private static int GetScore(SearchWindow window, Color color) => window.GetScore(color);
+    private static int GetScore(SearchWindow window, PlayerColor color) => window.GetScore(color);
 
     private static Move[] Merge(Move move, Move[] pv)
     {
@@ -203,7 +203,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
             return 0;
         }
 
-        Color color = position.SideToMove;
+        PlayerColor color = position.SideToMove;
         bool inCheck = position.IsChecked(color);
 
         // if inCheck we can't use standPat, need to escape check!

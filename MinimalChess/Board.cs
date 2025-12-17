@@ -37,7 +37,7 @@ public sealed class Board
 
     private CastlingRights castlingRights = CastlingRights.All;
 
-    private Color sideToMove = Color.White;
+    private PlayerColor sideToMove = PlayerColor.White;
 
     private int enPassantSquare = -1;
 
@@ -49,7 +49,7 @@ public sealed class Board
 
     public ulong ZobristHash => zobristHash;
 
-    public Color SideToMove
+    public PlayerColor SideToMove
     {
         get => sideToMove;
 
@@ -135,7 +135,7 @@ public sealed class Board
         }
 
         //Set side to move
-        this.sideToMove = fields[1].Equals("w", StringComparison.CurrentCultureIgnoreCase) ? Color.White : Color.Black;
+        this.sideToMove = fields[1].Equals("w", StringComparison.CurrentCultureIgnoreCase) ? PlayerColor.White : PlayerColor.Black;
 
         //Set castling rights
         this.SetCastlingRights(CastlingRights.WhiteKingside, fields[2].IndexOf('K') > -1);
@@ -428,7 +428,7 @@ public sealed class Board
 
     //** CHECK TEST ***
 
-    public bool IsChecked(Color color)
+    public bool IsChecked(PlayerColor color)
     {
         Piece king = Piece.King.OfColor(color);
         for (int square = 0; square < 64; square++)
@@ -442,10 +442,10 @@ public sealed class Board
         throw new Exception($"No {color} King found!");
     }
 
-    public bool IsSquareAttackedBy(int square, Color color)
+    public bool IsSquareAttackedBy(int square, PlayerColor color)
     {
         //1. Pawns? (if attacker is white, pawns move up and the square is attacked from below. squares below == Attacks.BlackPawn)
-        byte[][] pawnAttacks = color == Color.White ? Attacks.BlackPawn : Attacks.WhitePawn;
+        byte[][] pawnAttacks = color == PlayerColor.White ? Attacks.BlackPawn : Attacks.WhitePawn;
         foreach (int target in pawnAttacks[square])
         {
             if (state[target] == Piece.Pawn.OfColor(color))
@@ -578,13 +578,13 @@ public sealed class Board
     {
         //Castling is only possible if it's associated CastlingRight flag is set? it get's cleared when either the king or the matching rook move and provide a cheap early out
         if (this.HasCastlingRight(CastlingRights.WhiteQueenside) &&
-            this.CanCastle(WhiteKingSquare, WhiteQueensideRookSquare, Color.White))
+            this.CanCastle(WhiteKingSquare, WhiteQueensideRookSquare, PlayerColor.White))
         {
             moveHandler(Move.WhiteCastlingLong);
         }
 
         if (this.HasCastlingRight(CastlingRights.WhiteKingside) &&
-            this.CanCastle(WhiteKingSquare, WhiteKingsideRookSquare, Color.White))
+            this.CanCastle(WhiteKingSquare, WhiteKingsideRookSquare, PlayerColor.White))
         {
             moveHandler(Move.WhiteCastlingShort);
         }
@@ -594,24 +594,24 @@ public sealed class Board
     private void AddBlackCastlingMoves(Action<Move> moveHandler)
     {
         if (this.HasCastlingRight(CastlingRights.BlackQueenside) &&
-            this.CanCastle(BlackKingSquare, BlackQueensideRookSquare, Color.Black))
+            this.CanCastle(BlackKingSquare, BlackQueensideRookSquare, PlayerColor.Black))
         {
             moveHandler(Move.BlackCastlingLong);
         }
 
         if (this.HasCastlingRight(CastlingRights.BlackKingside) &&
-            this.CanCastle(BlackKingSquare, BlackKingsideRookSquare, Color.Black))
+            this.CanCastle(BlackKingSquare, BlackKingsideRookSquare, PlayerColor.Black))
         {
             moveHandler(Move.BlackCastlingShort);
         }
     }
 
-    private bool CanCastle(int kingSquare, int rookSquare, Color color)
+    private bool CanCastle(int kingSquare, int rookSquare, PlayerColor color)
     {
         Debug.Assert(state[kingSquare] == Piece.King.OfColor(color), "CanCastle shouldn't be called if castling right has been lost!");
         Debug.Assert(state[rookSquare] == Piece.Rook.OfColor(color), "CanCastle shouldn't be called if castling right has been lost!");
 
-        Color enemyColor = Pieces.Flip(color);
+        PlayerColor enemyColor = Pieces.Flip(color);
         int gap = Math.Abs(rookSquare - kingSquare) - 1;
         int dir = Math.Sign(rookSquare - kingSquare);
 

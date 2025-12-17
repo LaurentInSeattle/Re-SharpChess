@@ -134,12 +134,12 @@ public sealed partial class Engine : IUciRequester
         // assuming 30 e.g. spend 1/30th of total budget on the move
         TryParse(tokens, "movestogo", out int movesToGo, 40); 
 
-        if (this.SideToMove == Color.White && TryParse(tokens, "wtime", out int whiteTime))
+        if (this.SideToMove == PlayerColor.White && TryParse(tokens, "wtime", out int whiteTime))
         {
             TryParse(tokens, "winc", out int whiteIncrement);
             this.Go(whiteTime, whiteIncrement, movesToGo, maxDepth, maxNodes);
         }
-        else if (this.SideToMove == Color.Black && TryParse(tokens, "btime", out int blackTime))
+        else if (this.SideToMove == PlayerColor.Black && TryParse(tokens, "btime", out int blackTime))
         {
             TryParse(tokens, "binc", out int blackIncrement);
             this.Go(blackTime, blackIncrement, movesToGo, maxDepth, maxNodes);

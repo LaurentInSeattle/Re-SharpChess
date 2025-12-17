@@ -47,8 +47,8 @@ public static class Zobrist
 
     public static ulong EnPassant(int square) => (square >= 0) ? EnPassantTable[square] : 0;
 
-    public static ulong SideToMove(Color sideToMove) 
-        => sideToMove == Color.White ? Zobrist.Black : Zobrist.White;
+    public static ulong SideToMove(PlayerColor sideToMove) 
+        => sideToMove == PlayerColor.White ? Zobrist.Black : Zobrist.White;
 
     private static ulong RandomUInt64(Random rnd)
     {

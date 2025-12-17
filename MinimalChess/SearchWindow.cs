@@ -9,19 +9,19 @@ public struct SearchWindow(int floor, int ceiling)
     public readonly SearchWindow LowerBound => new(this.Floor, this.Floor + 1);
 
     //used to quickly determine that a move is not improving the score for color.
-    public readonly SearchWindow GetLowerBound(Color color) => color == Color.White ? this.LowerBound : this.UpperBound;
+    public readonly SearchWindow GetLowerBound(PlayerColor color) => color == PlayerColor.White ? this.LowerBound : this.UpperBound;
 
     //used to quickly determine that a move is too good and will not be allowed by the opponent .
-    public readonly SearchWindow GetUpperBound(Color color) => color == Color.White ? this.UpperBound : this.LowerBound;
+    public readonly SearchWindow GetUpperBound(PlayerColor color) => color == PlayerColor.White ? this.UpperBound : this.LowerBound;
 
     // Enforce immutability from outside
     public int Floor { get; private set; } = floor; //Alpha
 
     public int Ceiling { get; private set; } = ceiling; //Beta
 
-    public bool Cut(int score, Color color)
+    public bool Cut(int score, PlayerColor color)
     {
-        if (color == Color.White) //Cut floor
+        if (color == PlayerColor.White) //Cut floor
         {
             if (score <= this.Floor)
             {
@@ -43,15 +43,15 @@ public struct SearchWindow(int floor, int ceiling)
         }
     }
 
-    public readonly bool FailLow(int score, Color color) 
-        => color == Color.White ? (score <= this.Floor) : (score >= this.Ceiling);
+    public readonly bool FailLow(int score, PlayerColor color) 
+        => color == PlayerColor.White ? (score <= this.Floor) : (score >= this.Ceiling);
 
-    public readonly bool FailHigh(int score, Color color) 
-        => color == Color.White ? (score >= this.Ceiling) : (score <= this.Floor);
+    public readonly bool FailHigh(int score, PlayerColor color) 
+        => color == PlayerColor.White ? (score >= this.Ceiling) : (score <= this.Floor);
 
-    public readonly int GetScore(Color color) 
-        => color == Color.White ? this.Floor : this.Ceiling;
+    public readonly int GetScore(PlayerColor color) 
+        => color == PlayerColor.White ? this.Floor : this.Ceiling;
 
-    public readonly bool CanFailHigh(Color color) 
-        => color == Color.White ? (this.Ceiling < short.MaxValue) : (this.Floor > short.MinValue);
+    public readonly bool CanFailHigh(PlayerColor color) 
+        => color == PlayerColor.White ? (this.Ceiling < short.MaxValue) : (this.Floor > short.MinValue);
 }

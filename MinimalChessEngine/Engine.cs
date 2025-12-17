@@ -14,7 +14,7 @@ public sealed partial class Engine(IUciResponder uciResponder) : IUciRequester
     private int maxSearchDepth;
 
     public bool Running { get; private set; }
-    public Color SideToMove => board.SideToMove;
+    public PlayerColor SideToMove => board.SideToMove;
 
     public void Start()
     {
