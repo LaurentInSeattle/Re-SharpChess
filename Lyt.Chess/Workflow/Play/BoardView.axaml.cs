@@ -1,13 +1,61 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+namespace Lyt.Chess.Workflow.Play;
 
-namespace Lyt.Chess;
-
-public partial class BoardView : UserControl
+public partial class BoardView : View
 {
-    public BoardView()
+    // No need to localize these strings (FIDE official notation)
+    private static readonly string[] fileStrings = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    private static readonly string[] rankStrings = ["1", "2", "3", "4", "5", "6", "7", "8"];
+
+    internal void AddSquareView(SquareViewModel squareViewModel)
     {
-        InitializeComponent();
+        var squareView = squareViewModel.View;
+        this.BoardGrid.Children.Add(squareView);
+        squareView.SetValue(Grid.RowProperty, 7 - squareViewModel.Rank);
+        squareView.SetValue(Grid.ColumnProperty, 7 - squareViewModel.File);
+    }
+
+    internal void AddRankFileTextBoxes(int index)
+    {
+        string fileText = fileStrings[index];
+        var textFileBottom = new TextBlock()
+        {
+            VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center, 
+            HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
+            Text = fileText,
+        };
+
+        this.FileLabelsGridBottom.Children.Add(textFileBottom);
+        textFileBottom.SetValue(Grid.ColumnProperty, index);
+
+        var textFileTop = new TextBlock()
+        {
+            VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
+            HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
+            Text = fileText,
+        };
+
+        this.FileLabelsGridTop.Children.Add(textFileTop);
+        textFileTop.SetValue(Grid.ColumnProperty, index);
+
+        string rankText = rankStrings[index];
+        var textRankLeft = new TextBlock()
+        {
+            VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
+            HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
+            Text = rankText,
+        };
+
+        this.RankLabelsGridLeft.Children.Add(textRankLeft);
+        textRankLeft.SetValue(Grid.RowProperty, 7 - index);
+
+        var textRankRight = new TextBlock()
+        {
+            VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
+            HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
+            Text = rankText,
+        };
+
+        this.RankLabelsGridRight.Children.Add(textRankRight);
+        textRankRight.SetValue(Grid.RowProperty, 7 - index);
     }
 }

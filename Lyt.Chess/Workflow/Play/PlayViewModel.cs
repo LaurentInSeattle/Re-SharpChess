@@ -1,9 +1,12 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
-public sealed partial class PlayViewModel : ViewModel<PlayView>,
+public sealed partial class PlayViewModel : 
+    ViewModel<PlayView>,
     IRecipient<ToolbarCommandMessage>
 {
     private readonly ChessModel chessModel;
+
+    private bool boardCreated ;
 
     public WriteableBitmap? Image;
 
@@ -22,8 +25,23 @@ public sealed partial class PlayViewModel : ViewModel<PlayView>,
         this.Subscribe<ToolbarCommandMessage>();
     }
 
+    public void CreateBoard()
+    {
+        if (!this.boardCreated)
+        {
+            var boardViewModel = new BoardViewModel();
+            var boardView = boardViewModel.CreateViewAndBind();
+            boardViewModel.CreateBoard();
+            this.View.BoardViewbox.Child = boardView;
+            this.boardCreated = true;
+        } 
+    }
+
     public override void Activate(object? _)
-        => this.chessModel.GameIsActive(isActive: true);
+    {
+        this.CreateBoard(); 
+        this.chessModel.GameIsActive(isActive: true);
+    } 
 
     public override void Deactivate()
     {

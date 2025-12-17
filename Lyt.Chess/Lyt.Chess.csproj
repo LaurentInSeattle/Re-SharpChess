@@ -83,6 +83,9 @@
     <ProjectReference Include="..\..\Lyt.Framework\Lyt.Persistence\Lyt.Persistence.csproj" />
     <ProjectReference Include="..\..\Lyt.Framework\Lyt.Utilities\Lyt.Utilities.csproj" />
     <ProjectReference Include="..\Lyt.Chess.Model\Lyt.Chess.Model.csproj" />
+    <ProjectReference Include="..\Lyt.UciInterfaces\Lyt.UciInterfaces.csproj" />
+    <ProjectReference Include="..\MinimalChessEngine\MinimalChessEngine.csproj" />
+    <ProjectReference Include="..\MinimalChess\MinimalChess.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -178,6 +181,9 @@
     </Compile>
     <Compile Update="Workflow\Play\PlayView.axaml.cs">
       <DependentUpon>PlayView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Workflow\Play\PieceView.axaml.cs">
+      <DependentUpon>PieceView.axaml</DependentUpon>
     </Compile>
     <Compile Update="Workflow\Setup\SetupView.axaml.cs">
       <DependentUpon>SetupView.axaml</DependentUpon>

@@ -21,11 +21,9 @@
 			<ColumnDefinition Width="300"/>
 		</Grid.ColumnDefinitions>
 		<Viewbox
+			x:Name="BoardViewbox"
 			Grid.Column="0"
-
 			>
-			<chess:BoardView
-				/>
 		</Viewbox>			
 	</Grid>
 </UserControl>

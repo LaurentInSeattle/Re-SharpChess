@@ -88,6 +88,10 @@ global using Lyt.Utilities.Randomizing;
 
 #endregion Framework 
 
+global using MinimalChess;
+global using MinimalChessEngine;
+global using Lyt.UciInterfaces;
+
 global using Lyt.Chess.Model;
 global using Lyt.Chess.Model.Messaging;
 global using Lyt.Chess.Model.GameObjects;
