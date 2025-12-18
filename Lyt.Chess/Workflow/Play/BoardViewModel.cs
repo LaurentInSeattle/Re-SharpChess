@@ -1,8 +1,19 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
+using System;
+
 internal class BoardViewModel : ViewModel<BoardView>
 {
-    public void CreateBoard()
+    private readonly SquareViewModel[] squareViewModels;
+
+    public BoardViewModel()
+    {
+        this.squareViewModels = new SquareViewModel[64];
+    }
+
+    internal SquareViewModel SquareAt(int rank, int file)=> this.squareViewModels[rank * 8 + file];
+
+    internal void CreateBoard()
     {
         PieceImageProvider.Inititalize();
 
@@ -13,6 +24,7 @@ internal class BoardViewModel : ViewModel<BoardView>
             int file = index % 8;
             var squareViewModel = new SquareViewModel(rank, file);
             _ = squareViewModel.CreateViewAndBind();
+            this.squareViewModels[index] = squareViewModel;
             this.View.AddSquareView(squareViewModel);
         }
 
@@ -37,19 +49,50 @@ internal class BoardViewModel : ViewModel<BoardView>
         // Place pieces on the board
         for (int file = 0; file < rank0.Length; file++)
         {
-            var whitePieceViewModel = new PieceViewModel(Notation.ToChar(rank0[file]));
+            // White pieces
+            var whitePieceViewModel = 
+                new PieceViewModel(Notation.ToChar(rank0[file]), this, this.SquareAt(rank:0, file));
             _ = whitePieceViewModel.CreateViewAndBind();
-            this.View.AddPieceView(whitePieceViewModel, rank:0, file);
-            var whitePawnViewModel = new PieceViewModel(Notation.ToChar(Piece.WhitePawn));
+            this.View.AddPieceView(whitePieceViewModel, rank: 0, file);
+
+            // White pawns
+            var whitePawnViewModel = 
+                new PieceViewModel(Notation.ToChar(Piece.WhitePawn),this, this.SquareAt(rank: 1, file));
             _ = whitePawnViewModel.CreateViewAndBind();
             this.View.AddPieceView(whitePawnViewModel, rank: 1, file);
 
-            var blackPieceViewModel = new PieceViewModel(Notation.ToChar(rank7[file]));
+            // Black pieces
+            var blackPieceViewModel = 
+                new PieceViewModel(Notation.ToChar(rank7[file]), this, this.SquareAt(rank: 7, file));
             _ = blackPieceViewModel.CreateViewAndBind();
-            this.View.AddPieceView(blackPieceViewModel, rank:7, file);
-            var blackPawnViewModel = new PieceViewModel(Notation.ToChar(Piece.BlackPawn));
+            this.View.AddPieceView(blackPieceViewModel, rank: 7, file);
+
+            // Black pawns
+            var blackPawnViewModel = 
+                new PieceViewModel(Notation.ToChar(Piece.BlackPawn), this, this.SquareAt(rank: 6, file));
             _ = blackPawnViewModel.CreateViewAndBind();
             this.View.AddPieceView(blackPawnViewModel, rank: 6, file);
         }
     }
-}
+
+    internal void OnPieceSelected(SquareViewModel squareViewModel)
+    {
+        // Deselect all other pieces
+        foreach (var square in this.squareViewModels)
+        {
+            if (square.IsEmpty || square == squareViewModel)
+            {
+                continue;
+            }
+
+            square.Select(select: false);
+        }
+
+        this.ShowLegalMoves(squareViewModel);
+    }
+
+    private void ShowLegalMoves(SquareViewModel squareViewModel)
+    {
+        // TODO 
+    }
+} 

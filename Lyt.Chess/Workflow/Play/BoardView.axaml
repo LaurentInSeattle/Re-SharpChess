@@ -112,5 +112,9 @@
 				<RowDefinition Height="*" />
 			</Grid.RowDefinitions>
 		</Grid>
+		<Canvas
+			x:Name="BoardCanvas"
+			Grid.Column="1" Grid.Row="1"
+			/>	
 	</Grid>
 </UserControl>
