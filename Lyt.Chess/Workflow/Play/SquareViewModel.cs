@@ -19,6 +19,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         this.Rank = rank;
         this.File = file;
 
+        // TODO: Use images textures for the squares
         // For now we use simple colors for the squares
         PlayerColor squareColor = 
             (this.Rank + this.File) % 2 == 0 ? 
@@ -28,9 +29,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
             squareColor == PlayerColor.White ? 
                 new SolidColorBrush (Colors.BurlyWood) :
                 new SolidColorBrush(Colors.SaddleBrown);
-        this.IsValidMove = true;
-        this.IsInvalidMove = true;
-        this.IsInCheck = true;
+        this.IsValidMove = false;
+        this.IsInvalidMove = false;
+        this.IsInCheck = false;
     }
 
     public int Rank { get; private set; } 

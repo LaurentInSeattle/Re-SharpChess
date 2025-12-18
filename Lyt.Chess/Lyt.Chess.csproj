@@ -35,13 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaXaml Remove="Resources\**" />
-    <Compile Remove="Resources\**" />
-    <EmbeddedResource Remove="Resources\**" />
-    <None Remove="Resources\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AvaloniaXaml Remove="Assets\Icons\FluentSvgResourceDictionary.axaml" />
     <AvaloniaXaml Remove="Assets\Icons\Icons.axaml" />
     <AvaloniaXaml Remove="Assets\Icons\PathResourceDictionary.axaml" />
@@ -70,6 +63,14 @@
     <AvaloniaXaml Remove="Assets\Theme\TextBoxStyles.axaml" />
     <AvaloniaXaml Remove="Assets\Theme\Toggles.axaml" />
     <AvaloniaXaml Remove="Assets\Theme\Typography.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PiecesSpriteSheets\AlphaChessPieces.png" />
+    <EmbeddedResource Include="Resources\PiecesSpriteSheets\BurnettChessPieces.png" />
+    <EmbeddedResource Include="Resources\PiecesSpriteSheets\IvoryChessPieces.png" />
+    <EmbeddedResource Include="Resources\PiecesSpriteSheets\MeridaChessPieces.png" />
+    <EmbeddedResource Include="Resources\PiecesSpriteSheets\MonkChessPieces.png" />
   </ItemGroup>
 
   <ItemGroup>

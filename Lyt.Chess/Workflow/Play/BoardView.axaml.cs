@@ -2,6 +2,8 @@ namespace Lyt.Chess.Workflow.Play;
 
 using global::Avalonia.Styling;
 
+using System;
+
 public partial class BoardView : View
 {
     // No need to localize these strings (FIDE official notation)
@@ -64,5 +66,13 @@ public partial class BoardView : View
 
         this.RankLabelsGridRight.Children.Add(textRankRight);
         textRankRight.SetValue(Grid.RowProperty, 7 - index);
+    }
+
+    internal void AddPieceView(PieceViewModel whitePieceViewModel, int rank, int file)
+    {
+        var pieceView = whitePieceViewModel.View;
+        this.BoardGrid.Children.Add(pieceView);
+        pieceView.SetValue(Grid.RowProperty, 7 - rank);
+        pieceView.SetValue(Grid.ColumnProperty, 7 - file);
     }
 }
