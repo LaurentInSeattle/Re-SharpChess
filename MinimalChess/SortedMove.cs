@@ -1,5 +1,6 @@
 ﻿namespace MinimalChess;
 
+// TODO: Make this a sealed record struct
 public struct SortedMove : IComparable<SortedMove>
 {
     public float Priority;

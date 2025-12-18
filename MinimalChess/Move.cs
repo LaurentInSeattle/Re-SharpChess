@@ -18,7 +18,9 @@ public struct Move
 #pragma warning restore CA2211 
 
     public readonly byte FromSquare;
+
     public readonly byte ToSquare;
+
     public readonly Piece Promotion;
 
     public Move(int fromIndex, int toIndex)

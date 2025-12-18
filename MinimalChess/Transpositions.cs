@@ -25,31 +25,31 @@ public static class Transpositions
         //                        16 Bytes
     }
 
-    static HashEntry[] _table ;
+    private static HashEntry[] transpositionsTable ;
 
     private static bool Index(in ulong hash, out int index)
     {
-        index = (int)(hash % (ulong)_table.Length);
-        if (_table[index].Hash != hash)
+        index = (int)(hash % (ulong)transpositionsTable.Length);
+        if (transpositionsTable[index].Hash != hash)
         {
             index ^= 1; //try other slot
         }
 
-        if (_table[index].Hash != hash)
+        if (transpositionsTable[index].Hash != hash)
         {
             return false; //both slots missed
         }
 
         //a table hit resets the age
-        _table[index].Age = 0;
+        transpositionsTable[index].Age = 0;
         return true;
     }
 
     private static int Index(in ulong hash)
     {
-        int index = (int)(hash % (ulong)_table.Length);
-        ref HashEntry e0 = ref _table[index];
-        ref HashEntry e1 = ref _table[index ^ 1];
+        int index = (int)(hash % (ulong)transpositionsTable.Length);
+        ref HashEntry e0 = ref transpositionsTable[index];
+        ref HashEntry e1 = ref transpositionsTable[index ^ 1];
 
         if (e0.Hash == hash)
         {
@@ -74,14 +74,14 @@ public static class Transpositions
     public static void Resize(int hashSizeMBytes)
     {
         int length = (hashSizeMBytes * 1024 * 1024) / ENTRY_SIZE;
-        _table = new HashEntry[length];
+        transpositionsTable = new HashEntry[length];
     }
 
-    public static void Clear() => Array.Clear(_table, 0, _table.Length);
+    public static void Clear() => Array.Clear(transpositionsTable, 0, transpositionsTable.Length);
 
     public static void Store(ulong zobristHash, int depth, int ply, SearchWindow window, int score, Move bestMove)
     {
-        ref HashEntry entry = ref _table[Index(zobristHash)];
+        ref HashEntry entry = ref transpositionsTable[Index(zobristHash)];
 
         //don't overwrite a bestmove with 'default' unless it's a new position
         if (entry.Hash != zobristHash || bestMove != default)
@@ -120,7 +120,7 @@ public static class Transpositions
 
     public static bool GetBestMove(Board position, out Move bestMove)
     {
-        bestMove = Index(position.ZobristHash, out int index) ? _table[index].BestMove : default;
+        bestMove = Index(position.ZobristHash, out int index) ? transpositionsTable[index].BestMove : default;
         return bestMove != default;
     }
 
@@ -132,7 +132,7 @@ public static class Transpositions
             return false;
         }
 
-        ref HashEntry entry = ref _table[index];
+        ref HashEntry entry = ref transpositionsTable[index];
         if (entry.Depth < depth)
         {
             return false;

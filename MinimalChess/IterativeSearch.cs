@@ -1,12 +1,12 @@
 ﻿namespace MinimalChess; 
 
-public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
+public sealed class IterativeSearch(Board board, long maxNodesDefault = long.MaxValue)
 {
     private const int QUERY_TC_FREQUENCY = 25;
     private const int MAX_GAIN_PER_PLY = 70;
 
     private readonly Board rootBoard = new(board);
-    private readonly long _maxNodes = maxNodes;
+    private readonly long maxNodes = maxNodesDefault;
 
     private readonly KillerMoves killerMoves = new(4);
     private readonly History history = new();
@@ -31,7 +31,7 @@ public sealed class IterativeSearch(Board board, long maxNodes = long.MaxValue)
     public Move[] PrincipalVariation { get; private set; } = [];
 
     public bool Aborted 
-        =>  this.NodesVisited >= _maxNodes || 
+        =>  this.NodesVisited >= this.maxNodes || 
             killSwitch.Get(this.NodesVisited % QUERY_TC_FREQUENCY == 0);
 
     public bool GameOver 

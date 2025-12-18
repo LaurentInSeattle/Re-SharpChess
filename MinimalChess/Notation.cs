@@ -2,6 +2,7 @@
 
 public static class Notation
 {
+    // TODO : Make this an extension method on Piece 
     public static char ToChar(Piece piece)
     {
         return piece switch
@@ -22,6 +23,7 @@ public static class Notation
         };
     }
 
+    // TODO : Make this an extension method on char
     public static Piece ToPiece(char ascii)
     {
         return ascii switch
@@ -42,6 +44,7 @@ public static class Notation
         };
     }
 
+    // TODO : Make this an extension method on byte
     public static string ToSquareName(byte squareIndex)
     {
         //This is the reverse of the ToSquareIndex()
@@ -53,6 +56,7 @@ public static class Notation
         return squareNotation;
     }
 
+    // TODO : Make this an extension method on string
     public static byte ToSquare(string squareNotation)
     {
         //Each square has a unique identification of file letter followed by rank number.

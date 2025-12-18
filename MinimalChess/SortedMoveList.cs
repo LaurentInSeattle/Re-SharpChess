@@ -1,5 +1,6 @@
-﻿namespace MinimalChess; 
+﻿namespace MinimalChess;
 
+// TODO: Way too many static methods!!!
 public sealed class SortedMoveList : List<SortedMove>
 {
     internal static SortedMoveList Quiets(Board position)
