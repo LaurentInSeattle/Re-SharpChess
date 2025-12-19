@@ -1,10 +1,8 @@
 ﻿namespace Lyt.Chess.Model;
 
-using Lyt.Framework.Interfaces.Profiling;
-
 using static Lyt.Persistence.FileManagerModel;
 
-public sealed partial class ChessModel : ModelBase
+public sealed partial class ChessModel : ModelBase , IUciResponder 
 {
     public const string DefaultLanguage = "fr-FR";
     private const string ChessModelFilename = "ChessData";
@@ -48,6 +46,7 @@ public sealed partial class ChessModel : ModelBase
         this.modelFileId = new FileId(Area.User, Kind.Json, ChessModel.ChessModelFilename);
         this.timeoutTimer = new TimeoutTimer(this.OnSaveGame, timeoutMilliseconds: 20_000);
         this.ShouldAutoSave = true;
+        this.Engine = new Engine(this);
     }
 
     public override async Task Initialize()
@@ -56,6 +55,8 @@ public sealed partial class ChessModel : ModelBase
         await this.Load();
         this.IsInitializing = false;
         this.IsDirty = false;
+
+        this.InitializeEngine();
     }
 
     public override async Task Shutdown()

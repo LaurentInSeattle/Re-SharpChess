@@ -26,14 +26,17 @@ public sealed class Board
     public enum CastlingRights
     {
         None = 0,
+
         WhiteKingside = 1,
         WhiteQueenside = 2,
         BlackKingside = 4,
         BlackQueenside = 8,
+
         All = 15
     }
 
-    private readonly Piece[] state = new Piece[64];
+    // Made public for serialization 
+    public Piece[] State = new Piece[64];
 
     private CastlingRights castlingRights = CastlingRights.All;
 
@@ -75,7 +78,7 @@ public sealed class Board
 
     public void DeepCopy(Board board)
     {
-        board.state.AsSpan().CopyTo(state.AsSpan());
+        board.State.AsSpan().CopyTo(State.AsSpan());
         sideToMove = board.sideToMove;
         enPassantSquare = board.enPassantSquare;
         castlingRights = board.castlingRights;
@@ -85,20 +88,20 @@ public sealed class Board
 
     public Piece this[int square]
     {
-        get => state[square];
+        get => this.State[square];
         private set
         {
-            eval.Update(state[square], value, square);
-            zobristHash ^= Zobrist.PieceSquare(state[square], square);
-            state[square] = value;
-            zobristHash ^= Zobrist.PieceSquare(state[square], square);
+            eval.Update(this.State[square], value, square);
+            zobristHash ^= Zobrist.PieceSquare(this.State[square], square);
+            this.State[square] = value;
+            zobristHash ^= Zobrist.PieceSquare(this.State[square], square);
             Debug.Assert(this.Score == new Evaluation.Eval(this).Score);
         }
     }
-
+    
     // Rank - the eight horizontal rows of the chess board are called ranks.
     // File - the eight vertical columns of the chess board are called files.
-    public Piece this[int rank, int file] => state[rank * 8 + file];
+    public Piece this[int rank, int file] => this.State[rank * 8 + file];
 
     public void SetupPosition(string fen)
     {
@@ -111,7 +114,7 @@ public sealed class Board
         }
 
         // Place pieces on board
-        Array.Clear(state, 0, 64);
+        Array.Clear(State, 0, 64);
         string[] fenPosition = fields[0].Split('/');
         int rank = 7;
         foreach (string row in fenPosition)
@@ -126,7 +129,7 @@ public sealed class Board
                 }
                 else
                 {
-                    state[rank * 8 + file] = Notation.ToPiece(piece);
+                    State[rank * 8 + file] = Notation.ToPiece(piece);
                     file++;
                 }
             }
@@ -134,7 +137,7 @@ public sealed class Board
             rank--;
         }
 
-        //Set side to move
+        // Set side to move
         this.sideToMove = fields[1].Equals("w", StringComparison.CurrentCultureIgnoreCase) ? PlayerColor.White : PlayerColor.Black;
 
         //Set castling rights
@@ -230,7 +233,7 @@ public sealed class Board
 
         int to = move.ToSquare;
         int from = move.FromSquare;
-        Piece movingPiece = state[to];
+        Piece movingPiece = State[to];
 
         //movingPiece needs to be either a BlackPawn...
         if (movingPiece == Piece.BlackPawn && Rank(to) == Rank(from) - 2)
@@ -336,7 +339,7 @@ public sealed class Board
 
     public void CollectQuiets(int square, Action<Move> moveHandler)
     {
-        if (this.IsActivePiece(state[square]))
+        if (this.IsActivePiece(State[square]))
         {
             this.AddQuiets(square, moveHandler);
         }
@@ -344,7 +347,7 @@ public sealed class Board
 
     public void CollectCaptures(int square, Action<Move> moveHandler)
     {
-        if (this.IsActivePiece(state[square]))
+        if (this.IsActivePiece(State[square]))
         {
             this.AddCaptures(square, moveHandler);
         }
@@ -352,7 +355,7 @@ public sealed class Board
 
     private void AddQuiets(int square, Action<Move> moveHandler)
     {
-        switch (state[square])
+        switch (State[square])
         {
             case Piece.BlackPawn:
                 this.AddBlackPawnMoves(moveHandler, square);
@@ -389,7 +392,7 @@ public sealed class Board
 
     private void AddCaptures(int square, Action<Move> moveHandler)
     {
-        switch (state[square])
+        switch (State[square])
         {
             case Piece.BlackPawn:
                 this.AddBlackPawnAttacks(moveHandler, square);
@@ -433,7 +436,7 @@ public sealed class Board
         Piece king = Piece.King.OfColor(color);
         for (int square = 0; square < 64; square++)
         {
-            if (state[square] == king)
+            if (State[square] == king)
             {
                 return this.IsSquareAttackedBy(square, Pieces.Flip(color));
             }
@@ -448,7 +451,7 @@ public sealed class Board
         byte[][] pawnAttacks = color == PlayerColor.White ? Attacks.BlackPawn : Attacks.WhitePawn;
         foreach (int target in pawnAttacks[square])
         {
-            if (state[target] == Piece.Pawn.OfColor(color))
+            if (State[target] == Piece.Pawn.OfColor(color))
             {
                 return true;
             }
@@ -457,7 +460,7 @@ public sealed class Board
         //2. Knight
         foreach (int target in Attacks.Knight[square])
         {
-            if (state[target] == Piece.Knight.OfColor(color))
+            if (State[target] == Piece.Knight.OfColor(color))
             {
                 return true;
             }
@@ -468,12 +471,12 @@ public sealed class Board
         {
             foreach (int target in Attacks.Bishop[square][dir])
             {
-                if (state[target] == Piece.Bishop.OfColor(color) || state[target] == Piece.Queen.OfColor(color))
+                if (State[target] == Piece.Bishop.OfColor(color) || State[target] == Piece.Queen.OfColor(color))
                 {
                     return true;
                 }
 
-                if (state[target] != Piece.None)
+                if (State[target] != Piece.None)
                 {
                     break;
                 }
@@ -485,12 +488,12 @@ public sealed class Board
         {
             foreach (int target in Attacks.Rook[square][dir])
             {
-                if (state[target] == Piece.Rook.OfColor(color) || state[target] == Piece.Queen.OfColor(color))
+                if (State[target] == Piece.Rook.OfColor(color) || State[target] == Piece.Queen.OfColor(color))
                 {
                     return true;
                 }
 
-                if (state[target] != Piece.None)
+                if (State[target] != Piece.None)
                 {
                     break;
                 }
@@ -500,7 +503,7 @@ public sealed class Board
         //5. King
         foreach (int target in Attacks.King[square])
         {
-            if (state[target] == Piece.King.OfColor(color))
+            if (State[target] == Piece.King.OfColor(color))
             {
                 return true;
             }
@@ -515,7 +518,7 @@ public sealed class Board
     {
         foreach (int target in targets[square])
         {
-            if (this.IsOpponentPiece(state[target]))
+            if (this.IsOpponentPiece(State[target]))
             {
                 Board.AddMove(moveHandler, square, target);
             }
@@ -528,9 +531,9 @@ public sealed class Board
         {
             foreach (int target in axis)
             {
-                if (state[target] != Piece.None)
+                if (State[target] != Piece.None)
                 {
-                    if (this.IsOpponentPiece(state[target]))
+                    if (this.IsOpponentPiece(State[target]))
                     {
                         Board.AddMove(moveHandler, square, target);
                     }
@@ -547,7 +550,7 @@ public sealed class Board
     {
         foreach (int target in targets[square])
         {
-            if (state[target] == Piece.None)
+            if (State[target] == Piece.None)
             {
                 Board.AddMove(moveHandler, square, target);
             }
@@ -560,7 +563,7 @@ public sealed class Board
         {
             foreach (int target in axis)
             {
-                if (state[target] == Piece.None)
+                if (State[target] == Piece.None)
                 {
                     Board.AddMove(moveHandler, square, target);
                 }
@@ -608,8 +611,8 @@ public sealed class Board
 
     private bool CanCastle(int kingSquare, int rookSquare, PlayerColor color)
     {
-        Debug.Assert(state[kingSquare] == Piece.King.OfColor(color), "CanCastle shouldn't be called if castling right has been lost!");
-        Debug.Assert(state[rookSquare] == Piece.Rook.OfColor(color), "CanCastle shouldn't be called if castling right has been lost!");
+        Debug.Assert(State[kingSquare] == Piece.King.OfColor(color), "CanCastle shouldn't be called if castling right has been lost!");
+        Debug.Assert(State[rookSquare] == Piece.Rook.OfColor(color), "CanCastle shouldn't be called if castling right has been lost!");
 
         PlayerColor enemyColor = Pieces.Flip(color);
         int gap = Math.Abs(rookSquare - kingSquare) - 1;
@@ -618,7 +621,7 @@ public sealed class Board
         // the squares *between* the king and the rook need to be unoccupied
         for (int i = 1; i <= gap; i++)
         {
-            if (state[kingSquare + i * dir] != Piece.None)
+            if (State[kingSquare + i * dir] != Piece.None)
             {
                 return false;
             }
@@ -642,7 +645,7 @@ public sealed class Board
     private void AddWhitePawnMoves(Action<Move> moveHandler, int square)
     {
         //if the square above isn't free there are no legal moves
-        if (state[Up(square)] != Piece.None)
+        if (State[Up(square)] != Piece.None)
         {
             return;
         }
@@ -650,7 +653,7 @@ public sealed class Board
         Board.AddWhitePawnMove(moveHandler, square, Up(square));
 
         //START POS? => consider double move
-        if (Rank(square) == 1 && state[Up(square, 2)] == Piece.None)
+        if (Rank(square) == 1 && State[Up(square, 2)] == Piece.None)
         {
             AddMove(moveHandler, square, Up(square, 2));
         }
@@ -659,7 +662,7 @@ public sealed class Board
     private void AddBlackPawnMoves(Action<Move> moveHandler, int square)
     {
         //if the square below isn't free there are no legal moves
-        if (state[Down(square)] != Piece.None)
+        if (State[Down(square)] != Piece.None)
         {
             return;
         }
@@ -667,7 +670,7 @@ public sealed class Board
         Board.AddBlackPawnMove(moveHandler, square, Down(square));
 
         //START POS? => consider double move
-        if (Rank(square) == 6 && state[Down(square, 2)] == Piece.None)
+        if (Rank(square) == 6 && State[Down(square, 2)] == Piece.None)
         {
             AddMove(moveHandler, square, Down(square, 2));
         }
@@ -678,7 +681,7 @@ public sealed class Board
     {
         foreach (int target in Attacks.WhitePawn[square])
         {
-            if (state[target].IsBlack() || target == enPassantSquare)
+            if (State[target].IsBlack() || target == enPassantSquare)
             {
                 AddWhitePawnMove(moveHandler, square, target);
             }
@@ -689,7 +692,7 @@ public sealed class Board
     {
         foreach (int target in Attacks.BlackPawn[square])
         {
-            if (state[target].IsWhite() || target == enPassantSquare)
+            if (State[target].IsWhite() || target == enPassantSquare)
             {
                 AddBlackPawnMove(moveHandler, square, target);
             }
@@ -769,7 +772,7 @@ public sealed class Board
         //Pieces
         for (int square = 0; square < 64; square++)
         {
-            zobristHash ^= Zobrist.PieceSquare(state[square], square);
+            zobristHash ^= Zobrist.PieceSquare(State[square], square);
         }
 
         //En passant

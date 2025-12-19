@@ -17,6 +17,7 @@ public sealed partial class ChessModel : ModelBase
             this.Statistics.TotalGamesStarted += 1;
 
             var game = new Game();
+
             this.GameInProgress = game;
             this.SaveGame();
             this.timeoutTimer.Start();
@@ -29,7 +30,45 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    #region In-Game Puzzle Actions 
+    #region In-Game Actions 
+
+    public Engine Engine { get; private set; }
+
+    public async void InitializeEngine ()
+    {
+        this.Engine.UciCommand("uci");
+        await Task.Delay(200);
+        this.Engine.UciCommand("ucinewgame");
+        await Task.Delay(200);
+        this.Engine.UciCommand("isready");
+        this.Engine.SetupPosition(new Board(Board.STARTING_POS_FEN));
+        this.Engine.Start();
+        this.Engine.Play(new Move("e2e4"));
+        this.Engine.Go(15, 15_000, 10_000);
+
+        //await this.WaitUciTask();
+    }
+
+    public TaskCompletionSource<string> Tcs { get; private set; }
+
+    public void UciResponse(string response)
+    {
+        if ( this.Tcs is null)
+        {
+            Debug.WriteLine(response);
+            return; 
+        }
+
+        _ = this.Tcs.TrySetResult(response);
+    }
+
+    private async Task<string> WaitUciTask()
+    {
+        this.Tcs = new TaskCompletionSource<string>(TaskCreationOptions.None);
+        string response = await this.Tcs.Task;
+        Debug.WriteLine(response);
+        return response; 
+    }
 
     public void GameIsActive() => this.timeoutTimer.ResetTimeout();
 

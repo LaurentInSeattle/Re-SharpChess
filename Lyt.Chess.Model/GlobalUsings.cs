@@ -21,12 +21,19 @@ global using Lyt.Framework.Interfaces.Localizing;
 global using Lyt.Framework.Interfaces.Logging;
 global using Lyt.Framework.Interfaces.Modeling;
 global using Lyt.Framework.Interfaces.Messaging;
+global using Lyt.Framework.Interfaces.Profiling;
+
 global using Lyt.Model;
 global using Lyt.Persistence;
 global using Lyt.Utilities.Parallel;
 global using Lyt.Utilities.Profiling;
 global using Lyt.Utilities.Randomizing;
 
+global using MinimalChess;
+global using MinimalChessEngine;
+global using Lyt.UciInterfaces;
+
+global using Lyt.Chess.Model.ChessObjects;
 global using Lyt.Chess.Model.GameObjects;
 global using Lyt.Chess.Model.Messaging;
 global using Lyt.Chess.Model.Utilities;

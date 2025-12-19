@@ -36,12 +36,12 @@ public sealed class Game
 
     public TimeSpan Played { get; set; }
 
-//    public PuzzleParameters PuzzleParameters { get; set; }
+    //    public PuzzleParameters PuzzleParameters { get; set; }
 
     #endregion Serialized Properties ( Must all be public for both get and set ) 
 
-    // [JsonIgnore]
-    // public Puzzle Puzzle { get; set; }
+    [JsonIgnore]
+    public ChessMatch Match { get; set; }
 
     public static string GameNameFromKey(string key) => string.Concat("Game_", key);
 
