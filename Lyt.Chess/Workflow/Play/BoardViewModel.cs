@@ -1,15 +1,21 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
-using System;
-
 internal class BoardViewModel : ViewModel<BoardView>
 {
     private readonly SquareViewModel[] squareViewModels;
+    private SquareViewModel? selectedSquare; 
 
     public BoardViewModel()
     {
         this.squareViewModels = new SquareViewModel[64];
     }
+
+    internal bool HasSelectedSquare => this.selectedSquare is not null;
+
+    internal SquareViewModel SelectedSquare 
+        => this.selectedSquare is not null ? 
+            this.selectedSquare : 
+            throw new Exception("Should have checked HasSelectedSquare property");
 
     internal SquareViewModel SquareAt(int rank, int file)=> this.squareViewModels[rank * 8 + file];
 
@@ -22,7 +28,7 @@ internal class BoardViewModel : ViewModel<BoardView>
         {
             int rank = index / 8;
             int file = index % 8;
-            var squareViewModel = new SquareViewModel(rank, file);
+            var squareViewModel = new SquareViewModel(this, rank, file);
             _ = squareViewModel.CreateViewAndBind();
             this.squareViewModels[index] = squareViewModel;
             this.View.AddSquareView(squareViewModel);
@@ -75,9 +81,22 @@ internal class BoardViewModel : ViewModel<BoardView>
         }
     }
 
+    internal void ClearSelection()
+    {
+        this.selectedSquare = null;
+
+        // Deselect all other squares and pieces
+        foreach (var square in this.squareViewModels)
+        {
+            square.Select(select: false);
+        }
+    }
+
     internal void OnPieceSelected(SquareViewModel squareViewModel)
     {
-        // Deselect all other pieces
+        this.selectedSquare = squareViewModel;
+
+        // Deselect all other squares and pieces
         foreach (var square in this.squareViewModels)
         {
             if (square.IsEmpty || square == squareViewModel)
@@ -94,5 +113,12 @@ internal class BoardViewModel : ViewModel<BoardView>
     private void ShowLegalMoves(SquareViewModel squareViewModel)
     {
         // TODO 
+    }
+
+    /// <summary> Returns true is the provided piece has any legal move </summary>
+    internal bool HasLegalMoves(PieceViewModel pieceViewModel)
+    {
+        // TODO
+        return true;
     }
 } 

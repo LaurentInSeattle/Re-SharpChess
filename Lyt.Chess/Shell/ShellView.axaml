@@ -93,7 +93,7 @@
                     Theme="{StaticResource Title}"
                     Text="{DynamicResource Shell.AppName}"
                     HorizontalAlignment="Left" VerticalAlignment="Center"
-                    Margin="12 0 0 0"
+                    Margin="30 0 0 0"
                     Foreground="{StaticResource PastelOrchid_0_080}"
                     />
                 <!-- View Selector - Main toolbar - Vertical left -->

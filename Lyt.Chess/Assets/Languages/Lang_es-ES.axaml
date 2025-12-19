@@ -7,7 +7,7 @@
 
     <system:String x:Key="Toast.Dismiss">Cerca</system:String>
 
-    <system:String x:Key="Shell.AppName">Rompecabezas</system:String>
+    <system:String x:Key="Shell.AppName">Mini Ajedrez</system:String>
 
     <system:String x:Key="Shell.About">Acerca de...</system:String>
 

@@ -2,6 +2,7 @@
 
 internal partial class SquareViewModel : ViewModel<SquareView>
 {
+    private readonly BoardViewModel boardViewModel;
     private PieceViewModel? pieceViewModel;
 
     [ObservableProperty]
@@ -16,8 +17,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     [ObservableProperty]
     private bool isInCheck;
 
-    public SquareViewModel(int rank, int file)
+    public SquareViewModel(BoardViewModel boardViewModel, int rank, int file)
     {
+        this.boardViewModel = boardViewModel;
         this.Rank = rank;
         this.File = file;
         this.pieceViewModel = null;
@@ -45,6 +47,20 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 
     internal void Select(bool select) => this.pieceViewModel?.Select(select);
 
+    internal bool OnClicked()
+    {
+        if (this.boardViewModel.HasSelectedSquare)
+        {
+            this.boardViewModel.ClearSelection();
+        }
+        else
+        {
+            this.Select(select: true);
+        }
+
+        return true;
+    }
+
     internal void PlacePiece(PieceViewModel pieceViewModel)
     {
         if (this.pieceViewModel is not null)
@@ -64,6 +80,6 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 
         var vm = this.pieceViewModel;
         this.pieceViewModel = null;
-        return vm; 
+        return vm;
     }
 }

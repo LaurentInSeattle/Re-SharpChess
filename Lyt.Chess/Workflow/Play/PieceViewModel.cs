@@ -23,7 +23,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
         this.squareViewModel = squareViewModel;
         this.imageSource = PieceImageProvider.GetFromFen(pieceKey);
         this.squareViewModel.PlacePiece(this);
-        this.Select(select:false, enforce: true);
+        this.Select(select: false, enforce: true);
     }
 
     public void Select(bool select, bool enforce = false)
@@ -33,17 +33,25 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
             return;
         }
 
-        if ( select)
+        bool selected = false; 
+        if (select)
         {
-            this.ScaleFactor = piece == Piece.BlackPawn || piece == Piece.WhitePawn ? 1.0 : 1.2;
+            if (boardViewModel.HasLegalMoves(this))
+            {
+                this.ScaleFactor = piece == Piece.BlackPawn || piece == Piece.WhitePawn ? 1.0 : 1.2;
+                selected = true; 
+            }
         }
         else
         {
             this.ScaleFactor = piece == Piece.BlackPawn || piece == Piece.WhitePawn ? 0.7 : 1.0;
         }
 
-        this.isSelected = select;
-        this.boardViewModel.OnPieceSelected(this.squareViewModel);
+        this.isSelected = selected;
+        if (selected)
+        {
+            this.boardViewModel.OnPieceSelected(this.squareViewModel);
+        } 
     }
 
     public void OnClicked(bool isRightClick) => this.Select(select: !this.isSelected);
