@@ -194,7 +194,7 @@ public sealed class Board
             this[rookMove.FromSquare] = Piece.None;
         }
 
-        //update board state
+        // update board state
         this.UpdateEnPassant(move);
         this.UpdateCastlingRights(move.FromSquare);
         this.UpdateCastlingRights(move.ToSquare);

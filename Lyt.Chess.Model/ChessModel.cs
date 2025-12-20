@@ -56,7 +56,10 @@ public sealed partial class ChessModel : ModelBase , IUciResponder
         this.IsInitializing = false;
         this.IsDirty = false;
 
-        this.InitializeEngine();
+        await this.InitializeEngine();
+        await this.StartNewGame();
+        await this.Play(new Move("e2e4"));
+        await this.Play(new Move("g1f3"));
     }
 
     public override async Task Shutdown()

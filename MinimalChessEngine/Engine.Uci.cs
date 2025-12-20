@@ -10,6 +10,8 @@ public sealed partial class Engine : IUciRequester
 
     public void UciCommand(string command)
     {
+        Debug.WriteLine("Uci Command: " + command);
+
         // remove leading & trailing whitecases and split using the space char as delimiter
         string[] tokens = command.Trim().Split();
         switch (tokens[0])
@@ -20,6 +22,7 @@ public sealed partial class Engine : IUciRequester
                 this.RespondUci($"option name Hash type spin default {Transpositions.DEFAULT_SIZE_MB} min 1 max 2047");//consider gcAllowVeryLargeObjects if larger TT is needed
                 this.RespondUci("uciok");
                 break;
+
             case "isready":
                 this.RespondUci("readyok");
                 break;
@@ -94,14 +97,6 @@ public sealed partial class Engine : IUciRequester
             var move = new Move(tokens[i]);
             this.Play(move);
         }
-
-        // Emit an info string message providing all legal moves in the new current position
-        string legalMoves = this.LegalMoves();
-        this.RespondUci(string.Format("info string legal: {0}", legalMoves));
-
-        // TODO: Emit an info string message about the check status in the new current position
-        // TODO: Emit an info string message about the castle status in the new current position
-        // TODO: Emit an info string message about the squares under attack in the new current position
     }
 
     private string LegalMoves()

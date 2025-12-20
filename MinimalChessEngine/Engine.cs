@@ -14,7 +14,10 @@ public sealed partial class Engine(IUciResponder uciResponder) : IUciRequester
     private int maxSearchDepth;
 
     public bool Running { get; private set; }
+
     public PlayerColor SideToMove => board.SideToMove;
+
+    public Board Board => this.board;
 
     public void Start()
     {
@@ -43,6 +46,14 @@ public sealed partial class Engine(IUciResponder uciResponder) : IUciRequester
         this.Stop();
         this.board.Play(move);
         this.history.Add(new Board(board));
+
+        // Emit an info string message providing all legal moves in the new current position
+        string legalMoves = this.LegalMoves();
+        this.RespondUci(string.Format("info string legal: {0}", legalMoves));
+
+        // TODO: Emit an info string message about the check status in the new current position
+        // TODO: Emit an info string message about the castle status in the new current position
+        // TODO: Emit an info string message about the squares under attack in the new current position
     }
 
     public void Go(int maxDepth, int maxTime, long maxNodes)
