@@ -1,5 +1,7 @@
 ﻿namespace Lyt.Chess.Model;
 
+using Lyt.Framework.Interfaces.Dispatching;
+
 using static Lyt.Persistence.FileManagerModel;
 
 public sealed partial class ChessModel : ModelBase , IUciResponder 
@@ -18,7 +20,8 @@ public sealed partial class ChessModel : ModelBase , IUciResponder
 
     private readonly FileManagerModel fileManager;
     private readonly ILocalizer localizer;
-    private readonly IProfiler profiler; 
+    private readonly IProfiler profiler;
+    private readonly IDispatch dispatcher; 
     private readonly FileId modelFileId;
     private readonly TimeoutTimer timeoutTimer;
 
@@ -38,11 +41,13 @@ public sealed partial class ChessModel : ModelBase , IUciResponder
         FileManagerModel fileManager,
         ILocalizer localizer,
         IProfiler profiler,
+        IDispatch dispatcher,
         ILogger logger) : base(logger)
     {
         this.fileManager = fileManager;
         this.localizer = localizer;
         this.profiler = profiler;
+        this.dispatcher = dispatcher;
         this.modelFileId = new FileId(Area.User, Kind.Json, ChessModel.ChessModelFilename);
         this.timeoutTimer = new TimeoutTimer(this.OnSaveGame, timeoutMilliseconds: 20_000);
         this.ShouldAutoSave = true;
@@ -53,13 +58,8 @@ public sealed partial class ChessModel : ModelBase , IUciResponder
     {
         this.IsInitializing = true;
         await this.Load();
-        this.IsInitializing = false;
         this.IsDirty = false;
-
-        await this.InitializeEngine();
-        await this.StartNewGame();
-        await this.Play(new Move("e2e4"));
-        await this.Play(new Move("g1f3"));
+        this.IsInitializing = false;
     }
 
     public override async Task Shutdown()
@@ -98,6 +98,9 @@ public sealed partial class ChessModel : ModelBase , IUciResponder
 
     private void LoadSavedGames()
     {
+        // LATER 
+        return; 
+
         void LoadSavedGame(string file, int _)
         {
             try

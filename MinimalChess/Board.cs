@@ -35,7 +35,8 @@ public sealed class Board
         All = 15
     }
 
-    // Made public for serialization 
+    // Made public for serialization,
+    // for any other needs, using the indexer will work nicely
     public Piece[] State = new Piece[64];
 
     private CastlingRights castlingRights = CastlingRights.All;

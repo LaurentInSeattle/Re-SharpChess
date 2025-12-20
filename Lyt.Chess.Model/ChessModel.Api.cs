@@ -4,13 +4,11 @@ using static Lyt.Persistence.FileManagerModel;
 
 public sealed partial class ChessModel : ModelBase
 {
-    public bool IsPuzzleDirty { get; private set; }
-
     public bool IsGameActive { get; private set; }
 
     public void GameIsActive(bool isActive = true) => this.IsGameActive = isActive;
 
-    public Game? NewGame()
+    public async void NewGame()
     {
         try
         {
@@ -21,16 +19,49 @@ public sealed partial class ChessModel : ModelBase
             this.GameInProgress = game;
             this.SaveGame();
             this.timeoutTimer.Start();
-            return game;
+            bool success = await this.StartEngine();
+            this.dispatcher.OnUiThread(async () =>
+            {
+                new ModelUpdatedMessage(UpdateHint.NewGame, this.Engine.Board).Publish();
+            });
+
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Save, Exception thrown: " + ex);
-            return null;
+            Debug.WriteLine("New Game, Exception thrown: " + ex);
+            throw; 
+        }
+    }
+
+    public async void Play(Move move)
+    {
+        try
+        {
+            bool success = await this.PlayEngine(move);
+            this.dispatcher.OnUiThread(async () =>
+            {
+                new ModelUpdatedMessage(UpdateHint.EnginePlayed, this.bestMove).Publish();
+                await Task.Delay(50);
+                if (this.secondCapturedPiece != Piece.None)
+                {
+                    new ModelUpdatedMessage(UpdateHint.CapturedPiece, this.secondCapturedPiece).Publish();
+                    await Task.Delay(50);
+                } 
+
+                new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
+            });
+
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("New Game, Exception thrown: " + ex);
+            throw;
         }
     }
 
     #region In-Game Actions 
+
+    // TODO : Create class for the engine driver 
 
     [JsonIgnore]
     public Engine Engine { get; private set; }
@@ -76,7 +107,7 @@ public sealed partial class ChessModel : ModelBase
             retries = 3;
             while (retries > 0)
             {
-                if (this.engineLastResponseCommand == "uciok")
+                if (this.engineLastResponseCommand == "readyok")
                 {
                     break;
                 }
@@ -99,7 +130,7 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    public async Task<bool> StartNewGame()
+    public async Task<bool> StartEngine()
     {
         try
         {
@@ -118,14 +149,19 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    public async Task<bool> Play(Move move)
+    public async Task<bool> PlayEngine(Move move)
     {
         try
         {
             this.Phase = EnginePhase.Play;
 
+            // Check capture 
+            Piece firstToPiece = this.Engine.Board[move.ToSquare];
+            this.firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
+
             // Human plays
             this.Engine.Play(move);
+
             // TODO: Use parameters tuned to human player level 
             int maxTime = 20_000;
             this.Engine.Go(20, maxTime, 10_000_000);
@@ -150,13 +186,13 @@ public sealed partial class ChessModel : ModelBase
                 return false;
             }
 
+            // Check capture 
+            Piece secondToPiece = this.Engine.Board[this.bestMove.ToSquare];
+            this.secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
+
             // Play the computer best move 
             this.Engine.Play (this.bestMove);
-            var legalMoves = new LegalMoves(this.Engine.Board);
-            foreach (var legalMove in legalMoves)
-            {
-                Debug.WriteLine(legalMove.ToString());
-            }
+            this.legalMoves = new LegalMoves(this.Engine.Board);
 
             return true;
         }
@@ -169,8 +205,11 @@ public sealed partial class ChessModel : ModelBase
 
     private string[] engineLastResponseTokens = new string[0];
     private string engineLastResponseCommand = string.Empty;
-    private static Move NullMove = new Move(-1, -1);
+    private static Move NullMove = new(-1, -1);
+    private Piece firstCapturedPiece = Piece.None;
+    private Piece secondCapturedPiece = Piece.None;
     private Move bestMove = NullMove;
+    private LegalMoves?  legalMoves = null; 
 
     public TaskCompletionSource<string> Tcs { get; private set; }
 
@@ -198,6 +237,8 @@ public sealed partial class ChessModel : ModelBase
             if (this.engineLastResponseTokens.Length > 0)
             {
                 this.engineLastResponseCommand = this.engineLastResponseTokens[0];
+
+                // TODO: Use the depth and pv values to create variations or to dumb down the engine 
             }
         }
         else if (this.engineLastResponseCommand == "bestmove")
@@ -334,6 +375,9 @@ public sealed partial class ChessModel : ModelBase
 
     public bool SaveGame()
     {
+        // LATER 
+        return false; 
+
         if (this.GameInProgress is null)
         {
             return false;

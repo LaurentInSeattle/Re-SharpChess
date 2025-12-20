@@ -1,12 +1,14 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
-public sealed partial class PlayViewModel : 
+public sealed partial class PlayViewModel :
     ViewModel<PlayView>,
+    IRecipient<ModelUpdatedMessage>,
     IRecipient<ToolbarCommandMessage>
 {
     private readonly ChessModel chessModel;
 
-    private bool boardCreated ;
+    private BoardViewModel boardViewModel;
+    private bool boardCreated;
 
     public WriteableBitmap? Image;
 
@@ -22,26 +24,31 @@ public sealed partial class PlayViewModel :
     public PlayViewModel(ChessModel chessModel)
     {
         this.chessModel = chessModel;
+        this.boardViewModel = new BoardViewModel();
+        _ = this.boardViewModel.CreateViewAndBind();
         this.Subscribe<ToolbarCommandMessage>();
-    }
-
-    public void CreateBoard()
-    {
-        if (!this.boardCreated)
-        {
-            var boardViewModel = new BoardViewModel();
-            var boardView = boardViewModel.CreateViewAndBind();
-            boardViewModel.CreateBoard();
-            this.View.BoardViewbox.Child = boardView;
-            this.boardCreated = true;
-        } 
+        this.Subscribe<ModelUpdatedMessage>();
     }
 
     public override void Activate(object? _)
     {
-        this.CreateBoard(); 
-        this.chessModel.GameIsActive(isActive: true);
-    } 
+        Task.Run(async () =>
+        {
+            bool ready = await this.chessModel.InitializeEngine();
+            if (ready)
+            {
+
+                new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
+                this.chessModel.NewGame();
+                this.chessModel.GameIsActive(isActive: true);
+            }
+            else
+            {
+                // TODO 
+                if (Debugger.IsAttached) { Debugger.Break(); }
+            }
+        });
+    }
 
     public override void Deactivate()
     {
@@ -59,6 +66,53 @@ public sealed partial class PlayViewModel :
         }
     }
 
+    public void Receive(ModelUpdatedMessage message)
+        => Dispatch.OnUiThread(() => { this.ReceiveOnUiTHread(message); });
+
+    public void ReceiveOnUiTHread(ModelUpdatedMessage message)
+    {
+        Debug.WriteLine(message.Hint.ToString() + ":  " + message.Parameter?.ToString());
+
+        switch (message.Hint)
+        {
+            default:
+            case UpdateHint.None:
+                break;
+
+            case UpdateHint.EngineReady:
+                this.CreateEmptyBoard();
+                break;
+
+            case UpdateHint.NewGame:
+                if (message.Parameter is Board board)
+                {
+                    this.PopulateBoard(board);
+                }
+                break;
+
+            case UpdateHint.EnginePlayed:
+                if (message.Parameter is Move move)
+                {
+                    // this.AutoPlay(move);
+                }
+                break;
+
+            case UpdateHint.LegalMoves:
+                if (message.Parameter is LegalMoves legalMoves)
+                {
+                    // this.SaveLegalMoves(legalMoves);
+                }
+                break;
+
+            case UpdateHint.CapturedPiece:
+                if (message.Parameter is Piece piece)
+                {
+                    // this.CapturedPiece(piece);
+                }
+                break;
+        }
+    }
+
 
     internal void ResumeGame()
     {
@@ -67,7 +121,6 @@ public sealed partial class PlayViewModel :
     internal void StartNewGame()
     {
         this.chessModel.SaveGame();
-
         this.UpdateToolbarAndGameState();
     }
 
@@ -81,6 +134,21 @@ public sealed partial class PlayViewModel :
             //new PuzzleChangedMessage(PuzzleChange.Progress, this.chessModel.GetPuzzleProgress()).Publish();
         }, DispatcherPriority.Background);
 
+    }
+
+    private void CreateEmptyBoard()
+    {
+        if (!this.boardCreated)
+        {
+            this.boardViewModel.CreateEmpty();
+            this.View.BoardViewbox.Child = this.boardViewModel.View;
+            this.boardCreated = true;
+        }
+    }
+
+    private void PopulateBoard(Board board)
+    {
+        this.boardViewModel.Populate(board);
     }
 
     // public void Receive(LanguageChangedMessage message) => this.Localize();
