@@ -35,20 +35,35 @@ public sealed partial class ChessModel : ModelBase
 
     public async void Play(Move move)
     {
+        if ( this.GameInProgress is null)
+        {
+            throw new InvalidOperationException("No game in progress"); 
+        }
+
         try
         {
             bool success = await this.PlayEngine(move);
             this.dispatcher.OnUiThread(async () =>
             {
+                if (this.firstCapturedPiece != Piece.None)
+                {
+                    this.GameInProgress.Match.Capture(this.firstCapturedPiece);
+                } 
+
                 new ModelUpdatedMessage(UpdateHint.EnginePlayed, this.bestMove).Publish();
                 await Task.Delay(50);
                 if (this.secondCapturedPiece != Piece.None)
                 {
+                    this.GameInProgress.Match.Capture(this.secondCapturedPiece);
                     new ModelUpdatedMessage(UpdateHint.CapturedPiece, this.secondCapturedPiece).Publish();
                     await Task.Delay(50);
                 } 
 
                 new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
+                if ((this.firstCapturedPiece != Piece.None)|| (this.firstCapturedPiece != Piece.None))
+                {
+                    new ModelUpdatedMessage(UpdateHint.UpdateScores).Publish();
+                }
             });
 
         }
@@ -203,7 +218,7 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    private string[] engineLastResponseTokens = new string[0];
+    private string[] engineLastResponseTokens = Array.Empty<string>();
     private string engineLastResponseCommand = string.Empty;
     private static Move NullMove = new(-1, -1);
     private Piece firstCapturedPiece = Piece.None;

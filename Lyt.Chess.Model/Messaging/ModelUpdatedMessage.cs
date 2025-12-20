@@ -8,6 +8,7 @@ public enum UpdateHint
     EnginePlayed,
     LegalMoves,
     CapturedPiece,
+    UpdateScores,
 }
 
 public sealed record class ModelUpdatedMessage(UpdateHint Hint, object? Parameter = null)

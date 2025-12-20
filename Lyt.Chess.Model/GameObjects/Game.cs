@@ -14,6 +14,7 @@ public sealed class Game
         this.Started = DateTime.Now;
         this.LastPlayed = DateTime.Now;
         this.Played = TimeSpan.Zero;
+        this.Match = new(); 
         //this.Puzzle = puzzle;
         //this.PuzzleParameters = puzzleParameters;
     }
