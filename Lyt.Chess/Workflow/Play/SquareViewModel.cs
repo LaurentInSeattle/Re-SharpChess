@@ -27,7 +27,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         // TODO: Use images textures for the squares
         // For now we use simple colors for the squares
         PlayerColor squareColor =
-            (this.Rank + this.File) % 2 == 0 ?
+            (this.Rank + this.File) % 2 == 1 ?
                 PlayerColor.White :
                 PlayerColor.Black;
         this.Background =
@@ -56,6 +56,8 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 
     internal bool OnClicked()
     {
+        Debug.WriteLine(" Click on Square:  Rank: " + this.Rank.ToString() + " File:  " + this.File.ToString());
+
         if (this.IsEmpty)
         {
             if (this.boardViewModel.HasSelectedSquare)

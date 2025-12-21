@@ -5,9 +5,9 @@ public enum UpdateHint
     None = 0,
     EngineReady,
     NewGame,
-    EnginePlayed,
+    Move,
     LegalMoves,
-    CapturedPiece,
+    Capture,
     UpdateScores,
 }
 

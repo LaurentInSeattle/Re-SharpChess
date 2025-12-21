@@ -60,7 +60,7 @@ public sealed partial class PlayViewModel :
 
     public void ReceiveOnUiTHread(ModelUpdatedMessage message)
     {
-        Debug.WriteLine(message.Hint.ToString() + ":  " + message.Parameter?.ToString());
+        Debug.WriteLine(" Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
 
         switch (message.Hint)
         {
@@ -73,18 +73,25 @@ public sealed partial class PlayViewModel :
                 break;
 
             case UpdateHint.NewGame:
-                if (message.Parameter is Board board)
+                if (message.Parameter is Board boardNew)
                 {
-                    this.PopulateBoard(board);
+                    this.boardViewModel.Populate(boardNew);
                 }
                 break;
 
-            case UpdateHint.EnginePlayed:
+            case UpdateHint.Move:
                 if (message.Parameter is Move move)
                 {
-                    // this.AutoPlay(move);
+                    this.boardViewModel.UpdateBoard(move);
                 }
                 break;
+
+            //case UpdateHint.EnginePlayed:
+            //    if (message.Parameter is Move move)
+            //    {
+            //        // this.AutoPlay(move);
+            //    }
+            //    break;
 
             case UpdateHint.LegalMoves:
                 if (message.Parameter is LegalMoves legalMoves)
@@ -93,10 +100,10 @@ public sealed partial class PlayViewModel :
                 }
                 break;
 
-            case UpdateHint.CapturedPiece:
-                if (message.Parameter is Piece piece)
+            case UpdateHint.Capture:
+                if (message.Parameter is byte square )
                 {
-                    // this.CapturedPiece(piece);
+                    this.boardViewModel.CapturePiece(square);
                 }
                 break;
         }
@@ -138,7 +145,6 @@ public sealed partial class PlayViewModel :
 
     private void PopulateBoard(Board board)
     {
-        this.boardViewModel.Populate(board);
     }
 
     // public void Receive(LanguageChangedMessage message) => this.Localize();

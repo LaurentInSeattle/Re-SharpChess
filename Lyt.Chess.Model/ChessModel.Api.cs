@@ -14,7 +14,8 @@ public sealed partial class ChessModel : ModelBase
         {
             this.Statistics.TotalGamesStarted += 1;
 
-            var game = new Game();
+            // Do not use the CTOR reserved for deserialisation 
+            var game = new Game("New");
 
             this.GameInProgress = game;
             this.SaveGame();
@@ -44,32 +45,62 @@ public sealed partial class ChessModel : ModelBase
         {
             Debug.WriteLine("Play: " + move.ToString());
 
-            bool success = await this.PlayEngine(move);
+            // Check capture 
+            Piece firstToPiece = this.Engine.Board[move.ToSquare];
+            this.firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
+            if (this.firstCapturedPiece != Piece.None)
+            {
+                Debug.WriteLine("Captured: " + this.firstCapturedPiece.ToString());
+                this.GameInProgress.Match.Capture(this.firstCapturedPiece);
+                new ModelUpdatedMessage(UpdateHint.Capture, move.ToSquare).Publish();
+                
+                // Wait for the UI to update captures
+                await Task.Delay(150);
+            }
+
+            new ModelUpdatedMessage(UpdateHint.Move, move).Publish();
+            // Wait for the UI to update the board 
+            await Task.Delay(150);
+
+            // Human plays
+            this.Engine.Play(move);
+
+            // Launch the thinking thread 
+            bool success = await this.ThinkEngine(move);
+
             this.dispatcher.OnUiThread(async () =>
             {
                 Debug.WriteLine("Engine Play: " + this.bestMove.ToString());
 
-                if (this.firstCapturedPiece != Piece.None)
-                {
-                    Debug.WriteLine("Captured: " + this.firstCapturedPiece.ToString());
-                    this.GameInProgress.Match.Capture(this.firstCapturedPiece);
-                } 
+                // Check capture 
+                Piece secondToPiece = this.Engine.Board[this.bestMove.ToSquare];
+                this.secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
 
-                new ModelUpdatedMessage(UpdateHint.EnginePlayed, this.bestMove).Publish();
-                await Task.Delay(50);
+                // Update capture
                 if (this.secondCapturedPiece != Piece.None)
                 {
                     Debug.WriteLine("Engine Captured: " + this.secondCapturedPiece.ToString());
                     this.GameInProgress.Match.Capture(this.secondCapturedPiece);
-                    new ModelUpdatedMessage(UpdateHint.CapturedPiece, this.secondCapturedPiece).Publish();
-                    await Task.Delay(50);
-                } 
+                    new ModelUpdatedMessage(UpdateHint.Capture, this.bestMove.ToSquare).Publish();
+                    // Wait for the UI to update the board 
+                    await Task.Delay(150);
+                }
 
-                new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
-                if ((this.firstCapturedPiece != Piece.None)|| (this.firstCapturedPiece != Piece.None))
+                new ModelUpdatedMessage(UpdateHint.Move, this.bestMove).Publish();
+                // Wait for the UI to update the board 
+                await Task.Delay(150);
+
+                // Update scores
+                if ((this.firstCapturedPiece != Piece.None) || (this.secondCapturedPiece != Piece.None))
                 {
                     new ModelUpdatedMessage(UpdateHint.UpdateScores).Publish();
                 }
+
+                // Play the computer best move 
+                this.Engine.Play(this.bestMove);
+
+                this.legalMoves = new LegalMoves(this.Engine.Board);
+                new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
             });
 
         }
@@ -170,22 +201,15 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    public async Task<bool> PlayEngine(Move move)
+    public async Task<bool> ThinkEngine(Move move)
     {
         try
         {
             this.Phase = EnginePhase.Play;
 
-            // Check capture 
-            Piece firstToPiece = this.Engine.Board[move.ToSquare];
-            this.firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
-
-            // Human plays
-            this.Engine.Play(move);
-
             // TODO: Use parameters tuned to human player level 
             int maxTime = 20_000;
-            this.Engine.Go(20, maxTime, 10_000_000);
+            this.Engine.Go(7, maxTime, 10_000_000);
 
             // Wait until we get a best move 
             this.bestMove = NullMove; 
@@ -206,14 +230,6 @@ public sealed partial class ChessModel : ModelBase
             {
                 return false;
             }
-
-            // Check capture 
-            Piece secondToPiece = this.Engine.Board[this.bestMove.ToSquare];
-            this.secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
-
-            // Play the computer best move 
-            this.Engine.Play (this.bestMove);
-            this.legalMoves = new LegalMoves(this.Engine.Board);
 
             return true;
         }

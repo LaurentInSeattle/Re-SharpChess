@@ -13,7 +13,7 @@ public partial class BoardView : View
         var squareView = squareViewModel.View;
         this.BoardGrid.Children.Add(squareView);
         squareView.SetValue(Grid.RowProperty, 7 - squareViewModel.Rank);
-        squareView.SetValue(Grid.ColumnProperty, 7 - squareViewModel.File);
+        squareView.SetValue(Grid.ColumnProperty, squareViewModel.File);
     }
 
     internal void AddRankFileTextBoxes(int index)
@@ -66,12 +66,29 @@ public partial class BoardView : View
         textRankRight.SetValue(Grid.RowProperty, 7 - index);
     }
 
-    internal void AddPieceView(PieceViewModel whitePieceViewModel, int rank, int file)
+    internal void AddPieceView(PieceViewModel pieceViewModel, int rank, int file)
     {
-        var pieceView = whitePieceViewModel.View;
+        var pieceView = pieceViewModel.View;
         this.BoardGrid.Children.Add(pieceView);
         pieceView.SetValue(Grid.RowProperty, 7 - rank);
-        pieceView.SetValue(Grid.ColumnProperty, 7 - file);
+        pieceView.SetValue(Grid.ColumnProperty, file);
         pieceView.AttachBehavior(this.BoardCanvas); 
+    }
+
+    internal void MovePieceView(PieceViewModel pieceViewModel, int rank, int file)
+    {
+        var pieceView = pieceViewModel.View;
+        pieceView.SetValue(Grid.RowProperty, 7 - rank);
+        pieceView.SetValue(Grid.ColumnProperty, file);
+    }
+
+    internal void RemovePieceView(PieceViewModel pieceViewModel)
+    {
+        var pieceView = pieceViewModel.View;
+        bool removed = this.BoardGrid.Children.Remove(pieceView);
+        if (!removed)
+        {
+            if ( Debugger.IsAttached ) { Debugger.Break(); }
+        } 
     }
 }

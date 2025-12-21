@@ -1,8 +1,10 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
+using System;
+
 internal class BoardViewModel : ViewModel<BoardView>
 {
-    private readonly ChessModel chessModel; 
+    private readonly ChessModel chessModel;
     private readonly SquareViewModel[] squareViewModels;
 
     private SquareViewModel? selectedSquare; // Can be null 
@@ -21,6 +23,8 @@ internal class BoardViewModel : ViewModel<BoardView>
             throw new Exception("Should have checked HasSelectedSquare property");
 
     internal SquareViewModel SquareAt(int rank, int file)=> this.squareViewModels[rank * 8 + file];
+
+    internal SquareViewModel SquareAt(byte square) => this.squareViewModels[square];
 
     internal void CreateEmpty()
     {
@@ -60,11 +64,47 @@ internal class BoardViewModel : ViewModel<BoardView>
             int file = index % 8;
 
             var pieceViewModel =
-                new PieceViewModel(Notation.ToChar(piece), this, this.SquareAt(rank, file));
+                new PieceViewModel(piece, this, this.SquareAt(rank, file));
             _ = pieceViewModel.CreateViewAndBind();
             this.View.AddPieceView(pieceViewModel, rank, file);
         }
-    } 
+    }
+
+    internal void CapturePiece(byte square)
+    {
+        SquareViewModel squareViewModel = this.SquareAt(square);
+        if ( squareViewModel.IsEmpty )
+        {
+            return; 
+        }
+
+        PieceViewModel pieceViewModel = squareViewModel.PieceViewModel;
+        this.View.RemovePieceView(pieceViewModel);
+    }
+
+    internal void UpdateBoard(Move move)
+    {
+        SquareViewModel fromSquareViewModel = this.SquareAt(move.FromSquare);
+        if (fromSquareViewModel.IsEmpty)
+        {
+            if (Debugger.IsAttached) { Debugger.Break(); }
+            return;
+        }
+
+        SquareViewModel toSquareViewModel = this.SquareAt(move.ToSquare);
+        if (!toSquareViewModel.IsEmpty)
+        {
+            if (Debugger.IsAttached) { Debugger.Break(); }
+            return;
+        }
+
+        PieceViewModel pieceViewModel = fromSquareViewModel.RemovePiece();
+        toSquareViewModel.PlacePiece(pieceViewModel);
+        int index = move.ToSquare;
+        int rank = index / 8;
+        int file = index % 8;
+        this.View.MovePieceView(pieceViewModel, rank, file);
+    }
 
     internal void ClearSelection()
     {

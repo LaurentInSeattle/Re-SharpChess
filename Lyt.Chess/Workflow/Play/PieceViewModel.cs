@@ -2,7 +2,6 @@
 
 internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewModel
 {
-    private readonly char pieceKey;
     private readonly Piece piece;
     private readonly BoardViewModel boardViewModel;
     private readonly SquareViewModel squareViewModel;
@@ -15,13 +14,12 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
     [ObservableProperty]
     private double scaleFactor;
 
-    public PieceViewModel(char pieceKey, BoardViewModel boardViewModel, SquareViewModel squareViewModel)
+    public PieceViewModel(Piece piece, BoardViewModel boardViewModel, SquareViewModel squareViewModel)
     {
-        this.pieceKey = pieceKey;
-        this.piece = Notation.ToPiece(pieceKey);
+        this.piece = piece;
         this.boardViewModel = boardViewModel;
         this.squareViewModel = squareViewModel;
-        this.imageSource = PieceImageProvider.GetFromFen(pieceKey);
+        this.imageSource = PieceImageProvider.GetFromFen(Notation.ToChar(piece));
         this.squareViewModel.PlacePiece(this);
         this.Select(select: false, enforce: true);
     }
@@ -60,25 +58,40 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
 
         if (this.boardViewModel.HasSelectedSquare)
         {
-            var selectedSquare = this.boardViewModel.SelectedSquare; 
-            PieceViewModel pieceViewModel = selectedSquare.PieceViewModel;
-            if (pieceViewModel == this)
-            {
-                SelfSelect();
-            }
-            else
+            var selectedSquare = this.boardViewModel.SelectedSquare;
+            if (selectedSquare.IsEmpty)
             {
                 // TODO : Check legal move 
                 bool isLegalMove = false;
-                if ( isLegalMove )
+                if (isLegalMove)
                 {
                     this.boardViewModel.ClearSelection();
 
-                    // Move with capture,  From: selected square  To : this square 
-                    this.boardViewModel.MoveWithCapture(
-                        from: selectedSquare, to: this.squareViewModel, capture:this); 
+                    // Move with NO capture,  From: selected square  To : this square 
+                    this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this.squareViewModel);
                 }
             }
+            else
+            {
+                PieceViewModel pieceViewModel = selectedSquare.PieceViewModel;
+                if (pieceViewModel == this)
+                {
+                    SelfSelect();
+                }
+                else
+                {
+                    // TODO : Check legal move 
+                    bool isLegalMove = false;
+                    if (isLegalMove)
+                    {
+                        this.boardViewModel.ClearSelection();
+
+                        // Move with capture,  From: selected square  To : this square 
+                        this.boardViewModel.MoveWithCapture(
+                            from: selectedSquare, to: this.squareViewModel, capture: this);
+                    }
+                }
+            } 
         }
         else
         {
@@ -86,7 +99,12 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
         }
     }
 
-    public void OnClicked(bool isRightClick) => this.Select(select: !this.isSelected);
+    public void OnClicked(bool _) 
+    {
+        var vm = this.squareViewModel; 
+        Debug.WriteLine(" Click on Piece at Square:  Rank: " + vm.Rank.ToString() + " File:  " + vm.File.ToString());
+        this.Select(select: !this.isSelected);
+    } 
 
     public bool OnBeginMove(Point fromPoint)
     {

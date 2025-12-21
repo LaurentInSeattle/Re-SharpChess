@@ -7,9 +7,9 @@ public sealed class Game
     public Game() {  /* for serialization */ }
 #pragma warning restore CS8618 
 
-    public Game(object something)
+    public Game(string name)
     {
-        this.Name = FileManagerModel.TimestampString();
+        this.Name = name + "_" + FileManagerModel.TimestampString();
         this.IsCompleted = false;
         this.Started = DateTime.Now;
         this.LastPlayed = DateTime.Now;
