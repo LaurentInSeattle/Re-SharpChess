@@ -2,11 +2,14 @@
 
 internal class BoardViewModel : ViewModel<BoardView>
 {
+    private readonly ChessModel chessModel; 
     private readonly SquareViewModel[] squareViewModels;
-    private SquareViewModel? selectedSquare; 
 
-    public BoardViewModel()
+    private SquareViewModel? selectedSquare; // Can be null 
+
+    public BoardViewModel(ChessModel chessModel)
     {
+        this.chessModel = chessModel;
         this.squareViewModels = new SquareViewModel[64];
     }
 
@@ -103,4 +106,25 @@ internal class BoardViewModel : ViewModel<BoardView>
         // TODO
         return true;
     }
-} 
+
+    internal void MoveWithCapture(SquareViewModel from, SquareViewModel to, PieceViewModel capture)
+        => this.MoveCaptureOrNot(from, to, capture);
+
+    internal void MoveNoCapture(SquareViewModel from, SquareViewModel to)
+        => this.MoveCaptureOrNot(from, to, null);
+
+    private void MoveCaptureOrNot(SquareViewModel from, SquareViewModel to, PieceViewModel? capture)
+    {
+        // TODO: Promotion Dialog
+        // TODO: Promotion Flag - false for now 
+        var move = new Move(from.Index, to.Index);
+
+        if (capture is not null)
+        {
+            // TODO: Handle captured piece 
+        }
+
+        // Fire and forget 
+        this.chessModel.Play(move);
+    }
+}

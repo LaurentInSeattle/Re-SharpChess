@@ -42,11 +42,16 @@ public sealed partial class ChessModel : ModelBase
 
         try
         {
+            Debug.WriteLine("Play: " + move.ToString());
+
             bool success = await this.PlayEngine(move);
             this.dispatcher.OnUiThread(async () =>
             {
+                Debug.WriteLine("Engine Play: " + this.bestMove.ToString());
+
                 if (this.firstCapturedPiece != Piece.None)
                 {
+                    Debug.WriteLine("Captured: " + this.firstCapturedPiece.ToString());
                     this.GameInProgress.Match.Capture(this.firstCapturedPiece);
                 } 
 
@@ -54,6 +59,7 @@ public sealed partial class ChessModel : ModelBase
                 await Task.Delay(50);
                 if (this.secondCapturedPiece != Piece.None)
                 {
+                    Debug.WriteLine("Engine Captured: " + this.secondCapturedPiece.ToString());
                     this.GameInProgress.Match.Capture(this.secondCapturedPiece);
                     new ModelUpdatedMessage(UpdateHint.CapturedPiece, this.secondCapturedPiece).Publish();
                     await Task.Delay(50);

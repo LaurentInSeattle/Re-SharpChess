@@ -6,25 +6,14 @@ public sealed partial class PlayViewModel :
     IRecipient<ToolbarCommandMessage>
 {
     private readonly ChessModel chessModel;
+    private readonly BoardViewModel boardViewModel;
 
-    private BoardViewModel boardViewModel;
     private bool boardCreated;
-
-    public WriteableBitmap? Image;
-
-    [ObservableProperty]
-    private double canvasWidth;
-
-    [ObservableProperty]
-    private double canvasHeight;
-
-    [ObservableProperty]
-    private double zoomFactor;
 
     public PlayViewModel(ChessModel chessModel)
     {
         this.chessModel = chessModel;
-        this.boardViewModel = new BoardViewModel();
+        this.boardViewModel = new BoardViewModel(this.chessModel);
         _ = this.boardViewModel.CreateViewAndBind();
         this.Subscribe<ToolbarCommandMessage>();
         this.Subscribe<ModelUpdatedMessage>();
@@ -116,6 +105,7 @@ public sealed partial class PlayViewModel :
 
     internal void ResumeGame()
     {
+        // TODO
     }
 
     internal void StartNewGame()

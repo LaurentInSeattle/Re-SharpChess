@@ -1,11 +1,8 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
 public sealed partial class PlayToolbarViewModel: ViewModel<PlayToolbarView>
-    // , IRecipient<PuzzleChangedMessage>
 {
     private readonly ChessModel chessModel;
-
-    private bool showEdges;
 
     [ObservableProperty]
     private double backgroundSliderValue;

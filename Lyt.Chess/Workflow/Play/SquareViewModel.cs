@@ -39,24 +39,73 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         this.IsInCheck = false;
     }
 
+    internal int Index => this.Rank * 8 + this.File;
+
     internal int Rank { get; private set; }
 
     internal int File { get; private set; }
 
     internal bool IsEmpty => this.pieceViewModel is null;
 
+    internal PieceViewModel PieceViewModel
+        => this.pieceViewModel is not null ?
+                this.pieceViewModel :
+                throw new Exception("Should have checked IsEmpty property");
+
     internal void Select(bool select) => this.pieceViewModel?.Select(select);
 
     internal bool OnClicked()
     {
-        if (this.boardViewModel.HasSelectedSquare)
+        if (this.IsEmpty)
         {
-            this.boardViewModel.ClearSelection();
+            if (this.boardViewModel.HasSelectedSquare)
+            {
+                // Click on empty square when there is a selection 
+                var selectedSquare = this.boardViewModel.SelectedSquare;
+
+                // TODO : Check legal move 
+                bool isLegalMove = true;
+                if (isLegalMove)
+                {
+                    this.boardViewModel.ClearSelection();
+
+                    // Move without capture,  From: selected square  To : this square 
+                    this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this);
+                }
+            }
+            // ELSE: Click on empty square when there is no selection: Do nothing  
         }
         else
         {
-            this.Select(select: true);
+            if (this.boardViewModel.HasSelectedSquare)
+            {
+                var selectedSquare = this.boardViewModel.SelectedSquare;
+                PieceViewModel selectedPieceViewModel = selectedSquare.PieceViewModel;
+                if (selectedPieceViewModel == this.PieceViewModel)
+                {
+                    this.Select(!this.PieceViewModel.IsSelected);
+                }
+                else
+                {
+                    // TODO : Check legal move 
+                    bool isLegalMove = true;
+                    if (isLegalMove)
+                    {
+                        this.boardViewModel.ClearSelection();
+
+                        // Move with capture,  From: selected square  To : this square 
+                        this.boardViewModel.MoveWithCapture(
+                            from: selectedSquare, to: this, capture: selectedPieceViewModel);
+                    }
+                }
+            }
+            else
+            {
+                // Click on occupied square when no selection: Becomes the new selection 
+                this.Select(select: true);
+            }
         }
+
 
         return true;
     }
