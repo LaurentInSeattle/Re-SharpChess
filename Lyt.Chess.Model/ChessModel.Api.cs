@@ -24,6 +24,9 @@ public sealed partial class ChessModel : ModelBase
             this.dispatcher.OnUiThread(async () =>
             {
                 new ModelUpdatedMessage(UpdateHint.NewGame, this.Engine.Board).Publish();
+                await Task.Delay(150); 
+                this.legalMoves = new LegalMoves(this.Engine.Board);
+                new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
             });
 
         }

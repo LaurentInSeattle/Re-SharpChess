@@ -1,28 +1,21 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
-using System;
-
-internal class BoardViewModel : ViewModel<BoardView>
+internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
 {
-    private readonly ChessModel chessModel;
-    private readonly SquareViewModel[] squareViewModels;
+    private readonly ChessModel chessModel = chessModel;
+    private readonly SquareViewModel[] squareViewModels = new SquareViewModel[64];
+    private readonly Dictionary<SquareViewModel, List<Move>> legalMoves = new(32);
 
     private SquareViewModel? selectedSquare; // Can be null 
 
-    public BoardViewModel(ChessModel chessModel)
-    {
-        this.chessModel = chessModel;
-        this.squareViewModels = new SquareViewModel[64];
-    }
-
     internal bool HasSelectedSquare => this.selectedSquare is not null;
 
-    internal SquareViewModel SelectedSquare 
-        => this.selectedSquare is not null ? 
-            this.selectedSquare : 
+    internal SquareViewModel SelectedSquare
+        => this.selectedSquare is not null ?
+            this.selectedSquare :
             throw new Exception("Should have checked HasSelectedSquare property");
 
-    internal SquareViewModel SquareAt(int rank, int file)=> this.squareViewModels[rank * 8 + file];
+    internal SquareViewModel SquareAt(int rank, int file) => this.squareViewModels[rank * 8 + file];
 
     internal SquareViewModel SquareAt(byte square) => this.squareViewModels[square];
 
@@ -58,7 +51,7 @@ internal class BoardViewModel : ViewModel<BoardView>
             {
                 // empty square
                 continue;
-            } 
+            }
 
             int rank = index / 8;
             int file = index % 8;
@@ -73,9 +66,9 @@ internal class BoardViewModel : ViewModel<BoardView>
     internal void CapturePiece(byte square)
     {
         SquareViewModel squareViewModel = this.SquareAt(square);
-        if ( squareViewModel.IsEmpty )
+        if (squareViewModel.IsEmpty)
         {
-            return; 
+            return;
         }
 
         PieceViewModel pieceViewModel = squareViewModel.PieceViewModel;
@@ -84,6 +77,8 @@ internal class BoardViewModel : ViewModel<BoardView>
 
     internal void UpdateBoard(Move move)
     {
+        Debug.WriteLine("UpdateBoard: " + move.ToString());
+
         SquareViewModel fromSquareViewModel = this.SquareAt(move.FromSquare);
         if (fromSquareViewModel.IsEmpty)
         {
@@ -94,8 +89,9 @@ internal class BoardViewModel : ViewModel<BoardView>
         SquareViewModel toSquareViewModel = this.SquareAt(move.ToSquare);
         if (!toSquareViewModel.IsEmpty)
         {
-            if (Debugger.IsAttached) { Debugger.Break(); }
-            return;
+            // Capture 
+            PieceViewModel capturedPieceViewModel = toSquareViewModel.RemovePiece();
+            Debug.WriteLine("UpdateBoard: Capture: " + capturedPieceViewModel.Piece.ToString());
         }
 
         PieceViewModel pieceViewModel = fromSquareViewModel.RemovePiece();
@@ -114,6 +110,16 @@ internal class BoardViewModel : ViewModel<BoardView>
         foreach (var square in this.squareViewModels)
         {
             square.Select(select: false);
+        }
+
+        this.ClearLegalMoves(); 
+    }
+
+    internal void ClearLegalMoves()
+    {
+        foreach (var square in this.squareViewModels)
+        {
+            square.ShowAsLegal(legal: false);
         }
     }
 
@@ -135,17 +141,51 @@ internal class BoardViewModel : ViewModel<BoardView>
         this.ShowLegalMoves(squareViewModel);
     }
 
+    internal void SaveLegalMoves(LegalMoves updatedLegalMoves)
+    {
+        this.legalMoves.Clear();
+        foreach (var move in updatedLegalMoves)
+        {
+            var vm = this.SquareAt(move.FromSquare);
+            if (this.legalMoves.TryGetValue(vm, out List<Move>? newLegalMoves) && newLegalMoves is not null)
+            {
+                newLegalMoves.Add(move);
+            }
+            else
+            {
+                this.legalMoves.Add(vm, [move]);
+            }
+        }
+    }
+
     private void ShowLegalMoves(SquareViewModel squareViewModel)
     {
-        // TODO 
+        bool hasLegalMoves =
+            this.legalMoves.TryGetValue(squareViewModel, out List<Move>? squareLegalMoves) &&
+            squareLegalMoves is not null &&
+            squareLegalMoves.Count > 0;
+        if (!hasLegalMoves || squareLegalMoves is null)
+        {
+            return;
+        }
+
+        foreach (Move move in squareLegalMoves)
+        {
+            SquareViewModel legalSquare = this.SquareAt(move.ToSquare);
+            legalSquare.ShowAsLegal();
+        }
     }
+
+    /// <summary> Returns true is the provided square has any legal move </summary>
+    internal bool HasLegalMoves(SquareViewModel squareViewModel)
+        => this.legalMoves.TryGetValue(squareViewModel, out List<Move>? squareLegalMoves) &&
+           squareLegalMoves is not null &&
+           squareLegalMoves.Count > 0;
 
     /// <summary> Returns true is the provided piece has any legal move </summary>
     internal bool HasLegalMoves(PieceViewModel pieceViewModel)
-    {
-        // TODO
-        return true;
-    }
+        => this.HasLegalMoves(pieceViewModel.SquareViewModel);
+
 
     internal void MoveWithCapture(SquareViewModel from, SquareViewModel to, PieceViewModel capture)
         => this.MoveCaptureOrNot(from, to, capture);

@@ -15,8 +15,6 @@ public sealed class Game
         this.LastPlayed = DateTime.Now;
         this.Played = TimeSpan.Zero;
         this.Match = new(); 
-        //this.Puzzle = puzzle;
-        //this.PuzzleParameters = puzzleParameters;
     }
 
     #region Serialized Properties ( Must all be public for both get and set ) 
@@ -36,8 +34,6 @@ public sealed class Game
     public DateTime LastPlayed { get; set; }
 
     public TimeSpan Played { get; set; }
-
-    //    public PuzzleParameters PuzzleParameters { get; set; }
 
     #endregion Serialized Properties ( Must all be public for both get and set ) 
 

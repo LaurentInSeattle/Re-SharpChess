@@ -96,19 +96,18 @@ public sealed partial class PlayViewModel :
             case UpdateHint.LegalMoves:
                 if (message.Parameter is LegalMoves legalMoves)
                 {
-                    // this.SaveLegalMoves(legalMoves);
+                    this.boardViewModel.SaveLegalMoves(legalMoves);
                 }
                 break;
 
             case UpdateHint.Capture:
-                if (message.Parameter is byte square )
+                if (message.Parameter is byte square)
                 {
                     this.boardViewModel.CapturePiece(square);
                 }
                 break;
         }
     }
-
 
     internal void ResumeGame()
     {
@@ -141,10 +140,6 @@ public sealed partial class PlayViewModel :
             this.View.BoardViewbox.Child = this.boardViewModel.View;
             this.boardCreated = true;
         }
-    }
-
-    private void PopulateBoard(Board board)
-    {
     }
 
     // public void Receive(LanguageChangedMessage message) => this.Localize();
