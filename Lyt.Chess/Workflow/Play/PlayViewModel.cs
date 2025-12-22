@@ -86,12 +86,12 @@ public sealed partial class PlayViewModel :
                 }
                 break;
 
-            //case UpdateHint.EnginePlayed:
-            //    if (message.Parameter is Move move)
-            //    {
-            //        // this.AutoPlay(move);
-            //    }
-            //    break;
+            case UpdateHint.IsChecked:
+                if (message.Parameter is PlayerColor playerColor)
+                {
+                    this.boardViewModel.UpdateCheckedStatus(playerColor);
+                }
+                break;
 
             case UpdateHint.LegalMoves:
                 if (message.Parameter is LegalMoves legalMoves)

@@ -4,6 +4,8 @@ using static Lyt.Persistence.FileManagerModel;
 
 public sealed partial class ChessModel : ModelBase
 {
+    private const int UiUpdateDelay = 66; 
+
     public bool IsGameActive { get; private set; }
 
     public void GameIsActive(bool isActive = true) => this.IsGameActive = isActive;
@@ -24,7 +26,7 @@ public sealed partial class ChessModel : ModelBase
             this.dispatcher.OnUiThread(async () =>
             {
                 new ModelUpdatedMessage(UpdateHint.NewGame, this.Engine.Board).Publish();
-                await Task.Delay(150); 
+                await Task.Delay(UiUpdateDelay); 
                 this.legalMoves = new LegalMoves(this.Engine.Board);
                 new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
             });
@@ -58,15 +60,31 @@ public sealed partial class ChessModel : ModelBase
                 new ModelUpdatedMessage(UpdateHint.Capture, move.ToSquare).Publish();
                 
                 // Wait for the UI to update captures
-                await Task.Delay(150);
+                await Task.Delay(UiUpdateDelay);
             }
 
             new ModelUpdatedMessage(UpdateHint.Move, move).Publish();
+
             // Wait for the UI to update the board 
-            await Task.Delay(150);
+            await Task.Delay(UiUpdateDelay);
 
             // Human plays
             this.Engine.Play(move);
+
+            if (this.Engine.Board.IsChecked(PlayerColor.White))
+            {
+                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.White).Publish();
+            }
+            else if (this.Engine.Board.IsChecked(PlayerColor.Black))
+            {
+                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.Black).Publish();
+            }
+            else
+            {
+                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
+            }
+
+            await Task.Delay(UiUpdateDelay);
 
             // Launch the thinking thread 
             bool success = await this.ThinkEngine(move);
@@ -86,12 +104,12 @@ public sealed partial class ChessModel : ModelBase
                     this.GameInProgress.Match.Capture(this.secondCapturedPiece);
                     new ModelUpdatedMessage(UpdateHint.Capture, this.bestMove.ToSquare).Publish();
                     // Wait for the UI to update the board 
-                    await Task.Delay(150);
+                    await Task.Delay(UiUpdateDelay);
                 }
 
                 new ModelUpdatedMessage(UpdateHint.Move, this.bestMove).Publish();
                 // Wait for the UI to update the board 
-                await Task.Delay(150);
+                await Task.Delay(UiUpdateDelay);
 
                 // Update scores
                 if ((this.firstCapturedPiece != Piece.None) || (this.secondCapturedPiece != Piece.None))
@@ -101,6 +119,19 @@ public sealed partial class ChessModel : ModelBase
 
                 // Play the computer best move 
                 this.Engine.Play(this.bestMove);
+
+                if (this.Engine.Board.IsChecked(PlayerColor.White))
+                {
+                    new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.White).Publish();
+                }
+                else if (this.Engine.Board.IsChecked(PlayerColor.Black))
+                {
+                    new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.Black).Publish();
+                }
+                else
+                {
+                    new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
+                }
 
                 this.legalMoves = new LegalMoves(this.Engine.Board);
                 new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();

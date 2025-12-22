@@ -18,14 +18,15 @@
 			Width="20" Height="20"
 			Fill="LightGreen"
 			Opacity="0.7"
+			ZIndex="999"
 			/>
 		<Rectangle
 			IsVisible="{Binding IsInCheck}"
 			Stroke="Firebrick"
 			Fill="Transparent"
-			StrokeThickness="2"
-			Margin="4"
-			RadiusX="16" RadiusY="16" 
+			StrokeThickness="4"
+			Margin="3"
+			RadiusX="20" RadiusY="20" 
 			/>
 		<Rectangle
 			IsVisible="{Binding IsInvalidMove}"

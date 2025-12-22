@@ -9,8 +9,8 @@ public enum UpdateHint
     LegalMoves,
     Capture,
     UpdateScores,
+    IsChecked,
+    IsCheckedMate,
 }
 
-public sealed record class ModelUpdatedMessage(UpdateHint Hint, object? Parameter = null)
-{
-}
+public sealed record class ModelUpdatedMessage(UpdateHint Hint, object? Parameter = null); 

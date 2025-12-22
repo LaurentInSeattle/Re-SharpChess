@@ -2,6 +2,7 @@
 
 public enum PlayerColor
 {
+    None = 0,
     Black = -1,
     White = +1
 }

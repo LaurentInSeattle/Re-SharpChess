@@ -141,6 +141,35 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
         this.ShowLegalMoves(squareViewModel);
     }
 
+    internal void UpdateCheckedStatus(PlayerColor playerColor)
+    {
+        // Remove In Check flag on all squares
+        foreach (var square in this.squareViewModels)
+        {
+            square.ShowAsInCheck(inCheck: false);
+        }
+
+        if (playerColor != PlayerColor.None)
+        {
+            for (int index = 0; index < 64; index++)
+            {
+                var square = this.squareViewModels[index];
+                if (square.IsEmpty)
+                {
+                    continue;
+                }
+
+                var piece = square.PieceViewModel.Piece;
+                if ((piece.Color() == playerColor) &&
+                    (piece == Piece.WhiteKing || piece == Piece.BlackKing))
+                {
+                    // In check !
+                    square.ShowAsInCheck();
+                }
+            }
+        } 
+    }
+
     internal void SaveLegalMoves(LegalMoves updatedLegalMoves)
     {
         this.legalMoves.Clear();

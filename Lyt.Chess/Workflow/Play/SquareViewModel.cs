@@ -54,7 +54,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 
     internal void Select(bool select) => this.pieceViewModel?.Select(select);
 
-    internal void ShowAsLegal(bool legal = true) => this.IsValidMove = legal; 
+    internal void ShowAsInCheck(bool inCheck = true) => this.IsInCheck = inCheck;
+
+    internal void ShowAsLegal(bool legal = true) => this.IsValidMove = legal;
 
     internal bool OnClicked()
     {
@@ -122,7 +124,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         }
 
         this.pieceViewModel = pieceViewModel;
-        this.pieceViewModel.MoveToSquare(this); 
+        this.pieceViewModel.MoveToSquare(this);
     }
 
     internal PieceViewModel RemovePiece()
