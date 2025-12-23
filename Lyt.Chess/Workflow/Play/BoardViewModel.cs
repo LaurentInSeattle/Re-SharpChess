@@ -19,12 +19,13 @@ public sealed partial class BoardViewModel :
         this.Subscribe<ModelUpdatedMessage>();
     }
 
-    internal bool HasSelectedSquare => this.selectedSquare is not null;
+    internal bool HasSelectedPiece 
+        => (this.selectedSquare is not null) && ( this.selectedSquare.PieceViewModel is not null) ;
 
     internal SquareViewModel SelectedSquare
-        => this.selectedSquare is not null ?
+        => (this.selectedSquare is not null) && (this.selectedSquare.PieceViewModel is not null) ?
             this.selectedSquare :
-            throw new Exception("Should have checked HasSelectedSquare property");
+            throw new Exception("Should have checked HasSelectedPiece property");
 
     internal SquareViewModel SquareAt(int rank, int file) => this.squareViewModels[rank * 8 + file];
 
@@ -48,7 +49,7 @@ public sealed partial class BoardViewModel :
             case UpdateHint.NewGame:
                 if (message.Parameter is Board boardNew)
                 {
-                    this.Populate(boardNew, showForWhite:false);
+                    this.Populate(boardNew, showForWhite: true);
                 }
                 break;
 
@@ -86,7 +87,7 @@ public sealed partial class BoardViewModel :
     {
         PieceImageProvider.Inititalize();
 
-        this.RotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 } ;
+        this.RotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 };
 
         // Initialize square view models
         for (int index = 0; index < 64; index++)
@@ -177,14 +178,28 @@ public sealed partial class BoardViewModel :
         this.View.MovePieceView(pieceViewModel, rank, file);
     }
 
-    internal void ClearSelection()
+    internal void SetSelection(PieceViewModel pieceViewModel)
     {
-        this.selectedSquare = null;
+        this.selectedSquare = pieceViewModel.SquareViewModel;
 
         // Deselect all other squares and pieces
         foreach (var square in this.squareViewModels)
         {
-            square.Select(select: false);
+            if (square == this.selectedSquare)
+            {
+                square.ShowAsSelected(select: false);
+            }
+        }
+    }
+
+    internal void ClearSelection()
+    {
+        this.selectedSquare = null;
+
+        // Deselect all squares and pieces
+        foreach (var square in this.squareViewModels)
+        {
+            square.ShowAsSelected(select: false);
         }
 
         this.ClearLegalMoves();
@@ -201,6 +216,7 @@ public sealed partial class BoardViewModel :
     internal void OnPieceSelected(SquareViewModel squareViewModel)
     {
         this.selectedSquare = squareViewModel;
+        this.selectedSquare.ShowAsSelected(select: true); 
 
         // Deselect all other squares and pieces
         foreach (var square in this.squareViewModels)
@@ -210,9 +226,10 @@ public sealed partial class BoardViewModel :
                 continue;
             }
 
-            square.Select(select: false);
+            square.ShowAsSelected(select: false);
         }
 
+        // then show legal moves 
         this.ShowLegalMoves(squareViewModel);
     }
 
@@ -272,7 +289,16 @@ public sealed partial class BoardViewModel :
 
     }
 
-    private void ShowLegalMoves(SquareViewModel squareViewModel)
+    internal void HideAllLegalMoves()
+    {
+        // Hide legal moves on all squares
+        foreach (var square in this.squareViewModels)
+        {
+            square.IsValidMove = false;
+        }
+    }
+
+    internal void ShowLegalMoves(SquareViewModel squareViewModel)
     {
         bool hasLegalMoves =
             this.legalMoves.TryGetValue(squareViewModel, out List<Move>? squareLegalMoves) &&
@@ -291,10 +317,27 @@ public sealed partial class BoardViewModel :
     }
 
     /// <summary> Returns true is the provided square has any legal move </summary>
-    internal bool HasLegalMoves(SquareViewModel squareViewModel)
-        => this.legalMoves.TryGetValue(squareViewModel, out List<Move>? squareLegalMoves) &&
+    internal bool HasLegalMoves(SquareViewModel srcSquareViewModel)
+        => this.legalMoves.TryGetValue(srcSquareViewModel, out List<Move>? squareLegalMoves) &&
            squareLegalMoves is not null &&
            squareLegalMoves.Count > 0;
+
+    /// <summary> Returns true is the provided square has any legal move </summary>
+    internal bool IsLegalMove(SquareViewModel srcSquareViewModel, SquareViewModel dstSquareViewModel)
+    {
+        if (this.legalMoves.TryGetValue(srcSquareViewModel, out List<Move>? squareLegalMoves) &&
+           squareLegalMoves is not null &&
+           squareLegalMoves.Count > 0)
+        {
+            int toSquare = dstSquareViewModel.Index;
+            bool legal = 
+                (from move in squareLegalMoves where move.ToSquare == toSquare select move)
+                .Any();
+            return legal;
+        }
+
+        return false;
+    }
 
     /// <summary> Returns true is the provided piece has any legal move </summary>
     internal bool HasLegalMoves(PieceViewModel pieceViewModel)

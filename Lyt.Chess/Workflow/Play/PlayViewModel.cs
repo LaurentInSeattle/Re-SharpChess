@@ -123,7 +123,7 @@ public sealed partial class PlayViewModel :
     {
         if (!this.boardCreated)
         {
-            this.boardViewModel.CreateEmpty(showForWhite: false);
+            this.boardViewModel.CreateEmpty(showForWhite: true);
             this.View.BoardViewbox.Child = this.boardViewModel.View;
             this.boardCreated = true;
         }

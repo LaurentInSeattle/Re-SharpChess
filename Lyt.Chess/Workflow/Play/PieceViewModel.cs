@@ -1,5 +1,7 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
+using MinimalChess;
+
 internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewModel
 {
     private readonly Piece piece;
@@ -21,7 +23,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
         this.squareViewModel = squareViewModel;
         this.imageSource = PieceImageProvider.GetFromFen(Notation.ToChar(piece));
         this.squareViewModel.PlacePiece(this);
-        this.Select(select: false, enforce: true);
+        this.ShowAsSelected(false);
     }
 
     internal SquareViewModel SquareViewModel => this.squareViewModel;
@@ -30,86 +32,139 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
 
     internal bool IsSelected => this.isSelected;
 
-    internal void DisableClicks() => this.View.DisableClicks(); 
+    internal void DisableClicks() => this.View.DisableClicks();
 
-    internal void Select(bool select, bool enforce = false)
+
+    //internal void Select(bool select, bool enforce = false)
+    //{
+    //    if (!enforce && this.isSelected == select)
+    //    {
+    //        return;
+    //    }
+
+    //    void SelfSelect()
+    //    {
+    //        bool selected = false;
+    //        if (select)
+    //        {
+    //            if (this.boardViewModel.HasLegalMoves(this))
+    //            {
+    //                this.ScaleFactor = piece == Piece.BlackPawn || piece == Piece.WhitePawn ? 1.0 : 1.2;
+    //                selected = true;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            this.ScaleFactor = piece == Piece.BlackPawn || piece == Piece.WhitePawn ? 0.7 : 1.0;
+    //        }
+
+    //        this.isSelected = selected;
+    //        if (selected)
+    //        {
+    //            this.boardViewModel.OnPieceSelected(this.squareViewModel);
+    //        }
+    //    }
+
+    //    if (this.boardViewModel.HasSelectedPiece)
+    //    {
+    //        var selectedSquare = this.boardViewModel.SelectedSquare;
+    //        if (selectedSquare.IsEmpty)
+    //        {
+    //            // Check legal move 
+    //            bool isLegalMove = this.boardViewModel.IsLegalMove(selectedSquare, this.squareViewModel);
+    //            if (isLegalMove)
+    //            {
+    //                // Move with NO capture,  From: selected square  To : this square 
+    //                this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this.squareViewModel);
+    //                this.boardViewModel.ClearSelection();
+    //            }
+    //        }
+    //        else
+    //        {
+    //            PieceViewModel pieceViewModel = selectedSquare.PieceViewModel;
+    //            if (pieceViewModel == this)
+    //            {
+    //                SelfSelect();
+    //            }
+    //            else
+    //            {
+    //                // Check legal move 
+    //                bool isLegalMove = this.boardViewModel.IsLegalMove(selectedSquare, this.squareViewModel);
+    //                if (isLegalMove)
+    //                {
+    //                    // Move with capture,  From: selected square  To : this square 
+    //                    this.boardViewModel.MoveWithCapture(
+    //                        from: selectedSquare, to: this.squareViewModel, capture: this);
+    //                    this.boardViewModel.ClearSelection();
+    //                }
+    //            }
+    //        }
+    //    }
+    //    else
+    //    {
+    //        SelfSelect();
+    //    }
+    //}
+
+    // Click on a Piece 
+    // if ( board has a selected piece ) 
+    //      // Same piece : Deselect Piece, Deselect Square,  Board has no selected piece any longer
+    //      // Other piece: 
+    //      //      // if legal capture : Capture + Deselect Piece, Deselect Square,  Board has no selected piece any longer
+    //      //      // else             : Do nothing: Selections remain
+    // else ( no selection ) 
+    //      // Clicked piece becomes selection: shows as selected, show square as selected, update board 
+    public void OnClicked(bool _)
     {
-        if (!enforce && this.isSelected == select)
+        var vm = this.squareViewModel;
+        Debug.WriteLine(" Click on Piece at Square:  Rank: " + vm.Rank.ToString() + " File:  " + vm.File.ToString());
+
+        void ClearSelection ()
         {
-            return;
+            this.ShowAsSelected(selected: false);
+            this.SquareViewModel.ShowAsSelected(false);
+            this.boardViewModel.ClearSelection();
+            this.boardViewModel.HideAllLegalMoves();
         }
 
-        void SelfSelect ()
+        if (this.boardViewModel.HasSelectedPiece)
         {
-            bool selected = false;
-            if (select)
+            var selectedSquare = this.boardViewModel.SelectedSquare; 
+            var selectedPieceViewModel = selectedSquare.PieceViewModel;
+            if (selectedPieceViewModel == this)
             {
-                if (this.boardViewModel.HasLegalMoves(this))
-                {
-                    this.ScaleFactor = piece == Piece.BlackPawn || piece == Piece.WhitePawn ? 1.0 : 1.2;
-                    selected = true;
-                }
+                ClearSelection();
             }
             else
             {
-                this.ScaleFactor = piece == Piece.BlackPawn || piece == Piece.WhitePawn ? 0.7 : 1.0;
-            }
-
-            this.isSelected = selected;
-            if (selected)
-            {
-                this.boardViewModel.OnPieceSelected(this.squareViewModel);
-            }
-        }
-
-        if (this.boardViewModel.HasSelectedSquare)
-        {
-            var selectedSquare = this.boardViewModel.SelectedSquare;
-            if (selectedSquare.IsEmpty)
-            {
-                // TODO : Check legal move 
-                bool isLegalMove = true;
+                // Capture if legal 
+                bool isLegalMove = this.boardViewModel.IsLegalMove(selectedSquare, this.squareViewModel);
                 if (isLegalMove)
                 {
-                    // Move with NO capture,  From: selected square  To : this square 
-                    this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this.squareViewModel);
-                    this.boardViewModel.ClearSelection();
+                    // Move with capture,  From: selected square  To : this square 
+                    this.boardViewModel.MoveWithCapture(from: selectedSquare, to: this.squareViewModel, capture: this);
+                    ClearSelection();
                 }
-            }
-            else
-            {
-                PieceViewModel pieceViewModel = selectedSquare.PieceViewModel;
-                if (pieceViewModel == this)
-                {
-                    SelfSelect();
-                }
-                else
-                {
-                    // TODO : Check legal move 
-                    bool isLegalMove = true;
-                    if (isLegalMove)
-                    {
-
-                        // Move with capture,  From: selected square  To : this square 
-                        this.boardViewModel.MoveWithCapture(
-                            from: selectedSquare, to: this.squareViewModel, capture: this);
-
-                        this.boardViewModel.ClearSelection();
-                    }
-                }
+                // else : nothing 
             }
         }
         else
         {
-            SelfSelect ();
+            // Set as new selected piece 
+            this.ShowAsSelected(selected: true);
+            this.SquareViewModel.ShowAsSelected(true);
+            this.boardViewModel.SetSelection(this);
+            this.boardViewModel.ShowLegalMoves(this.SquareViewModel);
         }
     }
 
-    public void OnClicked(bool _) 
+    internal void ShowAsSelected(bool selected = true)
     {
-        var vm = this.squareViewModel; 
-        Debug.WriteLine(" Click on Piece at Square:  Rank: " + vm.Rank.ToString() + " File:  " + vm.File.ToString());
-        this.Select(select: !this.isSelected);
+        bool isPawn = piece == Piece.BlackPawn || piece == Piece.WhitePawn;
+        this.ScaleFactor =
+            isPawn ?
+                (selected ? 1.0 : 0.7) :
+                (selected ? 1.18 : 1.0);
     }
 
     internal void MoveToSquare(SquareViewModel moveToSquareViewModel) => this.squareViewModel = moveToSquareViewModel;

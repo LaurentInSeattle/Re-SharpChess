@@ -9,6 +9,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     private SolidColorBrush background;
 
     [ObservableProperty]
+    private bool isSelected;
+
+    [ObservableProperty]
     private bool isValidMove;
 
     [ObservableProperty]
@@ -34,6 +37,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
             squareColor == PlayerColor.White ?
                 new SolidColorBrush(Colors.BurlyWood) :
                 new SolidColorBrush(Colors.SaddleBrown);
+        this.IsSelected = false;
         this.IsValidMove = false;
         this.IsInvalidMove = false;
         this.IsInCheck = false;
@@ -52,7 +56,14 @@ internal partial class SquareViewModel : ViewModel<SquareView>
                 this.pieceViewModel :
                 throw new Exception("Should have checked IsEmpty property");
 
-    internal void Select(bool select) => this.pieceViewModel?.Select(select);
+    internal void ShowAsSelected(bool select)
+    {
+        if (this.pieceViewModel is not null)
+        {
+            this.IsSelected = select;
+            this.pieceViewModel.ShowAsSelected(select);
+        }
+    }
 
     internal void ShowAsInCheck(bool inCheck = true) => this.IsInCheck = inCheck;
 
@@ -62,56 +73,64 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     {
         Debug.WriteLine(" Click on Square:  Rank: " + this.Rank.ToString() + " File:  " + this.File.ToString());
 
+        void ClearSelection()
+        {
+            this.ShowAsSelected(false);
+            this.boardViewModel.ClearSelection();
+            this.boardViewModel.HideAllLegalMoves();
+        }
+
         if (this.IsEmpty)
         {
-            if (this.boardViewModel.HasSelectedSquare)
+            if (this.boardViewModel.HasSelectedPiece)
             {
                 // Click on empty square when there is a selection 
                 var selectedSquare = this.boardViewModel.SelectedSquare;
 
-                // TODO : Check legal move 
-                bool isLegalMove = true;
+                // Check legal move
+                bool isLegalMove = this.boardViewModel.IsLegalMove(selectedSquare, this);
                 if (isLegalMove)
                 {
-                    this.boardViewModel.ClearSelection();
-
                     // Move without capture,  From: selected square  To : this square 
                     this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this);
+                    ClearSelection();
                 }
             }
             // ELSE: Click on empty square when there is no selection: Do nothing  
         }
         else
         {
-            if (this.boardViewModel.HasSelectedSquare)
+            // Click on occupied square 
+            if (this.boardViewModel.HasSelectedPiece)
             {
+                // Click on occupied square when there is a selection 
                 var selectedSquare = this.boardViewModel.SelectedSquare;
                 PieceViewModel selectedPieceViewModel = selectedSquare.PieceViewModel;
-                if (selectedPieceViewModel == this.PieceViewModel)
+                if (selectedPieceViewModel != this.PieceViewModel)
                 {
-                    this.Select(!this.PieceViewModel.IsSelected);
-                }
-                else
-                {
-                    // TODO : Check legal move 
-                    bool isLegalMove = true;
+                    // Check legal move
+                    bool isLegalMove = this.boardViewModel.IsLegalMove(selectedSquare, this);
                     if (isLegalMove)
                     {
-                        this.boardViewModel.ClearSelection();
-
                         // Move with capture,  From: selected square  To : this square 
                         this.boardViewModel.MoveWithCapture(
                             from: selectedSquare, to: this, capture: selectedPieceViewModel);
+                        this.boardViewModel.ClearSelection();
                     }
                 }
+                // else: Clicked on the same piece  
             }
             else
             {
-                // Click on occupied square when no selection: Becomes the new selection 
-                this.Select(select: true);
+                // Click on occupied square when no selected piece:
+                // Becomes the new selection 
+                // Set as new selected piece 
+                // Show legal moves
+                this.ShowAsSelected(true);
+                this.boardViewModel.SetSelection(this.PieceViewModel);
+                this.boardViewModel.ShowLegalMoves(this);
             }
         }
-
 
         return true;
     }
