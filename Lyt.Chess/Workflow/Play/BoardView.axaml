@@ -13,6 +13,7 @@
 	<Grid
 		x:Name="OuterGrid"
 		Width="860" Height="860"
+		Grid.RenderTransform="{Binding RotateTransform}"
 		> 
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="30" />

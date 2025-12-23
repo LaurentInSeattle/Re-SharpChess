@@ -10,8 +10,11 @@ public sealed partial class PieceView : View
         this.dragMovable.Attach(this);
     }
 
-    ~PieceView()
+    ~PieceView() => this.dragMovable?.Detach();
+
+    internal void DisableClicks()
     {
         this.dragMovable?.Detach();
-    }
+        this.dragMovable = null;
+    } 
 }

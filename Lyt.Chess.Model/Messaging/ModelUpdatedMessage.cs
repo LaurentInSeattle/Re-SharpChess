@@ -10,7 +10,8 @@ public enum UpdateHint
     Capture,
     UpdateScores,
     IsChecked,
-    IsCheckedMate,
+    IsCheckmate,
+    IsStalemate,
 }
 
 public sealed record class ModelUpdatedMessage(UpdateHint Hint, object? Parameter = null); 

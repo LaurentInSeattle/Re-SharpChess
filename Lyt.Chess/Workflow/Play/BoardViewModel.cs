@@ -1,12 +1,23 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
-internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
+public sealed partial class BoardViewModel :
+    ViewModel<BoardView>,
+    IRecipient<ModelUpdatedMessage>
 {
-    private readonly ChessModel chessModel = chessModel;
+    private readonly ChessModel chessModel;
     private readonly SquareViewModel[] squareViewModels = new SquareViewModel[64];
     private readonly Dictionary<SquareViewModel, List<Move>> legalMoves = new(32);
 
     private SquareViewModel? selectedSquare; // Can be null 
+
+    [ObservableProperty]
+    private RotateTransform? rotateTransform;
+
+    public BoardViewModel(ChessModel chessModel)
+    {
+        this.chessModel = chessModel;
+        this.Subscribe<ModelUpdatedMessage>();
+    }
 
     internal bool HasSelectedSquare => this.selectedSquare is not null;
 
@@ -17,11 +28,65 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
 
     internal SquareViewModel SquareAt(int rank, int file) => this.squareViewModels[rank * 8 + file];
 
+    internal SquareViewModel SquareAt(int index) => this.squareViewModels[index];
+
     internal SquareViewModel SquareAt(byte square) => this.squareViewModels[square];
 
-    internal void CreateEmpty()
+    public void Receive(ModelUpdatedMessage message)
+        => Dispatch.OnUiThread(() => { this.ReceiveOnUiThread(message); });
+
+    public void ReceiveOnUiThread(ModelUpdatedMessage message)
+    {
+        Debug.WriteLine(" BoardViewModel Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
+
+        switch (message.Hint)
+        {
+            default:
+            case UpdateHint.None:
+                break;
+
+            case UpdateHint.NewGame:
+                if (message.Parameter is Board boardNew)
+                {
+                    this.Populate(boardNew, showForWhite:false);
+                }
+                break;
+
+            case UpdateHint.Move:
+                if (message.Parameter is Move move)
+                {
+                    this.UpdateBoard(move);
+                }
+                break;
+
+            case UpdateHint.IsChecked:
+                if (message.Parameter is PlayerColor playerColor)
+                {
+                    this.UpdateCheckedStatus(playerColor);
+                }
+                break;
+
+            case UpdateHint.LegalMoves:
+                if (message.Parameter is LegalMoves legalMoves)
+                {
+                    this.SaveLegalMoves(legalMoves);
+                }
+                break;
+
+            case UpdateHint.Capture:
+                if (message.Parameter is byte square)
+                {
+                    this.CapturePiece(square);
+                }
+                break;
+        }
+    }
+
+    internal void CreateEmpty(bool showForWhite = true)
     {
         PieceImageProvider.Inititalize();
+
+        this.RotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 } ;
 
         // Initialize square view models
         for (int index = 0; index < 64; index++)
@@ -37,12 +102,12 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
         // Initialize checker labels for ranks and files 
         for (int index = 0; index < 8; index++)
         {
-            this.View.AddRankFileTextBoxes(index);
+            this.View.AddRankFileTextBoxes(index, showForWhite);
         }
     }
 
     // Initialize piece view models
-    internal void Populate(Board board)
+    internal void Populate(Board board, bool showForWhite = true)
     {
         for (int index = 0; index < 64; index++)
         {
@@ -59,7 +124,16 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
             var pieceViewModel =
                 new PieceViewModel(piece, this, this.SquareAt(rank, file));
             _ = pieceViewModel.CreateViewAndBind();
-            this.View.AddPieceView(pieceViewModel, rank, file);
+            this.View.AddPieceView(pieceViewModel, rank, file, showForWhite);
+        }
+    }
+
+    internal void DisableMoves()
+    {
+        for (int index = 0; index < 64; index++)
+        {
+            var squareViewModel = this.SquareAt(index);
+            squareViewModel.DisableMoves();
         }
     }
 
@@ -72,6 +146,7 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
         }
 
         PieceViewModel pieceViewModel = squareViewModel.PieceViewModel;
+        pieceViewModel.DisableClicks();
         this.View.RemovePieceView(pieceViewModel);
     }
 
@@ -174,9 +249,9 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
     {
         if (updatedLegalMoves.Count == 0)
         {
-            // Checkmate (Echec et Mat) - The king is dead 
+            // Stalemate or Checkmate (Echec et Mat) - The king is dead or can't move 
+            // Tested in model should never happen !
             if (Debugger.IsAttached) { Debugger.Break(); }
-            // TODO : Post message, end the game 
 
             return;
         }
@@ -224,7 +299,6 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
     /// <summary> Returns true is the provided piece has any legal move </summary>
     internal bool HasLegalMoves(PieceViewModel pieceViewModel)
         => this.HasLegalMoves(pieceViewModel.SquareViewModel);
-
 
     internal void MoveWithCapture(SquareViewModel from, SquareViewModel to, PieceViewModel capture)
         => this.MoveCaptureOrNot(from, to, capture);

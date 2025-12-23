@@ -138,4 +138,15 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         this.pieceViewModel = null;
         return vm;
     }
+
+    internal void DisableMoves() 
+    {
+        this.View.DisableClicks();
+        if (this.pieceViewModel is null)
+        {
+            return; 
+        }
+
+        this.pieceViewModel.DisableClicks() ;
+    }
 }

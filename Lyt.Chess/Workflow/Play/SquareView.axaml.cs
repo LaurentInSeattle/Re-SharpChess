@@ -1,17 +1,19 @@
 namespace Lyt.Chess.Workflow.Play;
 
-public partial class SquareView : View
+public sealed partial class SquareView : View
 {
-    public SquareView() : base()
-        => this.PointerPressed +=
-            (_, pointerPressedEventArgs) =>
-            {
-                bool handled = false;
-                if (this.DataContext is SquareViewModel squareViewModel)
-                {
-                    handled = squareViewModel.OnClicked();
-                }
+    public SquareView() : base() => this.PointerPressed += this.OnPointerPressed;
 
-                pointerPressedEventArgs.Handled = handled;
-            };
+    public void OnPointerPressed(object? _, PointerPressedEventArgs pointerPressedEventArgs) 
+    {
+        bool handled = false;
+        if (this.DataContext is SquareViewModel squareViewModel)
+        {
+            handled = squareViewModel.OnClicked();
+        }
+
+        pointerPressedEventArgs.Handled = handled;
+    }
+
+    internal void DisableClicks() => this.PointerPressed += this.OnPointerPressed;
 }

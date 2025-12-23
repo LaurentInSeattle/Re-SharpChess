@@ -1,10 +1,14 @@
 ﻿namespace Lyt.Chess.Model;
 
+using MinimalChess;
+
 using static Lyt.Persistence.FileManagerModel;
 
 public sealed partial class ChessModel : ModelBase
 {
-    private const int UiUpdateDelay = 66; 
+    private const int UiUpdateDelay = 66;
+
+    public bool IsEngineStarted { get; private set; }
 
     public bool IsGameActive { get; private set; }
 
@@ -23,10 +27,16 @@ public sealed partial class ChessModel : ModelBase
             this.SaveGame();
             this.timeoutTimer.Start();
             bool success = await this.StartEngine();
+            this.IsEngineStarted = success;
+            if (! success)
+            {
+                if(Debugger.IsAttached) { Debugger.Break(); }
+                return; 
+            }
+
             this.dispatcher.OnUiThread(async () =>
             {
                 new ModelUpdatedMessage(UpdateHint.NewGame, this.Engine.Board).Publish();
-                await Task.Delay(UiUpdateDelay); 
                 this.legalMoves = new LegalMoves(this.Engine.Board);
                 new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
             });
@@ -39,6 +49,50 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
+    public enum EndGame
+    {
+        None, 
+        Checkmate, 
+        Stalemate,
+    }
+
+    private EndGame VerifyCheckAndLegalMoves(PlayerColor playerColor, bool publish = true )
+    {
+        var board = this.Engine.Board;
+        this.legalMoves = new LegalMoves(board);
+        if (this.legalMoves.Count == 0)
+        {
+            // Stalemate or Checkmate 
+            if (board.IsChecked(playerColor))
+            {
+                // Checkmate (Echec et Mat) - The king is dead 
+                new ModelUpdatedMessage(UpdateHint.IsCheckmate, playerColor).Publish();
+                return EndGame.Checkmate;
+            }
+            else
+            {
+                // Stalemate 
+                new ModelUpdatedMessage(UpdateHint.IsStalemate, playerColor).Publish();
+                return EndGame.Stalemate;
+            }
+
+        }
+        else
+        {
+            if (board.IsChecked(playerColor))
+            {
+                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.White).Publish();
+            }
+        }
+
+        if (publish)
+        {
+            new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
+        } 
+
+        return EndGame.None;
+    }
+
     public async void Play(Move move)
     {
         if ( this.GameInProgress is null)
@@ -49,9 +103,10 @@ public sealed partial class ChessModel : ModelBase
         try
         {
             Debug.WriteLine("Play: " + move.ToString());
+            var board = this.Engine.Board;
 
             // Check capture 
-            Piece firstToPiece = this.Engine.Board[move.ToSquare];
+            Piece firstToPiece = board[move.ToSquare];
             this.firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
             if (this.firstCapturedPiece != Piece.None)
             {
@@ -71,17 +126,19 @@ public sealed partial class ChessModel : ModelBase
             // Human plays
             this.Engine.Play(move);
 
-            if (this.Engine.Board.IsChecked(PlayerColor.White))
+            // Check end game 
+            EndGame endGameWhite = this.VerifyCheckAndLegalMoves(PlayerColor.White, publish: false);
+            if (endGameWhite != EndGame.None)
             {
-                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.White).Publish();
+                // End of game; checkmate or stalemate for white
+                return;
             }
-            else if (this.Engine.Board.IsChecked(PlayerColor.Black))
+
+            EndGame endGameBlack = this.VerifyCheckAndLegalMoves(PlayerColor.Black, publish: false);
+            if (endGameBlack != EndGame.None)
             {
-                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.Black).Publish();
-            }
-            else
-            {
-                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
+                // End of game; checkmate or stalemate for black 
+                return; 
             }
 
             await Task.Delay(UiUpdateDelay);
@@ -94,7 +151,7 @@ public sealed partial class ChessModel : ModelBase
                 Debug.WriteLine("Engine Play: " + this.bestMove.ToString());
 
                 // Check capture 
-                Piece secondToPiece = this.Engine.Board[this.bestMove.ToSquare];
+                Piece secondToPiece = board[this.bestMove.ToSquare];
                 this.secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
 
                 // Update capture
@@ -120,21 +177,20 @@ public sealed partial class ChessModel : ModelBase
                 // Play the computer best move 
                 this.Engine.Play(this.bestMove);
 
-                if (this.Engine.Board.IsChecked(PlayerColor.White))
+                // Check end game 
+                EndGame endGameWhite = this.VerifyCheckAndLegalMoves(PlayerColor.White, publish: false);
+                if (endGameWhite != EndGame.None)
                 {
-                    new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.White).Publish();
-                }
-                else if (this.Engine.Board.IsChecked(PlayerColor.Black))
-                {
-                    new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.Black).Publish();
-                }
-                else
-                {
-                    new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
+                    // End of game; checkmate or stalemate for white
+                    return;
                 }
 
-                this.legalMoves = new LegalMoves(this.Engine.Board);
-                new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
+                EndGame endGameBlack = this.VerifyCheckAndLegalMoves(PlayerColor.Black, publish: true);
+                if (endGameBlack != EndGame.None)
+                {
+                    // End of game; checkmate or stalemate for black 
+                    return;
+                }
             });
 
         }

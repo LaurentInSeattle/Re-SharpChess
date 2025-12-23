@@ -16,16 +16,19 @@ public partial class BoardView : View
         squareView.SetValue(Grid.ColumnProperty, squareViewModel.File);
     }
 
-    internal void AddRankFileTextBoxes(int index)
+    internal void AddRankFileTextBoxes(int index, bool showForWhite)
     {
-        var controlTheme = Lyt.Avalonia.Controls.Utilities.FindResource<ControlTheme>("Medium"); 
+        RotateTransform? rotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 };
+
+        var controlTheme = Lyt.Avalonia.Controls.Utilities.FindResource<ControlTheme>("Medium");
         string fileText = fileStrings[index];
         var textFileBottom = new TextBlock()
         {
             Theme = controlTheme,
-            VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center, 
+            VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = fileText,
+            RenderTransform = rotateTransform,
         };
 
         this.FileLabelsGridBottom.Children.Add(textFileBottom);
@@ -37,6 +40,7 @@ public partial class BoardView : View
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = fileText,
+            RenderTransform = rotateTransform,
         };
 
         this.FileLabelsGridTop.Children.Add(textFileTop);
@@ -49,6 +53,7 @@ public partial class BoardView : View
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = rankText,
+            RenderTransform = rotateTransform,
         };
 
         this.RankLabelsGridLeft.Children.Add(textRankLeft);
@@ -60,19 +65,22 @@ public partial class BoardView : View
             VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Center,
             HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Center,
             Text = rankText,
+            RenderTransform = rotateTransform,
         };
 
         this.RankLabelsGridRight.Children.Add(textRankRight);
         textRankRight.SetValue(Grid.RowProperty, 7 - index);
     }
 
-    internal void AddPieceView(PieceViewModel pieceViewModel, int rank, int file)
+    internal void AddPieceView(PieceViewModel pieceViewModel, int rank, int file, bool showForWhite)
     {
+        RotateTransform? rotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 };
         var pieceView = pieceViewModel.View;
         this.BoardGrid.Children.Add(pieceView);
         pieceView.SetValue(Grid.RowProperty, 7 - rank);
         pieceView.SetValue(Grid.ColumnProperty, file);
-        pieceView.AttachBehavior(this.BoardCanvas); 
+        pieceView.SetValue(RenderTransformProperty, rotateTransform);
+        pieceView.AttachBehavior(this.BoardCanvas);
     }
 
     internal void MovePieceView(PieceViewModel pieceViewModel, int rank, int file)
@@ -88,7 +96,7 @@ public partial class BoardView : View
         bool removed = this.BoardGrid.Children.Remove(pieceView);
         if (!removed)
         {
-            if ( Debugger.IsAttached ) { Debugger.Break(); }
-        } 
+            if (Debugger.IsAttached) { Debugger.Break(); }
+        }
     }
 }

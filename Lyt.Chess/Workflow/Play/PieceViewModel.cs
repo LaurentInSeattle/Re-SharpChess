@@ -30,6 +30,8 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
 
     internal bool IsSelected => this.isSelected;
 
+    internal void DisableClicks() => this.View.DisableClicks(); 
+
     internal void Select(bool select, bool enforce = false)
     {
         if (!enforce && this.isSelected == select)

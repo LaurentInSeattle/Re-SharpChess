@@ -28,6 +28,7 @@ public sealed partial class PlayViewModel :
             {
 
                 new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
+                await Task.Delay(150);
                 this.chessModel.NewGame();
                 this.chessModel.GameIsActive(isActive: true);
             }
@@ -56,11 +57,11 @@ public sealed partial class PlayViewModel :
     }
 
     public void Receive(ModelUpdatedMessage message)
-        => Dispatch.OnUiThread(() => { this.ReceiveOnUiTHread(message); });
+        => Dispatch.OnUiThread(() => { this.ReceiveOnUiThread(message); });
 
-    public void ReceiveOnUiTHread(ModelUpdatedMessage message)
+    public void ReceiveOnUiThread(ModelUpdatedMessage message)
     {
-        Debug.WriteLine(" Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
+        Debug.WriteLine(" PlayViewModel Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
 
         switch (message.Hint)
         {
@@ -72,41 +73,27 @@ public sealed partial class PlayViewModel :
                 this.CreateEmptyBoard();
                 break;
 
-            case UpdateHint.NewGame:
-                if (message.Parameter is Board boardNew)
+            case UpdateHint.IsCheckmate:
+                if (message.Parameter is PlayerColor playerColorLoser)
                 {
-                    this.boardViewModel.Populate(boardNew);
+                    this.EndGame(isWin: true , playerColorLoser);
                 }
                 break;
 
-            case UpdateHint.Move:
-                if (message.Parameter is Move move)
+            case UpdateHint.IsStalemate:
+                if (message.Parameter is PlayerColor playerColorStale)
                 {
-                    this.boardViewModel.UpdateBoard(move);
+                    this.EndGame(isWin: false, playerColorStale);
                 }
                 break;
 
-            case UpdateHint.IsChecked:
-                if (message.Parameter is PlayerColor playerColor)
-                {
-                    this.boardViewModel.UpdateCheckedStatus(playerColor);
-                }
-                break;
-
-            case UpdateHint.LegalMoves:
-                if (message.Parameter is LegalMoves legalMoves)
-                {
-                    this.boardViewModel.SaveLegalMoves(legalMoves);
-                }
-                break;
-
-            case UpdateHint.Capture:
-                if (message.Parameter is byte square)
-                {
-                    this.boardViewModel.CapturePiece(square);
-                }
-                break;
         }
+    }
+
+    private void EndGame(bool isWin, PlayerColor playerColor)
+    {
+        Debug.WriteLine(" PlayViewModel End Game: " + isWin.ToString() + ":  " + playerColor.ToString());
+        this.boardViewModel.DisableMoves () ;
     }
 
     internal void ResumeGame()
@@ -136,7 +123,7 @@ public sealed partial class PlayViewModel :
     {
         if (!this.boardCreated)
         {
-            this.boardViewModel.CreateEmpty();
+            this.boardViewModel.CreateEmpty(showForWhite: false);
             this.View.BoardViewbox.Child = this.boardViewModel.View;
             this.boardCreated = true;
         }
