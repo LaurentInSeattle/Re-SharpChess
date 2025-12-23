@@ -112,7 +112,7 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
             square.Select(select: false);
         }
 
-        this.ClearLegalMoves(); 
+        this.ClearLegalMoves();
     }
 
     internal void ClearLegalMoves()
@@ -167,11 +167,20 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
                     square.ShowAsInCheck();
                 }
             }
-        } 
+        }
     }
 
     internal void SaveLegalMoves(LegalMoves updatedLegalMoves)
     {
+        if (updatedLegalMoves.Count == 0)
+        {
+            // Checkmate (Echec et Mat) - The king is dead 
+            if (Debugger.IsAttached) { Debugger.Break(); }
+            // TODO : Post message, end the game 
+
+            return;
+        }
+
         this.legalMoves.Clear();
         foreach (var move in updatedLegalMoves)
         {
@@ -185,6 +194,7 @@ internal class BoardViewModel(ChessModel chessModel) : ViewModel<BoardView>
                 this.legalMoves.Add(vm, [move]);
             }
         }
+
     }
 
     private void ShowLegalMoves(SquareViewModel squareViewModel)
