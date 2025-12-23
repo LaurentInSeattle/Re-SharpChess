@@ -1,7 +1,8 @@
 # Mini Chess
 A Chess engine written in C# and a multiplatform User Interface based on Avalonia to play against the computer, for Windows, Mac and Linux
 
-# Just Created ~ Nothing Works Just Yet 
+# Some Progress ~ Barely Playable
+Can make a few moves and then crashes...
 
 # Based on Minimal Chess Engine
 The engine is based on Minimal Chess Engine by Thomas Jahn ( https://github.com/lithander ), a project completed something like 5 years ago. 
