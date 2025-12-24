@@ -113,8 +113,7 @@ public sealed partial class PlayViewModel :
         this.chessModel.ResumePlaying();
         Schedule.OnUiThread(50, () =>
         {
-            //new PuzzleChangedMessage(PuzzleChange.Start).Publish();
-            //new PuzzleChangedMessage(PuzzleChange.Progress, this.chessModel.GetPuzzleProgress()).Publish();
+            // TODO
         }, DispatcherPriority.Background);
 
     }

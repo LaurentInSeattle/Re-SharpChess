@@ -58,9 +58,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 
     internal void ShowAsSelected(bool select)
     {
+        this.IsSelected = select;
         if (this.pieceViewModel is not null)
         {
-            this.IsSelected = select;
             this.pieceViewModel.ShowAsSelected(select);
         }
     }
@@ -72,13 +72,6 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     internal bool OnClicked()
     {
         Debug.WriteLine(" Click on Square:  Rank: " + this.Rank.ToString() + " File:  " + this.File.ToString());
-
-        void ClearSelection()
-        {
-            this.ShowAsSelected(false);
-            this.boardViewModel.ClearSelection();
-            this.boardViewModel.HideAllLegalMoves();
-        }
 
         if (this.IsEmpty)
         {
@@ -93,7 +86,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
                 {
                     // Move without capture,  From: selected square  To : this square 
                     this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this);
-                    ClearSelection();
+                    this.boardViewModel.ClearSelection();
                 }
             }
             // ELSE: Click on empty square when there is no selection: Do nothing  
@@ -123,12 +116,8 @@ internal partial class SquareViewModel : ViewModel<SquareView>
             else
             {
                 // Click on occupied square when no selected piece:
-                // Becomes the new selection 
-                // Set as new selected piece 
-                // Show legal moves
-                this.ShowAsSelected(true);
+                // Becomes the new selection: Set as new selected piece, Show legal moves
                 this.boardViewModel.SetSelection(this.PieceViewModel);
-                this.boardViewModel.ShowLegalMoves(this);
             }
         }
 
@@ -161,11 +150,6 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     internal void DisableMoves() 
     {
         this.View.DisableClicks();
-        if (this.pieceViewModel is null)
-        {
-            return; 
-        }
-
-        this.pieceViewModel.DisableClicks() ;
+        this.pieceViewModel?.DisableClicks();
     }
 }

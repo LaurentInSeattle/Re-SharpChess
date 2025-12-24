@@ -100,7 +100,7 @@ public sealed partial class BoardViewModel :
             this.View.AddSquareView(squareViewModel);
         }
 
-        // Initialize checker labels for ranks and files 
+        // Initialize board labels for ranks and files 
         for (int index = 0; index < 8; index++)
         {
             this.View.AddRankFileTextBoxes(index, showForWhite);
@@ -155,6 +155,8 @@ public sealed partial class BoardViewModel :
     {
         Debug.WriteLine("UpdateBoard: " + move.ToString());
 
+        // FAILS : Handle the double move of castling !
+
         SquareViewModel fromSquareViewModel = this.SquareAt(move.FromSquare);
         if (fromSquareViewModel.IsEmpty)
         {
@@ -180,57 +182,30 @@ public sealed partial class BoardViewModel :
 
     internal void SetSelection(PieceViewModel pieceViewModel)
     {
-        this.selectedSquare = pieceViewModel.SquareViewModel;
-
-        // Deselect all other squares and pieces
-        foreach (var square in this.squareViewModels)
+        if (this.selectedSquare is not null)
         {
-            if (square == this.selectedSquare)
-            {
-                square.ShowAsSelected(select: false);
-            }
+            this.ClearSelection();
         }
+
+        this.selectedSquare = pieceViewModel.SquareViewModel;
+        pieceViewModel.ShowAsSelected(selected: true);
+        this.selectedSquare.ShowAsSelected(true);
+        this.ShowLegalMoves(this.selectedSquare);
     }
 
     internal void ClearSelection()
     {
-        this.selectedSquare = null;
-
-        // Deselect all squares and pieces
-        foreach (var square in this.squareViewModels)
+        if (this.selectedSquare is not null)
         {
-            square.ShowAsSelected(select: false);
-        }
-
-        this.ClearLegalMoves();
-    }
-
-    internal void ClearLegalMoves()
-    {
-        foreach (var square in this.squareViewModels)
-        {
-            square.ShowAsLegal(legal: false);
-        }
-    }
-
-    internal void OnPieceSelected(SquareViewModel squareViewModel)
-    {
-        this.selectedSquare = squareViewModel;
-        this.selectedSquare.ShowAsSelected(select: true); 
-
-        // Deselect all other squares and pieces
-        foreach (var square in this.squareViewModels)
-        {
-            if (square.IsEmpty || square == squareViewModel)
+            this.selectedSquare.ShowAsSelected(false);
+            if(!this.selectedSquare.IsEmpty)
             {
-                continue;
+                this.selectedSquare.PieceViewModel.ShowAsSelected(false);
             }
+        } 
 
-            square.ShowAsSelected(select: false);
-        }
-
-        // then show legal moves 
-        this.ShowLegalMoves(squareViewModel);
+        this.selectedSquare = null;
+        this.HideAllLegalMoves();
     }
 
     internal void UpdateCheckedStatus(PlayerColor playerColor)
