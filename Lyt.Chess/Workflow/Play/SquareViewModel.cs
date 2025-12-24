@@ -59,16 +59,16 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     internal void ShowAsSelected(bool select)
     {
         this.IsSelected = select;
-        if (this.pieceViewModel is not null)
-        {
-            this.pieceViewModel.ShowAsSelected(select);
-        }
+
+        // Can be null ! 
+        this.pieceViewModel?.ShowAsSelected(select);
     }
 
     internal void ShowAsInCheck(bool inCheck = true) => this.IsInCheck = inCheck;
 
     internal void ShowAsLegal(bool legal = true) => this.IsValidMove = legal;
 
+    // Invoked from view 
     internal bool OnClicked()
     {
         Debug.WriteLine(" Click on Square:  Rank: " + this.Rank.ToString() + " File:  " + this.File.ToString());
@@ -93,32 +93,8 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         }
         else
         {
-            // Click on occupied square 
-            if (this.boardViewModel.HasSelectedPiece)
-            {
-                // Click on occupied square when there is a selection 
-                var selectedSquare = this.boardViewModel.SelectedSquare;
-                PieceViewModel selectedPieceViewModel = selectedSquare.PieceViewModel;
-                if (selectedPieceViewModel != this.PieceViewModel)
-                {
-                    // Check legal move
-                    bool isLegalMove = this.boardViewModel.IsLegalMove(selectedSquare, this);
-                    if (isLegalMove)
-                    {
-                        // Move with capture,  From: selected square  To : this square 
-                        this.boardViewModel.MoveWithCapture(
-                            from: selectedSquare, to: this, capture: selectedPieceViewModel);
-                        this.boardViewModel.ClearSelection();
-                    }
-                }
-                // else: Clicked on the same piece  
-            }
-            else
-            {
-                // Click on occupied square when no selected piece:
-                // Becomes the new selection: Set as new selected piece, Show legal moves
-                this.boardViewModel.SetSelection(this.PieceViewModel);
-            }
+            // Click on occupied square : Must be same as clicking the piece
+            this.PieceViewModel.OnClicked();
         }
 
         return true;

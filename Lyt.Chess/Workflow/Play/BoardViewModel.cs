@@ -4,6 +4,15 @@ public sealed partial class BoardViewModel :
     ViewModel<BoardView>,
     IRecipient<ModelUpdatedMessage>
 {
+    // Key: move of the king , VAlue: corresponding move of the rook 
+    private static readonly Dictionary<Move, Move> CastlingTable = new()
+    {
+            { Move.BlackCastlingShort, Move.BlackCastlingShortRook } ,
+            { Move.BlackCastlingLong, Move.BlackCastlingLongRook } ,
+            { Move.WhiteCastlingShort, Move.WhiteCastlingShortRook } ,
+            { Move.WhiteCastlingLong, Move.WhiteCastlingLongRook } ,
+    };
+
     private readonly ChessModel chessModel;
     private readonly SquareViewModel[] squareViewModels = new SquareViewModel[64];
     private readonly Dictionary<SquareViewModel, List<Move>> legalMoves = new(32);
@@ -19,8 +28,8 @@ public sealed partial class BoardViewModel :
         this.Subscribe<ModelUpdatedMessage>();
     }
 
-    internal bool HasSelectedPiece 
-        => (this.selectedSquare is not null) && ( this.selectedSquare.PieceViewModel is not null) ;
+    internal bool HasSelectedPiece
+        => (this.selectedSquare is not null) && (this.selectedSquare.PieceViewModel is not null);
 
     internal SquareViewModel SelectedSquare
         => (this.selectedSquare is not null) && (this.selectedSquare.PieceViewModel is not null) ?
@@ -151,33 +160,49 @@ public sealed partial class BoardViewModel :
         this.View.RemovePieceView(pieceViewModel);
     }
 
-    internal void UpdateBoard(Move move)
+    internal void UpdateBoard(Move sourceMove)
     {
-        Debug.WriteLine("UpdateBoard: " + move.ToString());
+        Debug.WriteLine("UpdateBoard: " + sourceMove.ToString());
 
-        // FAILS : Handle the double move of castling !
-
-        SquareViewModel fromSquareViewModel = this.SquareAt(move.FromSquare);
-        if (fromSquareViewModel.IsEmpty)
+        void PerformMove(Move move)
         {
-            if (Debugger.IsAttached) { Debugger.Break(); }
-            return;
+            SquareViewModel fromSquareViewModel = this.SquareAt(move.FromSquare);
+            if (fromSquareViewModel.IsEmpty)
+            {
+                if (Debugger.IsAttached) { Debugger.Break(); }
+                return;
+            }
+
+            SquareViewModel toSquareViewModel = this.SquareAt(move.ToSquare);
+            if (!toSquareViewModel.IsEmpty)
+            {
+                // Capture 
+                PieceViewModel capturedPieceViewModel = toSquareViewModel.RemovePiece();
+                Debug.WriteLine("UpdateBoard: Capture: " + capturedPieceViewModel.Piece.ToString());
+            }
+
+            PieceViewModel pieceViewModel = fromSquareViewModel.RemovePiece();
+            toSquareViewModel.PlacePiece(pieceViewModel);
+            int index = move.ToSquare;
+            int rank = index / 8;
+            int file = index % 8;
+            this.View.MovePieceView(pieceViewModel, rank, file);
         }
 
-        SquareViewModel toSquareViewModel = this.SquareAt(move.ToSquare);
-        if (!toSquareViewModel.IsEmpty)
+        // Handle the double move of castling 
+        if (BoardViewModel.CastlingTable.TryGetValue(sourceMove, out Move rookMove))
         {
-            // Capture 
-            PieceViewModel capturedPieceViewModel = toSquareViewModel.RemovePiece();
-            Debug.WriteLine("UpdateBoard: Capture: " + capturedPieceViewModel.Piece.ToString());
+            Debug.WriteLine("UpdateBoard: Castling: " + sourceMove.ToString());
+            PerformMove(rookMove);
         }
 
-        PieceViewModel pieceViewModel = fromSquareViewModel.RemovePiece();
-        toSquareViewModel.PlacePiece(pieceViewModel);
-        int index = move.ToSquare;
-        int rank = index / 8;
-        int file = index % 8;
-        this.View.MovePieceView(pieceViewModel, rank, file);
+        if (sourceMove.Promotion != Piece.None)
+        {
+            // TODO
+            // Handle Pawn promotion to piece specified 
+        }
+
+        PerformMove(sourceMove);
     }
 
     internal void SetSelection(PieceViewModel pieceViewModel)
@@ -198,11 +223,11 @@ public sealed partial class BoardViewModel :
         if (this.selectedSquare is not null)
         {
             this.selectedSquare.ShowAsSelected(false);
-            if(!this.selectedSquare.IsEmpty)
+            if (!this.selectedSquare.IsEmpty)
             {
                 this.selectedSquare.PieceViewModel.ShowAsSelected(false);
             }
-        } 
+        }
 
         this.selectedSquare = null;
         this.HideAllLegalMoves();
@@ -305,7 +330,7 @@ public sealed partial class BoardViewModel :
            squareLegalMoves.Count > 0)
         {
             int toSquare = dstSquareViewModel.Index;
-            bool legal = 
+            bool legal =
                 (from move in squareLegalMoves where move.ToSquare == toSquare select move)
                 .Any();
             return legal;

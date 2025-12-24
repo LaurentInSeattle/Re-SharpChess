@@ -54,11 +54,11 @@ public struct Move
         //Examples: e2e4, e7e5, e1g1(white short castling), e7e8q(for promotion)
         string fromSquare = uciMoveNotation[..2];
         string toSquare = uciMoveNotation.Substring(2, 2);
-        FromSquare = Notation.ToSquare(fromSquare);
-        ToSquare = Notation.ToSquare(toSquare);
+        FromSquare = fromSquare.ToSquare();
+        ToSquare = toSquare.ToSquare();
 
         //the presence of a 5th character should mean promotion
-        Promotion = (uciMoveNotation.Length == 5) ? Notation.ToPiece(uciMoveNotation[4]) : Piece.None;
+        Promotion = (uciMoveNotation.Length == 5) ? uciMoveNotation[4].ToPiece() : Piece.None;
     }
 
     public override readonly bool Equals(object? obj)
@@ -79,7 +79,7 @@ public struct Move
             (Promotion == other.Promotion);
     }
 
-    //int is big enough to represent move fully. maybe use that for optimization at some point
+    // int is big enough to represent move fully. maybe use that for optimization at some point
     public override readonly int GetHashCode() =>
         FromSquare + (ToSquare << 8) + ((int)Promotion << 16);
 
@@ -89,14 +89,14 @@ public struct Move
 
     public override readonly string ToString()
     {
-        //result represents the move in the long algebraic notation (without piece names)
-        string result = Notation.ToSquareName(FromSquare);
-        result += Notation.ToSquareName(ToSquare);
+        // result represents the move in the long algebraic notation (without piece names)
+        string result = FromSquare.ToSquareName();
+        result += ToSquare.ToSquareName();
 
-        //the presence of a 5th character should mean promotion
+        // the presence of a 5th character should mean promotion
         if (Promotion != Piece.None)
         {
-            result += Notation.ToChar(Promotion);
+            result += Promotion.ToChar();
         }
 
         return result;

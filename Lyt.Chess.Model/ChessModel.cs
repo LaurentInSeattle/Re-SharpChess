@@ -126,10 +126,10 @@ public sealed partial class ChessModel : ModelBase , IUciResponder
             }
         }
 
-        var files = this.fileManager.Enumerate(Area.User, Kind.Json, "Game_");
-        Parallelize.ForEach(files, LoadSavedGame);
+        //var files = this.fileManager.Enumerate(Area.User, Kind.Json, "Game_");
+        //Parallelize.ForEach(files, LoadSavedGame);
 
-        new ModelLoadedMessage().Publish();
+        //new ModelLoadedMessage().Publish();
     }
 
     public override Task Save()

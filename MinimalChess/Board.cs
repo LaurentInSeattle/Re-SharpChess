@@ -13,12 +13,12 @@
 
 public sealed class Board
 {
-    private static readonly int BlackKingSquare = Notation.ToSquare("e8");
-    private static readonly int WhiteKingSquare = Notation.ToSquare("e1");
-    private static readonly int BlackQueensideRookSquare = Notation.ToSquare("a8");
-    private static readonly int BlackKingsideRookSquare = Notation.ToSquare("h8");
-    private static readonly int WhiteQueensideRookSquare = Notation.ToSquare("a1");
-    private static readonly int WhiteKingsideRookSquare = Notation.ToSquare("h1");
+    private static readonly int BlackKingSquare = "e8".ToSquare();
+    private static readonly int WhiteKingSquare = "e1".ToSquare();
+    private static readonly int BlackQueensideRookSquare = "a8".ToSquare();
+    private static readonly int BlackKingsideRookSquare = "h8".ToSquare();
+    private static readonly int WhiteQueensideRookSquare = "a1".ToSquare();
+    private static readonly int WhiteKingsideRookSquare = "h1".ToSquare();
 
     public const string STARTING_POS_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -130,7 +130,7 @@ public sealed class Board
                 }
                 else
                 {
-                    State[rank * 8 + file] = Notation.ToPiece(piece);
+                    State[rank * 8 + file] = piece.ToPiece();
                     file++;
                 }
             }
@@ -148,7 +148,7 @@ public sealed class Board
         this.SetCastlingRights(CastlingRights.BlackQueenside, fields[2].IndexOf('q') > -1);
 
         //Set en-passant square
-        this.enPassantSquare = fields[3] == "-" ? -1 : Notation.ToSquare(fields[3]);
+        this.enPassantSquare = fields[3] == "-" ? -1 : fields[3].ToSquare();
 
         //Init incremental eval
         this.eval = new Evaluation.Eval(this);

@@ -8,7 +8,6 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
     private readonly BoardViewModel boardViewModel;
 
     private SquareViewModel squareViewModel;
-    private bool isSelected;
 
     [ObservableProperty]
     private CroppedBitmap imageSource;
@@ -21,7 +20,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
         this.piece = piece;
         this.boardViewModel = boardViewModel;
         this.squareViewModel = squareViewModel;
-        this.imageSource = PieceImageProvider.GetFromFen(Notation.ToChar(piece));
+        this.imageSource = PieceImageProvider.GetFromFen(piece.ToChar());
         this.squareViewModel.PlacePiece(this);
         this.ShowAsSelected(false);
     }
@@ -30,10 +29,10 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
 
     internal Piece Piece => this.piece;
 
-    internal bool IsSelected => this.isSelected;
-
     internal void DisableClicks() => this.View.DisableClicks();
 
+    // Invoked from view 
+    public void OnClicked(bool _) => this.OnClicked();
 
     // Click on a Piece 
     // if ( board has a selected piece ) 
@@ -43,7 +42,9 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
     //      //      // else             : Do nothing: Selections remain
     // else ( no selection ) 
     //      // Clicked piece becomes selection: shows as selected, show square as selected, update board 
-    public void OnClicked(bool _)
+    //
+    // Can also be invoked from the square view model
+    internal void OnClicked()
     {
         var vm = this.squareViewModel;
         Debug.WriteLine(" Click on Piece at Square:  Rank: " + vm.Rank.ToString() + " File:  " + vm.File.ToString());
