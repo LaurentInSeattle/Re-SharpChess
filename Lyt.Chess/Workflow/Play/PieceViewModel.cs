@@ -67,7 +67,11 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
                     this.boardViewModel.MoveWithCapture(from: selectedSquare, to: this.squareViewModel, capture: this);
                     this.boardViewModel.ClearSelection();
                 }
-                // else : nothing 
+                else
+                {
+                    // Set as new selected piece 
+                    this.boardViewModel.SetSelection(this);
+                }
             }
         }
         else

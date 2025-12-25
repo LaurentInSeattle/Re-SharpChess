@@ -18,6 +18,7 @@ public sealed partial class BoardViewModel :
     private readonly Dictionary<SquareViewModel, List<Move>> legalMoves = new(32);
 
     private SquareViewModel? selectedSquare; // Can be null 
+    private SquareViewModel? checkedSquare; // Can be null 
 
     [ObservableProperty]
     private RotateTransform? rotateTransform;
@@ -235,11 +236,8 @@ public sealed partial class BoardViewModel :
 
     internal void UpdateCheckedStatus(PlayerColor playerColor)
     {
-        // Remove In Check flag on all squares
-        foreach (var square in this.squareViewModels)
-        {
-            square.ShowAsInCheck(inCheck: false);
-        }
+        // Remove Check flag if any
+        this.checkedSquare?.ShowAsInCheck(inCheck: false);
 
         if (playerColor != PlayerColor.None)
         {
@@ -257,6 +255,7 @@ public sealed partial class BoardViewModel :
                 {
                     // In check !
                     square.ShowAsInCheck();
+                    this.checkedSquare = square;
                 }
             }
         }
@@ -286,7 +285,6 @@ public sealed partial class BoardViewModel :
                 this.legalMoves.Add(vm, [move]);
             }
         }
-
     }
 
     internal void HideAllLegalMoves()
@@ -351,6 +349,10 @@ public sealed partial class BoardViewModel :
 
     private void MoveCaptureOrNot(SquareViewModel from, SquareViewModel to, PieceViewModel? capture)
     {
+        // Clear in check hint on square, if any 
+        this.checkedSquare?.ShowAsInCheck(inCheck: false); 
+        this.checkedSquare = null;
+
         // TODO: Promotion Dialog
         // TODO: Promotion Flag - false for now 
         var move = new Move(from.Index, to.Index);
