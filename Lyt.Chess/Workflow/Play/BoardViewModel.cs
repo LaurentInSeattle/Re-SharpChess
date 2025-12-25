@@ -17,7 +17,7 @@ public sealed partial class BoardViewModel :
     private readonly Dictionary<SquareViewModel, List<Move>> legalMoves = new(32);
     private readonly SquareViewModel[] squareViewModels = new SquareViewModel[64];
 
-    private bool boardCreated; 
+    private bool boardCreated;
     private SquareViewModel? selectedSquare; // Can be null 
     private SquareViewModel? checkedSquare; // Can be null 
 
@@ -73,10 +73,9 @@ public sealed partial class BoardViewModel :
                 break;
 
             case UpdateHint.IsChecked:
-                // Will possibly need it later 
-                // if (message.Parameter is PlayerColor playerColor)
+                if (message.Parameter is PlayerColor playerColor)
                 {
-                    this.UpdateCheckedStatus();
+                    this.UpdateCheckedStatus(playerColor);
                 }
                 break;
 
@@ -96,11 +95,11 @@ public sealed partial class BoardViewModel :
         }
     }
 
-    internal void CreateOrEmpty (bool showForWhite = true)
+    internal void CreateOrEmpty(bool showForWhite = true)
     {
         if (!this.boardCreated)
         {
-            this.CreateEmpty(showForWhite );
+            this.CreateEmpty(showForWhite);
             this.boardCreated = true;
         }
         else
@@ -140,8 +139,8 @@ public sealed partial class BoardViewModel :
         // Re-Initialize square view models
         for (int index = 0; index < 64; index++)
         {
-            var squareViewModel = this.squareViewModels[index]; 
-            squareViewModel.Clear() ;
+            var squareViewModel = this.squareViewModels[index];
+            squareViewModel.Clear();
         }
     }
 
@@ -262,10 +261,16 @@ public sealed partial class BoardViewModel :
         this.HideAllLegalMoves();
     }
 
-    internal void UpdateCheckedStatus()
+    internal void UpdateCheckedStatus(PlayerColor playerColor)
     {
         // Remove Check flag if any
         this.checkedSquare?.ShowAsInCheck(inCheck: false);
+
+        if ( playerColor == PlayerColor.None)
+        {
+            // Check flag removed, all done
+            return; 
+        }
 
         for (int index = 0; index < 64; index++)
         {
@@ -275,14 +280,26 @@ public sealed partial class BoardViewModel :
                 continue;
             }
 
-            // We dont care about the piece color here 
+            // We do care about the piece color here 
             var piece = square.PieceViewModel.Piece;
-            if (piece == Piece.WhiteKing || piece == Piece.BlackKing)
+            if ((piece == Piece.WhiteKing) && (playerColor == PlayerColor.White))
             {
                 // In check !
                 square.ShowAsInCheck();
                 this.checkedSquare = square;
-                break; 
+                
+                // there can be only one king in check 
+                break;
+            }
+
+            if ((piece == Piece.BlackKing) && (playerColor == PlayerColor.Black)) 
+            {
+                // In check !
+                square.ShowAsInCheck();
+                this.checkedSquare = square;
+
+                // there can be only one king in check 
+                break;
             }
         }
     }

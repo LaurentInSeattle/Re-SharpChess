@@ -81,7 +81,11 @@ public sealed partial class ChessModel : ModelBase
         {
             if (board.IsChecked(playerColor))
             {
-                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.White).Publish();
+                new ModelUpdatedMessage(UpdateHint.IsChecked, playerColor).Publish();
+            }
+            else
+            {
+                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
             }
         }
 
