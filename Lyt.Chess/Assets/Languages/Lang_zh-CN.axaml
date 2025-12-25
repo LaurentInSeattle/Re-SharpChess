@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">辞职</system:String>
 
+    <system:String x:Key="Shell.Apply">申请</system:String>
+
     <system:String x:Key="Shell.Close">关闭</system:String>
 
     <system:String x:Key="Shell.Ready">准备好。</system:String>

@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">やめる</system:String>
 
+    <system:String x:Key="Shell.Apply">適用する</system:String>
+
     <system:String x:Key="Shell.Close">近い</system:String>
 
     <system:String x:Key="Shell.Ready">準備ができて。</system:String>

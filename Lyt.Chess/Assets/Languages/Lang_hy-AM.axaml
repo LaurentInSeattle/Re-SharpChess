@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">Դուրս գալ</system:String>
 
+    <system:String x:Key="Shell.Apply">Դիմել</system:String>
+
     <system:String x:Key="Shell.Close">Փակել</system:String>
 
     <system:String x:Key="Shell.Ready">Պատրաստ.</system:String>

@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">প্রস্থান করুন</system:String>
 
+    <system:String x:Key="Shell.Apply">আবেদন করুন</system:String>
+
     <system:String x:Key="Shell.Close">বন্ধ</system:String>
 
     <system:String x:Key="Shell.Ready">প্রস্তুত.</system:String>

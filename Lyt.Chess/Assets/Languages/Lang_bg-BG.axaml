@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">Откажете се</system:String>
 
+    <system:String x:Key="Shell.Apply">Кандидатствайте</system:String>
+
     <system:String x:Key="Shell.Close">затвори</system:String>
 
     <system:String x:Key="Shell.Ready">Готови.</system:String>

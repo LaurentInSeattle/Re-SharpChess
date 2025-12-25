@@ -14,6 +14,7 @@
 	<system:String x:Key="Shell.Settings">Settings</system:String>
 	<system:String x:Key="Shell.Language">Language</system:String>
 	<system:String x:Key="Shell.Exit">Quit</system:String>
+	<system:String x:Key="Shell.Apply">Apply</system:String>
 	<system:String x:Key="Shell.Close">Close</system:String>
 	<system:String x:Key="Shell.Ready">Ready.</system:String>
 	<system:String x:Key="Shell.Greetings">Welcome to Mini Chess!</system:String>

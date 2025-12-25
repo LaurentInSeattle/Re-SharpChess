@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">Esci</system:String>
 
+    <system:String x:Key="Shell.Apply">Fare domanda a</system:String>
+
     <system:String x:Key="Shell.Close">Chiudi</system:String>
 
     <system:String x:Key="Shell.Ready">Pronto.</system:String>

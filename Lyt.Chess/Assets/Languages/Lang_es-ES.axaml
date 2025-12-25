@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">Abandonar</system:String>
 
+    <system:String x:Key="Shell.Apply">Aplicar</system:String>
+
     <system:String x:Key="Shell.Close">Cerca</system:String>
 
     <system:String x:Key="Shell.Ready">Listo.</system:String>

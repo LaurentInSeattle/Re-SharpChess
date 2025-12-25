@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">Εγκαταλείπω</system:String>
 
+    <system:String x:Key="Shell.Apply">Εφαρμόζω</system:String>
+
     <system:String x:Key="Shell.Close">Κοντά</system:String>
 
     <system:String x:Key="Shell.Ready">Ετοιμος.</system:String>

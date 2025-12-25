@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">Kilép</system:String>
 
+    <system:String x:Key="Shell.Apply">Alkalmazni</system:String>
+
     <system:String x:Key="Shell.Close">Közeli</system:String>
 
     <system:String x:Key="Shell.Ready">Kész.</system:String>

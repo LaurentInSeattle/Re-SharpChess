@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">그만두다</system:String>
 
+    <system:String x:Key="Shell.Apply">적용하다</system:String>
+
     <system:String x:Key="Shell.Close">닫다</system:String>
 
     <system:String x:Key="Shell.Ready">준비가 된.</system:String>

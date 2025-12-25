@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">Quitter</system:String>
 
+    <system:String x:Key="Shell.Apply">Appliquer</system:String>
+
     <system:String x:Key="Shell.Close">Fermer</system:String>
 
     <system:String x:Key="Shell.Ready">Prêt.</system:String>

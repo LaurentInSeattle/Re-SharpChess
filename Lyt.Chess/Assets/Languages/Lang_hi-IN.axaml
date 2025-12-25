@@ -21,6 +21,8 @@
 
     <system:String x:Key="Shell.Exit">छोड़ना</system:String>
 
+    <system:String x:Key="Shell.Apply">आवेदन करना</system:String>
+
     <system:String x:Key="Shell.Close">बंद करना</system:String>
 
     <system:String x:Key="Shell.Ready">तैयार।</system:String>
