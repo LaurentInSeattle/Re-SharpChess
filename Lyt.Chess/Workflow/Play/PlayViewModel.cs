@@ -19,26 +19,7 @@ public sealed partial class PlayViewModel :
         this.Subscribe<ModelUpdatedMessage>();
     }
 
-    public override void Activate(object? _)
-    {
-        Task.Run(async () =>
-        {
-            bool ready = await this.chessModel.InitializeEngine();
-            if (ready)
-            {
-
-                new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
-                await Task.Delay(150);
-                this.chessModel.NewGame();
-                this.chessModel.GameIsActive(isActive: true);
-            }
-            else
-            {
-                // TODO 
-                if (Debugger.IsAttached) { Debugger.Break(); }
-            }
-        });
-    }
+    public override void Activate(object? _) => this.chessModel.GameIsActive(isActive: true);
 
     public override void Deactivate()
     {
@@ -122,7 +103,7 @@ public sealed partial class PlayViewModel :
     {
         if (!this.boardCreated)
         {
-            this.boardViewModel.CreateEmpty(showForWhite: true);
+            this.boardViewModel.CreateOrEmpty(showForWhite: true);
             this.View.BoardViewbox.Child = this.boardViewModel.View;
             this.boardCreated = true;
         }

@@ -4,6 +4,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 {
     private readonly BoardViewModel boardViewModel;
     private PieceViewModel? pieceViewModel;
+    private bool canBeClicked;
 
     [ObservableProperty]
     private SolidColorBrush background;
@@ -25,7 +26,6 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         this.boardViewModel = boardViewModel;
         this.Rank = rank;
         this.File = file;
-        this.pieceViewModel = null;
 
         // TODO: Use images textures for the squares
         // For now we use simple colors for the squares
@@ -37,6 +37,14 @@ internal partial class SquareViewModel : ViewModel<SquareView>
             squareColor == PlayerColor.White ?
                 new SolidColorBrush(Colors.BurlyWood) :
                 new SolidColorBrush(Colors.SaddleBrown);
+
+        this.Clear();
+    }
+
+    internal void Clear()
+    {
+        this.pieceViewModel = null;
+        this.canBeClicked = true;
         this.IsSelected = false;
         this.IsValidMove = false;
         this.IsInvalidMove = false;
@@ -71,6 +79,12 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     // Invoked from view 
     internal bool OnClicked()
     {
+        if (!this.canBeClicked)
+        {
+            Debug.WriteLine(" Click on Square: Disabled");
+            return false;
+        }
+
         Debug.WriteLine(" Click on Square:  Rank: " + this.Rank.ToString() + " File:  " + this.File.ToString());
 
         if (this.IsEmpty)
@@ -123,9 +137,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         return vm;
     }
 
-    internal void DisableMoves() 
+    internal void DisableMoves()
     {
-        this.View.DisableClicks();
+        this.canBeClicked = false; 
         this.pieceViewModel?.DisableClicks();
     }
 }

@@ -20,7 +20,7 @@
 		<Grid.ColumnDefinitions>
 			<!-- Background -->
 			<ColumnDefinition Width="60" />
-			<ColumnDefinition Width="120" />
+			<ColumnDefinition Width="10" />
 			<ColumnDefinition Width="60" />
 			<!-- Spacer -->
 			<ColumnDefinition Width="10" />
@@ -35,7 +35,7 @@
 		  <!-- Spacer -->
 		  <ColumnDefinition Width="10" />
 		  <!-- Zoom -->
-		  <ColumnDefinition Width="320" />
+		  <ColumnDefinition Width="10" />
 		  <!-- Spacer -->
 		  <ColumnDefinition Width="10" />
 		  <!-- Fullscreen -->

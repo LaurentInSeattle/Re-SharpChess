@@ -14,7 +14,7 @@ public sealed partial class ChessModel : ModelBase
 
     public void GameIsActive(bool isActive = true) => this.IsGameActive = isActive;
 
-    public async void NewGame()
+    public async void NewGame(bool playingWhite)
     {
         try
         {
@@ -330,7 +330,7 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    private string[] engineLastResponseTokens = Array.Empty<string>();
+    private string[] engineLastResponseTokens = [];
     private string engineLastResponseCommand = string.Empty;
     private static Move NullMove = new(-1, -1);
     private Piece firstCapturedPiece = Piece.None;

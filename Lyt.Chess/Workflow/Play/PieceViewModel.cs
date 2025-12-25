@@ -7,6 +7,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
     private readonly Piece piece;
     private readonly BoardViewModel boardViewModel;
 
+    private bool canBeClicked;
     private SquareViewModel squareViewModel;
 
     [ObservableProperty]
@@ -20,6 +21,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
         this.piece = piece;
         this.boardViewModel = boardViewModel;
         this.squareViewModel = squareViewModel;
+        this.canBeClicked = true;
         this.imageSource = PieceImageProvider.GetFromFen(piece.ToChar());
         this.squareViewModel.PlacePiece(this);
         this.ShowAsSelected(false);
@@ -29,7 +31,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
 
     internal Piece Piece => this.piece;
 
-    internal void DisableClicks() => this.View.DisableClicks();
+    internal void DisableClicks() => this.canBeClicked = false;
 
     // Invoked from view 
     public void OnClicked(bool _) => this.OnClicked();
@@ -46,12 +48,18 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
     // Can also be invoked from the square view model
     internal void OnClicked()
     {
+        if (!this.canBeClicked)
+        {
+            Debug.WriteLine(" Click on Piece :  Disabled");
+            return;
+        }
+
         var vm = this.squareViewModel;
         Debug.WriteLine(" Click on Piece at Square:  Rank: " + vm.Rank.ToString() + " File:  " + vm.File.ToString());
 
         if (this.boardViewModel.HasSelectedPiece)
         {
-            var selectedSquare = this.boardViewModel.SelectedSquare; 
+            var selectedSquare = this.boardViewModel.SelectedSquare;
             var selectedPieceViewModel = selectedSquare.PieceViewModel;
             if (selectedPieceViewModel == this)
             {

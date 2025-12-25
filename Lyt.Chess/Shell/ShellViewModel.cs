@@ -7,7 +7,7 @@ public sealed partial class ShellViewModel
     IRecipient<ToolbarCommandMessage>,
     IRecipient<LanguageChangedMessage>
 {
-    private readonly ChessModel jigsawModel;
+    private readonly ChessModel chessModel;
     private readonly Fullscreen fullscreen;
     private readonly IToaster toaster;
 
@@ -17,9 +17,9 @@ public sealed partial class ShellViewModel
     private ViewSelector<ActivatedView>? viewSelector;
     public bool isFirstActivation;
 
-    public ShellViewModel(ChessModel astroPicModel, IToaster toaster)
+    public ShellViewModel(ChessModel chessModel, IToaster toaster)
     {
-        this.jigsawModel = astroPicModel;
+        this.chessModel = chessModel;
         this.toaster = toaster;
         this.fullscreen = new Fullscreen(App.MainWindow);
 
@@ -56,7 +56,7 @@ public sealed partial class ShellViewModel
         }
 
         // Select default language 
-        string preferredLanguage = this.jigsawModel.Language;
+        string preferredLanguage = this.chessModel.Language;
         this.Logger.Debug("Language: " + preferredLanguage);
         this.Localizer.SelectLanguage(preferredLanguage);
         Thread.CurrentThread.CurrentCulture = new CultureInfo(preferredLanguage);
@@ -74,9 +74,26 @@ public sealed partial class ShellViewModel
         //    this.Localize("Shell.Ready"), this.Localize("Shell.Greetings"),
         //    5_000, InformationLevel.Info);
 
+
         this.isFirstActivation = true;
         Select(ActivatedView.Play);
         //Select(this.jigsawModel.IsFirstRun ? ActivatedView.Language : ActivatedView.Setup);
+
+        Task.Run(async () =>
+        {
+            bool ready = await this.chessModel.InitializeEngine();
+            if (ready)
+            {
+                this.Logger.Debug("Engine ready");
+                await Task.Delay(120);
+                new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
+            }
+            else
+            {
+                // TODO 
+                if (Debugger.IsAttached) { Debugger.Break(); }
+            }
+        });
 
         this.Logger.Debug("OnViewLoaded complete");
     }
@@ -160,6 +177,28 @@ public sealed partial class ShellViewModel
 
 #pragma warning disable IDE0079 
 #pragma warning disable CA1822 // Mark members as static
+
+    [RelayCommand]
+    public void OnNewGame()
+    {
+        Task.Run(async () =>
+        {
+            bool ready = await this.chessModel.InitializeEngine();
+            if (ready)
+            {
+
+                new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
+                await Task.Delay(150);
+                this.chessModel.NewGame(playingWhite:true);
+                this.chessModel.GameIsActive(isActive: true);
+            }
+            else
+            {
+                // TODO 
+                if (Debugger.IsAttached) { Debugger.Break(); }
+            }
+        });
+    }
 
     [RelayCommand]
     public void OnCollection() => Select(ActivatedView.Setup);

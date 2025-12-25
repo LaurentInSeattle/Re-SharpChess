@@ -72,6 +72,23 @@ public partial class BoardView : View
         textRankRight.SetValue(Grid.RowProperty, 7 - index);
     }
 
+    internal void Empty(bool showForWhite)
+    {
+        var toRemove = new List<PieceView>(32);
+        foreach (var view in this.BoardGrid.Children)
+        {
+            if (view is PieceView pieceView)
+            {
+                toRemove.Add(pieceView);
+            }
+        }
+
+        foreach (var view in toRemove)
+        {
+            _ = this.BoardGrid.Children.Remove(view);
+        }
+    }
+
     internal void AddPieceView(PieceViewModel pieceViewModel, int rank, int file, bool showForWhite)
     {
         RotateTransform? rotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 };
