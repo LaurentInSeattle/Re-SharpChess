@@ -56,7 +56,7 @@ public sealed partial class ChessModel : ModelBase
         Stalemate,
     }
 
-    private EndGame VerifyCheckAndLegalMoves(PlayerColor playerColor, bool publish = true )
+    private EndGame VerifyLegalMoves(PlayerColor playerColor, bool publish = true )
     {
         var board = this.Engine.Board;
         this.legalMoves = new LegalMoves(board);
@@ -77,17 +77,6 @@ public sealed partial class ChessModel : ModelBase
             }
 
         }
-        else
-        {
-            if (board.IsChecked(playerColor))
-            {
-                new ModelUpdatedMessage(UpdateHint.IsChecked, playerColor).Publish();
-            }
-            else
-            {
-                new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
-            }
-        }
 
         if (publish)
         {
@@ -95,6 +84,18 @@ public sealed partial class ChessModel : ModelBase
         } 
 
         return EndGame.None;
+    }
+
+    private void VerifyInCheck(PlayerColor playerColor)
+    {
+        if (this.Engine.Board.IsChecked(playerColor))
+        {
+            new ModelUpdatedMessage(UpdateHint.IsChecked, playerColor).Publish();
+        }
+        else
+        {
+            new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
+        }
     }
 
     public async void Play(Move move)
@@ -131,19 +132,15 @@ public sealed partial class ChessModel : ModelBase
             this.Engine.Play(move);
 
             // Check end game 
-            EndGame endGameWhite = this.VerifyCheckAndLegalMoves(PlayerColor.White, publish: false);
-            if (endGameWhite != EndGame.None)
+            PlayerColor playerColor = this.Engine.SideToMove;
+            EndGame endGame = this.VerifyLegalMoves(playerColor, publish: false);
+            if (endGame != EndGame.None)
             {
                 // End of game; checkmate or stalemate for white
                 return;
             }
 
-            EndGame endGameBlack = this.VerifyCheckAndLegalMoves(PlayerColor.Black, publish: false);
-            if (endGameBlack != EndGame.None)
-            {
-                // End of game; checkmate or stalemate for black 
-                return; 
-            }
+            this.VerifyInCheck(playerColor);
 
             await Task.Delay(UiUpdateDelay);
 
@@ -181,20 +178,15 @@ public sealed partial class ChessModel : ModelBase
                 // Play the computer best move 
                 this.Engine.Play(this.bestMove);
 
-                // Check end game 
-                EndGame endGameWhite = this.VerifyCheckAndLegalMoves(PlayerColor.White, publish: false);
-                if (endGameWhite != EndGame.None)
+                PlayerColor playerColor = this.Engine.SideToMove;
+                EndGame endGame = this.VerifyLegalMoves(playerColor, publish: true);
+                if (endGame != EndGame.None)
                 {
-                    // End of game; checkmate or stalemate for white
+                    // End of game; checkmate or stalemate
                     return;
                 }
 
-                EndGame endGameBlack = this.VerifyCheckAndLegalMoves(PlayerColor.Black, publish: true);
-                if (endGameBlack != EndGame.None)
-                {
-                    // End of game; checkmate or stalemate for black 
-                    return;
-                }
+                this.VerifyInCheck(playerColor);
             });
 
         }
