@@ -30,7 +30,7 @@ public sealed class SortedMoveList : List<SortedMove>
     {
         Piece victim = context[move.ToSquare];
         Piece attacker = context[move.FromSquare];
-        return Pieces.MaxOrder * Pieces.Order(victim) - Pieces.Order(attacker);
+        return Pieces.MaxOrder * victim.Order() - attacker.Order();
     }
 
     private void Add(Move move, float priority) 

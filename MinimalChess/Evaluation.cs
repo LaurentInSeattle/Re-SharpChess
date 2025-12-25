@@ -194,7 +194,7 @@ public sealed partial class Evaluation
         {
             Piece targetPiece = board[square];
             int offset = targetPiece.IsColor(piece) ? 6 : 0;
-            result += MobilityValues[row + offset + Pieces.Order(targetPiece)];
+            result += MobilityValues[row + offset + targetPiece.Order()];
         }
 
         //we return negative values if piece is black (black minimizes)
@@ -211,7 +211,7 @@ public sealed partial class Evaluation
             {
                 Piece targetPiece = board[square];
                 int offset = targetPiece.IsColor(piece) ? 6 : 0;
-                result += MobilityValues[row + offset + Pieces.Order(targetPiece)];
+                result += MobilityValues[row + offset + targetPiece.Order()];
                 if (targetPiece != Piece.None)
                 {
                     break;

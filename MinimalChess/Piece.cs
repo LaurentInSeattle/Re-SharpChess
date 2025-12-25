@@ -1,4 +1,4 @@
-﻿namespace MinimalChess; 
+﻿namespace MinimalChess;
 
 public enum PlayerColor
 {
@@ -25,7 +25,7 @@ public enum Piece : sbyte
     Queen = 20,
     King = 24,
 
-    //White + Type = White Pieces
+    // White + Type = White Pieces
     WhitePawn = White + Pawn,
     WhiteKnight = White + Knight,
     WhiteBishop = White + Bishop,
@@ -54,9 +54,9 @@ public static class Pieces
 {
     public const int MaxOrder = 6;
 
-    //Pawn = 1, Knight = 2, Bishop = 3; Rook = 4, Queen = 5, King = 6
+    // Pawn = 1, Knight = 2, Bishop = 3; Rook = 4, Queen = 5, King = 6
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Order(Piece piece) => (int)piece >> 2;
+    public static int Order(this Piece piece) => (int)piece >> 2;
 
     //subtracting 2 maps Piece.White (3) to Color.White (1) and Piece.Black (1) to Color.Black (-1)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -78,4 +78,8 @@ public static class Pieces
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsColor(this Piece piece, Piece other) => (piece & Piece.ColorMask) == (other & Piece.ColorMask);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsKingOfColor(this Piece piece, PlayerColor color)
+        => (piece.Order() == (int)Piece.King) && piece.Color() == color;
 }

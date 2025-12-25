@@ -250,8 +250,7 @@ public sealed partial class BoardViewModel :
                 }
 
                 var piece = square.PieceViewModel.Piece;
-                if ((piece.Color() == playerColor) &&
-                    (piece == Piece.WhiteKing || piece == Piece.BlackKing))
+                if (piece.IsKingOfColor(playerColor))
                 {
                     // In check !
                     square.ShowAsInCheck();
@@ -350,7 +349,7 @@ public sealed partial class BoardViewModel :
     private void MoveCaptureOrNot(SquareViewModel from, SquareViewModel to, PieceViewModel? capture)
     {
         // Clear in check hint on square, if any 
-        this.checkedSquare?.ShowAsInCheck(inCheck: false); 
+        this.checkedSquare?.ShowAsInCheck(inCheck: false);
         this.checkedSquare = null;
 
         // TODO: Promotion Dialog
