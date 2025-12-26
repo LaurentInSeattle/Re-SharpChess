@@ -2,15 +2,18 @@
 
 public class ChessMatch
 {
-    public ChessMatch()
+    public ChessMatch(bool isPlayingWhite)
     {
         this.WhiteCapturedPieces = [];
         this.BlackCapturedPieces = [];
+        this.IsPlayingWhite = isPlayingWhite;
         this.Board = new Board();
     }
 
     [JsonIgnore]
     public Board Board { get; private set; }
+
+    public bool IsPlayingWhite { get; private set; }
 
     public List<Piece> WhiteCapturedPieces { get; set; }
 

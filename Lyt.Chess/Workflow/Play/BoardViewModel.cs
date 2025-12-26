@@ -30,6 +30,8 @@ public sealed partial class BoardViewModel :
         this.Subscribe<ModelUpdatedMessage>();
     }
 
+    internal PlayerColor SideToPlay => this.chessModel.Engine.SideToMove;
+
     internal bool HasSelectedPiece
         => (this.selectedSquare is not null) && (this.selectedSquare.PieceViewModel is not null);
 
@@ -51,6 +53,13 @@ public sealed partial class BoardViewModel :
     {
         Debug.WriteLine(" BoardViewModel Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
 
+        var game = this.chessModel.GameInProgress; 
+        if (game is null)
+        {
+            Debug.WriteLine(" BoardViewModel Message: No Game!"); 
+            return ;
+        }
+
         switch (message.Hint)
         {
             default:
@@ -61,7 +70,12 @@ public sealed partial class BoardViewModel :
                 if (message.Parameter is Board boardNew)
                 {
                     this.CreateOrEmpty();
-                    this.Populate(boardNew, showForWhite: true);
+                    bool isPlayingWhite = game.Match.IsPlayingWhite; 
+                    this.Populate(boardNew, showForWhite: isPlayingWhite);
+                    if ( ! isPlayingWhite )
+                    {
+                        this.chessModel.FirstComputerMove(); 
+                    }
                 }
                 break;
 
@@ -164,6 +178,9 @@ public sealed partial class BoardViewModel :
             _ = pieceViewModel.CreateViewAndBind();
             this.View.AddPieceView(pieceViewModel, rank, file, showForWhite);
         }
+
+        this.RotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 };
+        this.View.UpdateBoardTextBoxesRotation(showForWhite);
     }
 
     internal void DisableMoves()

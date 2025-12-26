@@ -54,6 +54,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
             return;
         }
 
+        PlayerColor playerToMove = this.boardViewModel.SideToPlay; 
         var vm = this.squareViewModel;
         Debug.WriteLine(" Click on Piece at Square:  Rank: " + vm.Rank.ToString() + " File:  " + vm.File.ToString());
 
@@ -72,20 +73,28 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
                 if (isLegalMove)
                 {
                     // Move with capture,  From: selected square  To : this square 
+                    var pieceViewModel = selectedSquare.PieceViewModel;
+                    pieceViewModel.ShowAsSelected(selected: false);
                     this.boardViewModel.MoveWithCapture(from: selectedSquare, to: this.squareViewModel, capture: this);
                     this.boardViewModel.ClearSelection();
                 }
                 else
                 {
-                    // Set as new selected piece 
-                    this.boardViewModel.SetSelection(this);
+                    // Set as new selected piece if piece is ours 
+                    if (playerToMove == selectedPieceViewModel.Piece.Color())
+                    {
+                        this.boardViewModel.SetSelection(this);
+                    } 
                 }
             }
         }
         else
         {
-            // Set as new selected piece 
-            this.boardViewModel.SetSelection(this);
+            // Set as new selected piece if piece is ours 
+            if (playerToMove == this.Piece.Color())
+            {
+                this.boardViewModel.SetSelection(this);
+            }
         }
     }
 

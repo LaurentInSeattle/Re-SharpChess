@@ -99,6 +99,8 @@ internal partial class SquareViewModel : ViewModel<SquareView>
                 if (isLegalMove)
                 {
                     // Move without capture,  From: selected square  To : this square 
+                    var pieceViewModel = selectedSquare.PieceViewModel;
+                    pieceViewModel.ShowAsSelected(selected:false);
                     this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this);
                     this.boardViewModel.ClearSelection();
                 }

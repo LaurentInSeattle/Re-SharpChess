@@ -4,9 +4,35 @@ using MinimalChess;
 
 using static Lyt.Persistence.FileManagerModel;
 
+public enum EndGame
+{
+    None,
+    Checkmate,
+    Stalemate,
+}
+
 public sealed partial class ChessModel : ModelBase
 {
     private const int UiUpdateDelay = 66;
+
+    // Starting moves for the computer when it is playing white 
+    private static Move [] StartingMoves =
+        [
+            // According to Chess Strategy Online: 
+            //
+            // "First Tier"
+            new ("d2d4"), // King's pawn
+            new ("e2e4"), // Queen's pawn
+            new ("c2c4"), // Queen's bishop
+            new ("g1f3"), // King's knight
+
+            // "Decent" 
+            //
+            new ("g2g3"),
+            new ("b2b3"),
+            new ("f2f4"),
+            new ("b1c3"),
+        ];
 
     public bool IsEngineStarted { get; private set; }
 
@@ -14,14 +40,14 @@ public sealed partial class ChessModel : ModelBase
 
     public void GameIsActive(bool isActive = true) => this.IsGameActive = isActive;
 
-    public async void NewGame(bool playingWhite)
+    public async void NewGame(bool isPlayingWhite)
     {
         try
         {
             this.Statistics.TotalGamesStarted += 1;
 
             // Do not use the CTOR reserved for deserialisation 
-            var game = new Game("New");
+            var game = new Game("New", isPlayingWhite);
 
             this.GameInProgress = game;
             this.SaveGame();
@@ -47,13 +73,6 @@ public sealed partial class ChessModel : ModelBase
             Debug.WriteLine("New Game, Exception thrown: " + ex);
             throw; 
         }
-    }
-
-    public enum EndGame
-    {
-        None, 
-        Checkmate, 
-        Stalemate,
     }
 
     private EndGame VerifyLegalMoves(PlayerColor playerColor, bool publish = true )
@@ -96,6 +115,27 @@ public sealed partial class ChessModel : ModelBase
         {
             new ModelUpdatedMessage(UpdateHint.IsChecked, PlayerColor.None).Publish();
         }
+    }
+
+    public async void FirstComputerMove ()
+    {
+        if (this.GameInProgress is null)
+        {
+            throw new InvalidOperationException("No game in progress");
+        }
+
+        await Task.Delay(UiUpdateDelay);
+
+        // Pick a starting move at random 
+        var random = new Random((int) DateTime.Now.Ticks);
+        int index = random.Next(ChessModel.StartingMoves.Length)   ;
+        Move startMove = ChessModel.StartingMoves[index];
+        this.Engine.Play(startMove);
+
+        new ModelUpdatedMessage(UpdateHint.Move, startMove).Publish();
+
+        PlayerColor playerColor = this.Engine.SideToMove;
+        _ = this.VerifyLegalMoves(playerColor, publish: true);
     }
 
     public async void Play(Move move)

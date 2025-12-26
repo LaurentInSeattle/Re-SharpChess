@@ -8,6 +8,18 @@ public partial class BoardView : View
     private static readonly string[] fileStrings = ["a", "b", "c", "d", "e", "f", "g", "h"];
     private static readonly string[] rankStrings = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
+    private Grid[] grids; 
+    public BoardView() : base () 
+    {
+        this.grids = 
+        [
+            this.RankLabelsGridLeft,
+            this.RankLabelsGridRight,
+            this.FileLabelsGridBottom ,
+            this.FileLabelsGridTop,
+        ];
+    }
+
     internal void AddSquareView(SquareViewModel squareViewModel)
     {
         var squareView = squareViewModel.View;
@@ -74,6 +86,7 @@ public partial class BoardView : View
 
     internal void Empty(bool showForWhite)
     {
+        // Remove all pieces 
         var toRemove = new List<PieceView>(32);
         foreach (var view in this.BoardGrid.Children)
         {
@@ -87,6 +100,21 @@ public partial class BoardView : View
         {
             _ = this.BoardGrid.Children.Remove(view);
         }
+    }
+    
+    internal void UpdateBoardTextBoxesRotation (bool showForWhite)
+    {
+        RotateTransform? rotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 };
+        foreach (var grid in this.grids)
+        {
+            foreach (var view in grid.Children)
+            {
+                if (view is TextBlock textBlock)
+                {
+                    textBlock.RenderTransform = rotateTransform;
+                }
+            }
+        } 
     }
 
     internal void AddPieceView(PieceViewModel pieceViewModel, int rank, int file, bool showForWhite)

@@ -7,14 +7,14 @@ public sealed class Game
     public Game() {  /* for serialization */ }
 #pragma warning restore CS8618 
 
-    public Game(string name)
+    public Game(string name, bool isPlayingWhite)
     {
         this.Name = name + "_" + FileManagerModel.TimestampString();
         this.IsCompleted = false;
         this.Started = DateTime.Now;
         this.LastPlayed = DateTime.Now;
         this.Played = TimeSpan.Zero;
-        this.Match = new(); 
+        this.Match = new(isPlayingWhite); 
     }
 
     #region Serialized Properties ( Must all be public for both get and set ) 

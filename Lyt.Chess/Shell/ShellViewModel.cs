@@ -189,7 +189,7 @@ public sealed partial class ShellViewModel
 
                 new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
                 await Task.Delay(150);
-                this.chessModel.NewGame(playingWhite:true);
+                this.chessModel.NewGame(isPlayingWhite:false);
                 this.chessModel.GameIsActive(isActive: true);
             }
             else
