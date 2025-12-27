@@ -1,7 +1,5 @@
 ﻿namespace Lyt.Chess.Model;
 
-using MinimalChess;
-
 using static Lyt.Persistence.FileManagerModel;
 
 public enum EndGame
@@ -335,7 +333,7 @@ public sealed partial class ChessModel : ModelBase
 
             // TODO: Use parameters tuned to human player level 
             int maxTime = 20_000;
-            this.Engine.Go(7, maxTime, 10_000_000);
+            this.Engine.Go(2, maxTime, 10_000_000);
 
             // Wait until we get a best move 
             this.bestMove = NullMove; 

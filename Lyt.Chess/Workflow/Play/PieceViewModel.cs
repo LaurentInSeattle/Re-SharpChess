@@ -81,7 +81,7 @@ internal partial class PieceViewModel : ViewModel<PieceView>, IDragMovableViewMo
                 else
                 {
                     // Set as new selected piece if piece is ours 
-                    if (playerToMove == selectedPieceViewModel.Piece.Color())
+                    if (playerToMove == this.Piece.Color())
                     {
                         this.boardViewModel.SetSelection(this);
                     } 

@@ -1,4 +1,4 @@
-﻿namespace MinimalChess; 
+﻿namespace MinimalChess;
 
 //    A  B  C  D  E  F  G  H        BLACK
 // 8  56 57 58 59 60 61 62 63  8
@@ -57,7 +57,7 @@ public sealed class Board
     {
         get => sideToMove;
 
-        private set 
+        private set
         {
             zobristHash ^= Zobrist.SideToMove(sideToMove);
             sideToMove = value;
@@ -99,7 +99,7 @@ public sealed class Board
             Debug.Assert(this.Score == new Evaluation.Eval(this).Score);
         }
     }
-    
+
     // Rank - the eight horizontal rows of the chess board are called ranks.
     // File - the eight vertical columns of the chess board are called files.
     public Piece this[int rank, int file] => this.State[rank * 8 + file];
@@ -424,10 +424,10 @@ public sealed class Board
         }
     }
 
-    private static void AddMove(Action<Move> moveHandler, int from, int to) 
+    private static void AddMove(Action<Move> moveHandler, int from, int to)
         => moveHandler(new Move(from, to));
 
-    private static void AddPromotion(Action<Move> moveHandler, int from, int to, Piece promotion) 
+    private static void AddPromotion(Action<Move> moveHandler, int from, int to, Piece promotion)
         => moveHandler(new Move(from, to, promotion));
 
     //** CHECK TEST ***
@@ -645,15 +645,25 @@ public sealed class Board
 
     private void AddWhitePawnMoves(Action<Move> moveHandler, int square)
     {
-        //if the square above isn't free there are no legal moves
-        if (State[Up(square)] != Piece.None)
+        // LYT Changed : Added indexing range check 
+        //      Could it be same issue as black pawn below ? 
+        //      Index out of range exception if the black pawn in file A reaches promotion 
+        //
+        int upSquare = Up(square);
+        if ((upSquare < 0) || (upSquare > State.Length))
         {
             return;
         }
 
-        Board.AddWhitePawnMove(moveHandler, square, Up(square));
+        // if the square above isn't free there are no legal moves
+        if (State[upSquare] != Piece.None)
+        {
+            return;
+        }
 
-        //START POS? => consider double move
+        Board.AddWhitePawnMove(moveHandler, square, upSquare);
+
+        // START POS? => consider double move
         if (Rank(square) == 1 && State[Up(square, 2)] == Piece.None)
         {
             AddMove(moveHandler, square, Up(square, 2));
@@ -662,13 +672,26 @@ public sealed class Board
 
     private void AddBlackPawnMoves(Action<Move> moveHandler, int square)
     {
-        //if the square below isn't free there are no legal moves
-        if (State[Down(square)] != Piece.None)
+        // LYT Changed : Added indexing range check 
+        // Index out of range exception if the black pawn in file A reaches promotion 
+        //      Was playing Black and did NOT provide the engine a proper move structure that should
+        //      have included a promotion piece.
+        //      Therefore the engine was probably much confused because normally pawns cannot
+        //      exist on that end rank 
+        //
+        int downSquare = Down(square);
+        if ((downSquare < 0) || (downSquare > State.Length))
         {
             return;
         }
 
-        Board.AddBlackPawnMove(moveHandler, square, Down(square));
+        // if the square below isn't free there are no legal moves
+        if (State[downSquare] != Piece.None)
+        {
+            return;
+        }
+
+        Board.AddBlackPawnMove(moveHandler, square, downSquare);
 
         //START POS? => consider double move
         if (Rank(square) == 6 && State[Down(square, 2)] == Piece.None)

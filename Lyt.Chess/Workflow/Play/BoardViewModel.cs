@@ -1,5 +1,7 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
+using MinimalChess;
+
 public sealed partial class BoardViewModel :
     ViewModel<BoardView>,
     IRecipient<ModelUpdatedMessage>
@@ -53,11 +55,11 @@ public sealed partial class BoardViewModel :
     {
         Debug.WriteLine(" BoardViewModel Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
 
-        var game = this.chessModel.GameInProgress; 
+        var game = this.chessModel.GameInProgress;
         if (game is null)
         {
-            Debug.WriteLine(" BoardViewModel Message: No Game!"); 
-            return ;
+            Debug.WriteLine(" BoardViewModel Message: No Game!");
+            return;
         }
 
         switch (message.Hint)
@@ -70,11 +72,11 @@ public sealed partial class BoardViewModel :
                 if (message.Parameter is Board boardNew)
                 {
                     this.CreateOrEmpty();
-                    bool isPlayingWhite = game.Match.IsPlayingWhite; 
+                    bool isPlayingWhite = game.Match.IsPlayingWhite;
                     this.Populate(boardNew, showForWhite: isPlayingWhite);
-                    if ( ! isPlayingWhite )
+                    if (!isPlayingWhite)
                     {
-                        this.chessModel.FirstComputerMove(); 
+                        this.chessModel.FirstComputerMove();
                     }
                 }
                 break;
@@ -118,7 +120,7 @@ public sealed partial class BoardViewModel :
         }
         else
         {
-            this.Empty(showForWhite);
+            this.Empty();
         }
     }
 
@@ -146,9 +148,9 @@ public sealed partial class BoardViewModel :
         }
     }
 
-    private void Empty(bool showForWhite)
+    private void Empty()
     {
-        this.View.Empty(showForWhite);
+        this.View.Empty();
 
         // Re-Initialize square view models
         for (int index = 0; index < 64; index++)
@@ -209,6 +211,13 @@ public sealed partial class BoardViewModel :
     {
         Debug.WriteLine("UpdateBoard: " + sourceMove.ToString());
 
+        var game = this.chessModel.GameInProgress;
+        if (game is null)
+        {
+            Debug.WriteLine(" BoardViewModel Message: No Game!");
+            return;
+        }
+
         void PerformMove(Move move)
         {
             SquareViewModel fromSquareViewModel = this.SquareAt(move.FromSquare);
@@ -231,7 +240,7 @@ public sealed partial class BoardViewModel :
             int index = move.ToSquare;
             int rank = index / 8;
             int file = index % 8;
-            this.View.MovePieceView(pieceViewModel, rank, file);
+            BoardView.MovePieceView(pieceViewModel, rank, file);
         }
 
         // Handle the double move of castling 
@@ -243,11 +252,36 @@ public sealed partial class BoardViewModel :
 
         if (sourceMove.Promotion != Piece.None)
         {
-            // TODO
+            // DANGER Zone 
+            //  ==> NOT fully tested 
+            // 
             // Handle Pawn promotion to piece specified 
-        }
 
-        PerformMove(sourceMove);
+            // If capture remove captured piece
+            SquareViewModel toSquareViewModel = this.SquareAt(sourceMove.ToSquare);
+            if (!toSquareViewModel.IsEmpty)
+            {
+                // Capture 
+                PieceViewModel capturedPieceViewModel = toSquareViewModel.RemovePiece();
+                Debug.WriteLine("UpdateBoard: Capture: " + capturedPieceViewModel.Piece.ToString());
+            }
+
+            // Remove pawn 
+            SquareViewModel fromSquareViewModel = this.SquareAt(sourceMove.FromSquare);
+            _ = fromSquareViewModel.RemovePiece();
+
+            // Create a new View View-Model for the promoted piece and place it on destination square 
+            var pieceViewModel = new PieceViewModel(sourceMove.Promotion, this, toSquareViewModel);
+            _ = pieceViewModel.CreateViewAndBind();
+            int index = sourceMove.ToSquare;
+            int rank = index / 8;
+            int file = index % 8;
+            this.View.AddPieceView(pieceViewModel, rank, file, showForWhite: game.Match.IsPlayingWhite);
+        }
+        else
+        {
+            PerformMove(sourceMove);
+        }
     }
 
     internal void SetSelection(PieceViewModel pieceViewModel)
@@ -283,10 +317,10 @@ public sealed partial class BoardViewModel :
         // Remove Check flag if any
         this.checkedSquare?.ShowAsInCheck(inCheck: false);
 
-        if ( playerColor == PlayerColor.None)
+        if (playerColor == PlayerColor.None)
         {
             // Check flag removed, all done
-            return; 
+            return;
         }
 
         for (int index = 0; index < 64; index++)
@@ -304,12 +338,12 @@ public sealed partial class BoardViewModel :
                 // In check !
                 square.ShowAsInCheck();
                 this.checkedSquare = square;
-                
+
                 // there can be only one king in check 
                 break;
             }
 
-            if ((piece == Piece.BlackKing) && (playerColor == PlayerColor.Black)) 
+            if ((piece == Piece.BlackKing) && (playerColor == PlayerColor.Black))
             {
                 // In check !
                 square.ShowAsInCheck();

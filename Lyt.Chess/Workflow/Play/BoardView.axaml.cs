@@ -8,15 +8,14 @@ public partial class BoardView : View
     private static readonly string[] fileStrings = ["a", "b", "c", "d", "e", "f", "g", "h"];
     private static readonly string[] rankStrings = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
-    private Grid[] grids; 
+    private readonly Grid[] labelGrids; 
+
     public BoardView() : base () 
     {
-        this.grids = 
+        this.labelGrids = 
         [
-            this.RankLabelsGridLeft,
-            this.RankLabelsGridRight,
-            this.FileLabelsGridBottom ,
-            this.FileLabelsGridTop,
+            this.RankLabelsGridLeft, this.RankLabelsGridRight,
+            this.FileLabelsGridTop, this.FileLabelsGridBottom ,
         ];
     }
 
@@ -84,7 +83,7 @@ public partial class BoardView : View
         textRankRight.SetValue(Grid.RowProperty, 7 - index);
     }
 
-    internal void Empty(bool showForWhite)
+    internal void Empty()
     {
         // Remove all pieces 
         var toRemove = new List<PieceView>(32);
@@ -105,7 +104,7 @@ public partial class BoardView : View
     internal void UpdateBoardTextBoxesRotation (bool showForWhite)
     {
         RotateTransform? rotateTransform = showForWhite ? null : new RotateTransform() { Angle = 180 };
-        foreach (var grid in this.grids)
+        foreach (var grid in this.labelGrids)
         {
             foreach (var view in grid.Children)
             {
@@ -128,7 +127,7 @@ public partial class BoardView : View
         pieceView.AttachBehavior(this.BoardCanvas);
     }
 
-    internal void MovePieceView(PieceViewModel pieceViewModel, int rank, int file)
+    internal static void MovePieceView(PieceViewModel pieceViewModel, int rank, int file)
     {
         var pieceView = pieceViewModel.View;
         pieceView.SetValue(Grid.RowProperty, 7 - rank);
