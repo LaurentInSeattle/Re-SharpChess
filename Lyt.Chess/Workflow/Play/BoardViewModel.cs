@@ -443,13 +443,48 @@ public sealed partial class BoardViewModel :
 
     private void MoveCaptureOrNot(SquareViewModel from, SquareViewModel to, PieceViewModel? capture)
     {
+        var game = this.chessModel.GameInProgress;
+        if (game is null)
+        {
+            Debug.WriteLine(" BoardViewModel Message: No Game!");
+            return;
+        }
+
         // Clear in check hint on square, if any 
         this.checkedSquare?.ShowAsInCheck(inCheck: false);
         this.checkedSquare = null;
 
-        // TODO: Promotion Dialog
-        // TODO: Promotion Flag - false for now 
-        var move = new Move(from.Index, to.Index);
+        static Piece ShowPromotionModalDialog(bool isPlayingWhite)
+        {
+            // TODO: Promotion Dialog for selected color
+            return isPlayingWhite ? Piece.WhiteQueen : Piece.BlackQueen;
+        }
+
+        Move move;
+        var piece = from.PieceViewModel.Piece;
+        bool isPlayingWhite = game.Match.IsPlayingWhite;
+        if (isPlayingWhite && piece == Piece.WhitePawn && to.Rank == 7)
+        {
+            // Promotion Dialog for white 
+            Piece promoted = ShowPromotionModalDialog(isPlayingWhite);
+
+            // white pawn promotion 
+            move = new Move(from.Index, to.Index, promoted);
+        }
+        else if (!isPlayingWhite && piece == Piece.BlackPawn && to.Rank == 0)
+        {
+            // Promotion Dialog for Black 
+            Piece promoted = ShowPromotionModalDialog(isPlayingWhite);
+
+            // black pawn promotion 
+            move = new Move(from.Index, to.Index, promoted);
+        }
+        else
+        {
+            // regular case 
+            move = new Move(from.Index, to.Index);
+        }
+
 
         if (capture is not null)
         {
