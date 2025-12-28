@@ -13,6 +13,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     private bool isSelected;
 
     [ObservableProperty]
+    private bool isLastMove;
+
+    [ObservableProperty]
     private bool isValidMove;
 
     [ObservableProperty]
@@ -47,6 +50,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         this.canBeClicked = true;
         this.IsSelected = false;
         this.IsValidMove = false;
+        this.IsLastMove = false;
         this.IsInvalidMove = false;
         this.IsInCheck = false;
     }

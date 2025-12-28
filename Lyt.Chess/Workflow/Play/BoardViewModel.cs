@@ -20,6 +20,7 @@ public sealed partial class BoardViewModel :
     private bool boardCreated;
     private SquareViewModel? selectedSquare; // Can be null 
     private SquareViewModel? checkedSquare; // Can be null 
+    private SquareViewModel? lastMoveSquare; // Can be null 
 
     [ObservableProperty]
     private RotateTransform? rotateTransform;
@@ -239,6 +240,10 @@ public sealed partial class BoardViewModel :
             int rank = index / 8;
             int file = index % 8;
             BoardView.MovePieceView(pieceViewModel, rank, file);
+
+            this.lastMoveSquare?.IsLastMove = false;
+            this.lastMoveSquare = toSquareViewModel;
+            this.lastMoveSquare.IsLastMove = true;
         }
 
         // Handle the double move of castling 
