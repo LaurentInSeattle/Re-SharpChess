@@ -1,7 +1,5 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
-using MinimalChess;
-
 public sealed partial class BoardViewModel :
     ViewModel<BoardView>,
     IRecipient<ModelUpdatedMessage>
@@ -252,11 +250,7 @@ public sealed partial class BoardViewModel :
 
         if (sourceMove.Promotion != Piece.None)
         {
-            // DANGER Zone 
-            //  ==> NOT fully tested 
-            // 
             // Handle Pawn promotion to piece specified 
-
             // If capture remove captured piece
             SquareViewModel toSquareViewModel = this.SquareAt(sourceMove.ToSquare);
             if (!toSquareViewModel.IsEmpty)
@@ -266,11 +260,14 @@ public sealed partial class BoardViewModel :
                 Debug.WriteLine("UpdateBoard: Capture: " + capturedPieceViewModel.Piece.ToString());
             }
 
-            // Remove pawn 
+            // Remove pawn from its square VM and then from board view 
             SquareViewModel fromSquareViewModel = this.SquareAt(sourceMove.FromSquare);
-            _ = fromSquareViewModel.RemovePiece();
+            var pawnViewModel = fromSquareViewModel.RemovePiece();
+            this.View.RemovePieceView(pawnViewModel);
 
-            // Create a new View View-Model for the promoted piece and place it on destination square 
+            // Create a new View View-Model for the promoted pawn and place it on the
+            // destination square using the CTOR, and then place its newly created view 
+            // on the board for rendering.
             var pieceViewModel = new PieceViewModel(sourceMove.Promotion, this, toSquareViewModel);
             _ = pieceViewModel.CreateViewAndBind();
             int index = sourceMove.ToSquare;
