@@ -388,7 +388,7 @@ public sealed partial class BoardViewModel :
         // Hide legal moves on all squares
         foreach (var square in this.squareViewModels)
         {
-            square.IsValidMove = false;
+            square.ShowAsLegal(legal: false);
         }
     }
 

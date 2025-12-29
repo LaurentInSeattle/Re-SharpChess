@@ -16,7 +16,10 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     private bool isLastMove;
 
     [ObservableProperty]
-    private bool isValidMove;
+    private bool isValidMoveNoCapture;
+
+    [ObservableProperty]
+    private bool isValidMoveWithCapture;
 
     [ObservableProperty]
     private bool isInvalidMove;
@@ -49,7 +52,8 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         this.pieceViewModel = null;
         this.canBeClicked = true;
         this.IsSelected = false;
-        this.IsValidMove = false;
+        this.IsValidMoveNoCapture = false;
+        this.IsValidMoveWithCapture = false;
         this.IsLastMove = false;
         this.IsInvalidMove = false;
         this.IsInCheck = false;
@@ -78,7 +82,11 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 
     internal void ShowAsInCheck(bool inCheck = true) => this.IsInCheck = inCheck;
 
-    internal void ShowAsLegal(bool legal = true) => this.IsValidMove = legal;
+    internal void ShowAsLegal(bool legal = true)
+    {
+        this.IsValidMoveNoCapture = legal && this.IsEmpty;
+        this.IsValidMoveWithCapture = legal && !this.IsEmpty;
+    }
 
     // Invoked from view 
     internal bool OnClicked()
@@ -104,7 +112,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
                 {
                     // Move without capture,  From: selected square  To : this square 
                     var pieceViewModel = selectedSquare.PieceViewModel;
-                    pieceViewModel.ShowAsSelected(selected:false);
+                    pieceViewModel.ShowAsSelected(selected: false);
                     this.boardViewModel.MoveNoCapture(from: selectedSquare, to: this);
                     this.boardViewModel.ClearSelection();
                 }
@@ -145,7 +153,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
 
     internal void DisableMoves()
     {
-        this.canBeClicked = false; 
+        this.canBeClicked = false;
         this.pieceViewModel?.DisableClicks();
     }
 }
