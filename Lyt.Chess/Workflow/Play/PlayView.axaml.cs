@@ -12,4 +12,11 @@ public sealed partial class PlayView: View
 
         base.OnKeyDown(e);
     }
+
+    internal void AddChildren(View boardView, View scoreView)
+    {
+        this.InnerGrid.Children.Add(boardView);
+        this.InnerGrid.Children.Add(scoreView);
+        scoreView.SetValue(Grid.ColumnProperty, 1);
+    }
 }

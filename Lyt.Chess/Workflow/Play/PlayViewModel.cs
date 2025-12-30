@@ -7,6 +7,7 @@ public sealed partial class PlayViewModel :
 {
     private readonly ChessModel chessModel;
     private readonly BoardViewModel boardViewModel;
+    private readonly ScoreViewModel scoreViewModel;
 
     private bool boardCreated;
 
@@ -15,6 +16,8 @@ public sealed partial class PlayViewModel :
         this.chessModel = chessModel;
         this.boardViewModel = new BoardViewModel(this.chessModel);
         _ = this.boardViewModel.CreateViewAndBind();
+        this.scoreViewModel = new ScoreViewModel(this.chessModel);
+        _ = this.scoreViewModel.CreateViewAndBind();
         this.Subscribe<ToolbarCommandMessage>();
         this.Subscribe<ModelUpdatedMessage>();
     }
@@ -104,7 +107,7 @@ public sealed partial class PlayViewModel :
         if (!this.boardCreated)
         {
             this.boardViewModel.CreateOrEmpty(showForWhite: true);
-            this.View.BoardViewbox.Child = this.boardViewModel.View;
+            this.View.AddChildren(this.boardViewModel.View, this.scoreViewModel.View);
             this.boardCreated = true;
         }
     }

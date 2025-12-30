@@ -1,0 +1,79 @@
+<UserControl 
+    x:Class="Lyt.Chess.Workflow.Play.ScoreView"
+    xmlns:vm="clr-namespace:Lyt.Chess.Workflow.Play"
+    x:DataType="vm:ScoreViewModel"
+
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    
+    >
+    <Grid
+        x:Name="OuterGrid"
+        Width="360" Height="860"
+        > 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="30" />
+        </Grid.RowDefinitions>
+        <Grid
+            Grid.Column="1" Grid.Row="1"
+            > 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <!-- Clocks -->			 
+            <TextBlock
+                Grid.Row="0" 
+                Theme="{StaticResource Title}"
+                Text="{Binding ClockTop}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Margin="0"
+                Foreground="{StaticResource PastelOrchid_0_080}"
+                />
+            <TextBlock
+                Grid.Row="6" 
+                Theme="{StaticResource Title}"
+                Text="{Binding ClockBottom}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Margin="0"
+                Foreground="{StaticResource PastelOrchid_0_080}"
+                />
+            <!-- Captures -->			 
+            <TextBlock
+                Grid.Row="1" 
+                Theme="{StaticResource Title}"
+                Text="{Binding CaptureTop}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Margin="0"
+                Foreground="{StaticResource PastelOrchid_0_080}"
+                />
+            <TextBlock
+                Grid.Row="5" 
+                Theme="{StaticResource Title}"
+                Text="{Binding CaptureBottom}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Margin="0"
+                Foreground="{StaticResource PastelOrchid_0_080}"
+                />
+            <!-- Score or End Game at the center -->			 
+            <TextBlock
+                Grid.Row="3" 
+                Theme="{StaticResource Title}"
+                Text="{Binding ScoreOrEndGame}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Margin="0"
+                Foreground="{StaticResource PastelOrchid_0_080}"
+                />
+        </Grid>
+    </Grid>
+</UserControl>

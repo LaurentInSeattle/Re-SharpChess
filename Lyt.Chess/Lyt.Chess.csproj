@@ -177,6 +177,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Workflow\Play\ScoreView.axaml.cs">
+      <DependentUpon>ScoreView.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Workflow\Play\PlayToolbarView.axaml.cs">
       <DependentUpon>PlayToolbarView.axaml</DependentUpon>
     </Compile>
