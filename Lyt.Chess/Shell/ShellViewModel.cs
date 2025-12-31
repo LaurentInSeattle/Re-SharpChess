@@ -168,8 +168,11 @@ public sealed partial class ShellViewModel
         {
             bool mainToolbarIsHidden = false;
             this.MainToolbarIsVisible = !mainToolbarIsHidden;
-            this.Profiler.MemorySnapshot(
-                newViewModel.ViewBase!.GetType().Name + ":  Activated", withGCCollect: false);
+            Schedule.OnUiThread(50, () =>
+            {
+                this.Profiler.MemorySnapshot(
+                    newViewModel.ViewBase!.GetType().Name + ":  Activated", withGCCollect: true);
+            }, DispatcherPriority.ApplicationIdle);
         }
 
         this.isFirstActivation = false;

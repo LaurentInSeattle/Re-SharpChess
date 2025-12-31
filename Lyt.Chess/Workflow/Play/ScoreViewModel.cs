@@ -7,30 +7,25 @@ public sealed partial class ScoreViewModel :
     private readonly ChessModel chessModel;
 
     [ObservableProperty]
-    private string clockTop;
+    private string clockTop = string.Empty;
 
     [ObservableProperty]
-    private string clockBottom;
+    private string clockBottom = string.Empty;
 
     [ObservableProperty]
-    private string captureTop;
+    private string captureTop = string.Empty;
 
     [ObservableProperty]
-    private string captureBottom;
+    private string captureBottom = string.Empty;
 
     [ObservableProperty]
-    private string scoreOrEndGame;
+    private string scoreOrEndGame = string.Empty;
 
     public ScoreViewModel(ChessModel chessModel)
     {
         this.chessModel = chessModel;
         this.Subscribe<ModelUpdatedMessage>();
-
-        this.ClockTop = string.Empty;
-        this.ClockBottom = string.Empty;
-        this.CaptureTop = string.Empty;
-        this.CaptureBottom = string.Empty;
-        this.ScoreOrEndGame = string.Empty;
+        this.Clear();
     }
 
     internal PlayerColor SideToPlay => this.chessModel.Engine.SideToMove;
@@ -56,28 +51,39 @@ public sealed partial class ScoreViewModel :
                 break;
 
             case UpdateHint.NewGame:
-                if (message.Parameter is Board boardNew)
+                if (message.Parameter is Board _)
                 {
+                    this.Clear();
                 }
                 break;
 
             case UpdateHint.IsCheckmate:
-                //if (message.Parameter is Board boardNew)
-                //{
-                //}
+                if (message.Parameter is PlayerColor playerColorIsCheckmate)
+                {
+                    this.ScoreOrEndGame = string.Format("{0}: Checkmate", playerColorIsCheckmate);
+                }
+
                 break;
 
             case UpdateHint.IsStalemate:
-                //if (message.Parameter is Board boardNew)
-                //{
-                //}
+                if (message.Parameter is PlayerColor _)
+                {
+                    this.ScoreOrEndGame = string.Format("Draw: Stalemate");
+                }
+
                 break;
 
             case UpdateHint.IsChecked:
-                if (message.Parameter is PlayerColor playerColor)
+                if ((message.Parameter is PlayerColor playerColorIsChecked) &&
+                    (playerColorIsChecked == this.SideToPlay))
                 {
-                    // this.UpdateCheckedStatus(playerColor);
+                    this.ScoreOrEndGame = string.Format("{0}: Check" , playerColorIsChecked);
                 }
+                else
+                {
+                    this.ScoreOrEndGame = string.Empty;
+                }
+
                 break;
 
             case UpdateHint.Capture:
@@ -86,5 +92,14 @@ public sealed partial class ScoreViewModel :
                 }
                 break;
         }
+    }
+
+    private void Clear()
+    {
+        this.ClockTop = string.Empty;
+        this.ClockBottom = string.Empty;
+        this.CaptureTop = string.Empty;
+        this.CaptureBottom = string.Empty;
+        this.ScoreOrEndGame = string.Empty;
     }
 }
