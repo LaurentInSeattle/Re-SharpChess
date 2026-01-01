@@ -26,7 +26,8 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
-                <RowDefinition Height="2*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
@@ -41,7 +42,7 @@
                 Foreground="{StaticResource PastelOrchid_0_080}"
                 />
             <TextBlock
-                Grid.Row="6" 
+                Grid.Row="7" 
                 Theme="{StaticResource Title}"
                 Text="{Binding ClockBottom}"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -58,18 +59,26 @@
                 Foreground="{StaticResource PastelOrchid_0_080}"
                 />
             <TextBlock
-                Grid.Row="5" 
+                Grid.Row="6" 
                 Theme="{StaticResource Title}"
                 Text="{Binding CaptureBottom}"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 Margin="0"
                 Foreground="{StaticResource PastelOrchid_0_080}"
                 />
-            <!-- Score or End Game at the center -->			 
+            <!-- Score amd End Game at the center -->			 
             <TextBlock
                 Grid.Row="3" 
                 Theme="{StaticResource Title}"
-                Text="{Binding ScoreOrEndGame}"
+                Text="{Binding Score}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Margin="0"
+                Foreground="{StaticResource PastelOrchid_0_080}"
+                />
+            <TextBlock
+                Grid.Row="4" 
+                Theme="{StaticResource Title}"
+                Text="{Binding EndGame}"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 Margin="0"
                 Foreground="{StaticResource PastelOrchid_0_080}"

@@ -19,7 +19,10 @@ public sealed partial class ScoreViewModel :
     private string captureBottom = string.Empty;
 
     [ObservableProperty]
-    private string scoreOrEndGame = string.Empty;
+    private string score = string.Empty;
+
+    [ObservableProperty]
+    private string endGame = string.Empty;
 
     public ScoreViewModel(ChessModel chessModel)
     {
@@ -60,7 +63,7 @@ public sealed partial class ScoreViewModel :
             case UpdateHint.IsCheckmate:
                 if (message.Parameter is PlayerColor playerColorIsCheckmate)
                 {
-                    this.ScoreOrEndGame = string.Format("{0}: Checkmate", playerColorIsCheckmate);
+                    this.EndGame = string.Format("{0}: Checkmate", playerColorIsCheckmate);
                 }
 
                 break;
@@ -68,7 +71,7 @@ public sealed partial class ScoreViewModel :
             case UpdateHint.IsStalemate:
                 if (message.Parameter is PlayerColor _)
                 {
-                    this.ScoreOrEndGame = string.Format("Draw: Stalemate");
+                    this.EndGame = string.Format("Draw: Stalemate");
                 }
 
                 break;
@@ -77,21 +80,53 @@ public sealed partial class ScoreViewModel :
                 if ((message.Parameter is PlayerColor playerColorIsChecked) &&
                     (playerColorIsChecked == this.SideToPlay))
                 {
-                    this.ScoreOrEndGame = string.Format("{0}: Check" , playerColorIsChecked);
+                    this.EndGame = string.Format("{0}: Check" , playerColorIsChecked);
                 }
                 else
                 {
-                    this.ScoreOrEndGame = string.Empty;
+                    this.EndGame = string.Empty;
                 }
 
                 break;
 
             case UpdateHint.Capture:
-                if (message.Parameter is byte square)
-                {
-                }
+                this.UpdateScores(); 
                 break;
         }
+    }
+
+    private void UpdateScores()
+    {
+        var game = this.chessModel.GameInProgress;
+        if (game is null)
+        {
+            this.CaptureTop = string.Empty;
+            this.CaptureBottom = string.Empty;
+            return;
+        }
+
+        var match = game.Match;
+        int whiteScore = match.WhiteScore;
+        int blackScore = match.BlackScore;
+        bool isPlayingWhite = match.IsPlayingWhite; 
+        this.CaptureTop = isPlayingWhite ? blackScore.ToString() : whiteScore.ToString();
+        this.CaptureBottom = ! isPlayingWhite ? blackScore.ToString() : whiteScore.ToString();
+        if (match.IsTied)
+        {
+            this.Score = "Tied";
+        }
+        else
+        {
+            string lead = match.Lead.ToString();
+            if (match.IsLeading)
+            {
+                this.Score = "Leading: +" + lead;
+            }
+            else
+            {
+                this.Score = "Trailing: -" + lead;
+            }
+        } 
     }
 
     private void Clear()
@@ -100,6 +135,7 @@ public sealed partial class ScoreViewModel :
         this.ClockBottom = string.Empty;
         this.CaptureTop = string.Empty;
         this.CaptureBottom = string.Empty;
-        this.ScoreOrEndGame = string.Empty;
+        this.Score = string.Empty;
+        this.EndGame = string.Empty;
     }
 }

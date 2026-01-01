@@ -2,6 +2,22 @@
 
 public class ChessMatch
 {
+    private static readonly Dictionary<Piece, int> PieceValues = new()
+    {
+        { Piece.WhitePawn, 1 },
+        { Piece.BlackPawn, 1 },
+        { Piece.WhiteKnight, 3 },
+        { Piece.BlackKnight, 3 },
+        { Piece.WhiteBishop, 3 },
+        { Piece.BlackBishop, 3 },
+        { Piece.WhiteRook, 5 },
+        { Piece.BlackRook, 5 },
+        { Piece.WhiteQueen, 9 },
+        { Piece.BlackQueen, 9 },
+        { Piece.WhiteKing, 0 },
+        { Piece.BlackKing, 0 }
+    };
+
     public ChessMatch(bool isPlayingWhite)
     {
         this.WhiteCapturedPieces = [];
@@ -18,6 +34,12 @@ public class ChessMatch
     public List<Piece> WhiteCapturedPieces { get; set; }
 
     public List<Piece> BlackCapturedPieces { get; set; }
+
+    public bool IsTied { get; private set; }
+
+    public bool IsLeading { get; private set; }
+
+    public int Lead { get; private set; }
 
     public int WhiteScore { get; private set; }
 
@@ -41,12 +63,17 @@ public class ChessMatch
             this.BlackCapturedPieces.Add(piece);
         }
 
-        this.UpdateScores();
+        Debug.WriteLine($"Captured piece: {piece}");
 
+        this.UpdateScores();
     }
 
     private void UpdateScores()
     {
-        // TODO 
+        this.WhiteScore = this.BlackCapturedPieces.Sum(p => PieceValues[p]);
+        this.BlackScore = this.WhiteCapturedPieces.Sum(p => PieceValues[p]);
+        this.IsTied = this.WhiteScore == this.BlackScore;
+        this.IsLeading = this.IsPlayingWhite ? this.WhiteScore > this.BlackScore : this.BlackScore > this.WhiteScore;
+        this.Lead = Math.Abs(this.WhiteScore - this.BlackScore);
     }
 }
