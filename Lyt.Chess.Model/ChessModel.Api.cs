@@ -14,7 +14,7 @@ public sealed partial class ChessModel : ModelBase
     private const int UiUpdateDelay = 66;
 
     // Starting moves for the computer when it is playing white 
-    private static Move [] StartingMoves =
+    private static Move[] StartingMoves =
         [
             // According to Chess Strategy Online: 
             //
@@ -52,10 +52,10 @@ public sealed partial class ChessModel : ModelBase
             this.timeoutTimer.Start();
             bool success = await this.StartEngine();
             this.IsEngineStarted = success;
-            if (! success)
+            if (!success)
             {
-                if(Debugger.IsAttached) { Debugger.Break(); }
-                return; 
+                if (Debugger.IsAttached) { Debugger.Break(); }
+                return;
             }
 
             this.dispatcher.OnUiThread(async () =>
@@ -69,11 +69,11 @@ public sealed partial class ChessModel : ModelBase
         catch (Exception ex)
         {
             Debug.WriteLine("New Game, Exception thrown: " + ex);
-            throw; 
+            throw;
         }
     }
 
-    private EndGame VerifyLegalMoves(PlayerColor playerColor, bool publish = true )
+    private EndGame VerifyLegalMoves(PlayerColor playerColor, bool publish = true)
     {
         var board = this.Engine.Board;
         this.legalMoves = new LegalMoves(board);
@@ -98,7 +98,7 @@ public sealed partial class ChessModel : ModelBase
         if (publish)
         {
             new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
-        } 
+        }
 
         return EndGame.None;
     }
@@ -115,7 +115,7 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    public async void FirstComputerMove ()
+    public async void FirstComputerMove()
     {
         if (this.GameInProgress is null)
         {
@@ -125,8 +125,8 @@ public sealed partial class ChessModel : ModelBase
         await Task.Delay(UiUpdateDelay);
 
         // Pick a starting move at random 
-        var random = new Random((int) DateTime.Now.Ticks);
-        int index = random.Next(ChessModel.StartingMoves.Length)   ;
+        var random = new Random((int)DateTime.Now.Ticks);
+        int index = random.Next(ChessModel.StartingMoves.Length);
         Move startMove = ChessModel.StartingMoves[index];
         this.Engine.Play(startMove);
 
@@ -138,15 +138,21 @@ public sealed partial class ChessModel : ModelBase
 
     public async void Play(Move move)
     {
-        if ( this.GameInProgress is null)
+        if (this.GameInProgress is null)
         {
-            throw new InvalidOperationException("No game in progress"); 
+            throw new InvalidOperationException("No game in progress");
         }
 
         try
         {
             Debug.WriteLine("Play: " + move.ToString());
             var board = this.Engine.Board;
+
+            // Stop if the engine is still thinking
+            if (this.isThinking)
+            {
+                this.Engine.Stop();
+            }
 
             // Check capture 
             Piece firstToPiece = board[move.ToSquare];
@@ -156,7 +162,7 @@ public sealed partial class ChessModel : ModelBase
                 Debug.WriteLine("Captured: " + this.firstCapturedPiece.ToString());
                 this.GameInProgress.Match.Capture(this.firstCapturedPiece);
                 new ModelUpdatedMessage(UpdateHint.Capture, move.ToSquare).Publish();
-                
+
                 // Wait for the UI to update captures
                 await Task.Delay(UiUpdateDelay);
             }
@@ -182,51 +188,57 @@ public sealed partial class ChessModel : ModelBase
 
             await Task.Delay(UiUpdateDelay);
 
-            // Launch the thinking thread 
-            bool success = await this.ThinkEngine(move);
+            // Launch the thinking thread for computer side 
+            bool success = await this.ThinkEngine(depth: 2, maxTime: 2);
 
-            this.dispatcher.OnUiThread(async () =>
+            Debug.WriteLine("Engine Play: " + this.bestMove.ToString());
+
+            // Check capture 
+            Piece secondToPiece = board[this.bestMove.ToSquare];
+            this.secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
+
+            // Update capture
+            if (this.secondCapturedPiece != Piece.None)
             {
-                Debug.WriteLine("Engine Play: " + this.bestMove.ToString());
+                Debug.WriteLine("Engine Captured: " + this.secondCapturedPiece.ToString());
+                this.GameInProgress.Match.Capture(this.secondCapturedPiece);
+                new ModelUpdatedMessage(UpdateHint.Capture, this.bestMove.ToSquare).Publish();
 
-                // Check capture 
-                Piece secondToPiece = board[this.bestMove.ToSquare];
-                this.secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
-
-                // Update capture
-                if (this.secondCapturedPiece != Piece.None)
-                {
-                    Debug.WriteLine("Engine Captured: " + this.secondCapturedPiece.ToString());
-                    this.GameInProgress.Match.Capture(this.secondCapturedPiece);
-                    new ModelUpdatedMessage(UpdateHint.Capture, this.bestMove.ToSquare).Publish();
-                    // Wait for the UI to update the board 
-                    await Task.Delay(UiUpdateDelay);
-                }
-
-                new ModelUpdatedMessage(UpdateHint.Move, this.bestMove).Publish();
                 // Wait for the UI to update the board 
                 await Task.Delay(UiUpdateDelay);
+            }
 
-                // Update scores
-                if ((this.firstCapturedPiece != Piece.None) || (this.secondCapturedPiece != Piece.None))
-                {
-                    new ModelUpdatedMessage(UpdateHint.UpdateScores).Publish();
-                }
+            new ModelUpdatedMessage(UpdateHint.Move, this.bestMove).Publish();
 
-                // Play the computer best move 
-                this.Engine.Play(this.bestMove);
+            // Wait for the UI to update the board 
+            await Task.Delay(UiUpdateDelay);
 
-                PlayerColor playerColor = this.Engine.SideToMove;
-                EndGame endGame = this.VerifyLegalMoves(playerColor, publish: true);
-                if (endGame != EndGame.None)
-                {
-                    // End of game; checkmate or stalemate
-                    return;
-                }
+            // Update scores
+            if ((this.firstCapturedPiece != Piece.None) || (this.secondCapturedPiece != Piece.None))
+            {
+                new ModelUpdatedMessage(UpdateHint.UpdateScores).Publish();
+            }
 
-                this.VerifyInCheck(playerColor);
-            });
+            // Play the computer best move 
+            this.Engine.Play(this.bestMove);
 
+            playerColor = this.Engine.SideToMove;
+            endGame = this.VerifyLegalMoves(playerColor, publish: true);
+            if (endGame != EndGame.None)
+            {
+                // End of game; checkmate or stalemate
+                return;
+            }
+
+            this.VerifyInCheck(playerColor);
+
+            // Launch the thinking thread for human side: the 'best' move found by the engine will not
+            // be played, it will be only suggested to the human player on request 
+            this.isThinking = true;
+            success = await this.ThinkEngine(depth: 9, maxTime: 5);
+            this.isThinking = false;
+            Debug.WriteLine("Suggested Move: " + this.bestMove.ToString());
+            new ModelUpdatedMessage(UpdateHint.SuggestedMove, this.bestMove).Publish();
         }
         catch (Exception ex)
         {
@@ -325,19 +337,19 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
-    public async Task<bool> ThinkEngine(Move move)
+    public async Task<bool> ThinkEngine(int depth, int maxTime)
     {
         try
         {
             this.Phase = EnginePhase.Play;
+            maxTime *= 1_000;
 
-            // TODO: Use parameters tuned to human player level 
-            int maxTime = 20_000;
-            this.Engine.Go(2, maxTime, 10_000_000);
+            // Use parameters tuned to human player level 
+            this.Engine.Go(depth, maxTime, 10_000_000);
 
             // Wait until we get a best move 
-            this.bestMove = NullMove; 
-            int retryDelay = 250;
+            this.bestMove = NullMove;
+            int retryDelay = 200;
             int retries = maxTime / retryDelay;
             while (retries > 0)
             {
@@ -364,13 +376,14 @@ public sealed partial class ChessModel : ModelBase
         }
     }
 
+    private bool isThinking = false;
     private string[] engineLastResponseTokens = [];
     private string engineLastResponseCommand = string.Empty;
     private static Move NullMove = new(-1, -1);
     private Piece firstCapturedPiece = Piece.None;
     private Piece secondCapturedPiece = Piece.None;
     private Move bestMove = NullMove;
-    private LegalMoves?  legalMoves = null; 
+    private LegalMoves? legalMoves = null;
 
     public TaskCompletionSource<string> Tcs { get; private set; }
 
@@ -537,7 +550,7 @@ public sealed partial class ChessModel : ModelBase
     public bool SaveGame()
     {
         // LATER 
-        return false; 
+        return false;
 
         if (this.GameInProgress is null)
         {

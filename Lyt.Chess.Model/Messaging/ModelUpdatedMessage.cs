@@ -12,6 +12,7 @@ public enum UpdateHint
     IsChecked,
     IsCheckmate,
     IsStalemate,
+    SuggestedMove,
 }
 
 public sealed record class ModelUpdatedMessage(UpdateHint Hint, object? Parameter = null); 

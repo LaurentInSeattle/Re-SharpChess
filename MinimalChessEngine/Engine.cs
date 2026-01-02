@@ -74,7 +74,7 @@ public sealed partial class Engine(IUciResponder uciResponder) : IUciRequester
     {
         if (searchingThread != null)
         {
-            //this will cause the thread to terminate via CheckTimeBudget
+            // this will cause the thread to terminate via CheckTimeBudget
             time.Stop();
             searchingThread.Join();
             searchingThread = null;
