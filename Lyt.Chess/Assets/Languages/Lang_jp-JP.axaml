@@ -29,6 +29,8 @@
 
     <system:String x:Key="Shell.Greetings">ジグソーパズルへようこそ！</system:String>
 
+    <system:String x:Key="Shell.NewGame">新しいゲーム</system:String>
+
     <system:String x:Key="Collection.Remove">取り除く</system:String>
 
     <system:String x:Key="Collection.SaveToDesktop">デスクトップに保存</system:String>

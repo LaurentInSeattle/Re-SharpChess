@@ -145,7 +145,7 @@
                         Style="{StaticResource AppToolbarIconButton}"
                         GlyphSource="add_circle"
                         GlyphStrokeThickness="0"
-                        Text="New Game"
+                        Text="{DynamicResource Shell.NewGame}"
                         Command="{Binding OnNewGame}"
                         />
                     <glyphs:GlyphButton

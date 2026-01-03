@@ -13,6 +13,8 @@ public enum UpdateHint
     IsCheckmate,
     IsStalemate,
     SuggestedMove,
+    EngineError,
+    UnexpectedError,
 }
 
 public sealed record class ModelUpdatedMessage(UpdateHint Hint, object? Parameter = null); 

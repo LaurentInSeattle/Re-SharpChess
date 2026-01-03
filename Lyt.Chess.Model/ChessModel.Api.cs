@@ -32,52 +32,97 @@ public sealed partial class ChessModel : ModelBase
             new ("b1c3"),
         ];
 
+    [JsonIgnore]
+    public Engine Engine { get; private set; }
+
+    [JsonIgnore]
+    internal EngineDriver EngineDriver { get; private set; }
+
+    [JsonIgnore]
     public bool IsEngineStarted { get; private set; }
 
+    [JsonIgnore]
     public bool IsGameActive { get; private set; }
 
     public void GameIsActive(bool isActive = true) => this.IsGameActive = isActive;
+
+    public async void StartEngine ()
+    {
+        try
+        {
+            bool startSuccess = false;
+            bool initSuccess = await this.EngineDriver.Initialize();
+            if (!initSuccess)
+            {
+                // Failed to initialize engine, report to user later 
+                if (Debugger.IsAttached) { Debugger.Break(); }
+            }
+            else
+            {
+                startSuccess = await this.EngineDriver.Start();
+                this.IsEngineStarted = startSuccess;
+                if (!startSuccess)
+                {
+                    // Failed to start engine, report to user later
+                    if (Debugger.IsAttached) { Debugger.Break(); }
+                }
+            }
+
+            if (!startSuccess || !initSuccess)
+            {
+                // Failed to start or initialize engine 
+                new ModelUpdatedMessage(UpdateHint.EngineError, "Failed to initialize").Publish();
+                return;
+            }
+
+            new ModelUpdatedMessage(UpdateHint.EngineReady, this.Engine.Board).Publish();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("New Game, Exception thrown: " + ex);
+            new ModelUpdatedMessage(UpdateHint.UnexpectedError, ex.ToString()).Publish();
+        }
+    }
 
     public async void NewGame(bool isPlayingWhite)
     {
         try
         {
+            this.StartEngine();
+            if ( ! this.EngineDriver.IsReady)
+            {
+                new ModelUpdatedMessage(UpdateHint.UnexpectedError, "Engine is not ready").Publish();
+                return;
+            }
+
             this.Statistics.TotalGamesStarted += 1;
 
             // Do not use the CTOR reserved for deserialisation 
             var game = new Game("New", isPlayingWhite);
-
             this.GameInProgress = game;
+            this.GameIsActive();
             this.SaveGame();
             this.timeoutTimer.Start();
-            bool success = await this.StartEngine();
-            this.IsEngineStarted = success;
-            if (!success)
-            {
-                if (Debugger.IsAttached) { Debugger.Break(); }
-                return;
-            }
 
             this.dispatcher.OnUiThread(async () =>
             {
                 new ModelUpdatedMessage(UpdateHint.NewGame, this.Engine.Board).Publish();
-                this.legalMoves = new LegalMoves(this.Engine.Board);
-                new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
+                var legalMoves = new LegalMoves(this.Engine.Board);
+                new ModelUpdatedMessage(UpdateHint.LegalMoves, legalMoves).Publish();
             });
-
         }
         catch (Exception ex)
         {
             Debug.WriteLine("New Game, Exception thrown: " + ex);
-            throw;
+            new ModelUpdatedMessage(UpdateHint.UnexpectedError, ex.ToString()).Publish();
         }
     }
 
     private EndGame VerifyLegalMoves(PlayerColor playerColor, bool publish = true)
     {
         var board = this.Engine.Board;
-        this.legalMoves = new LegalMoves(board);
-        if (this.legalMoves.Count == 0)
+        var legalMoves = new LegalMoves(board);
+        if (legalMoves.Count == 0)
         {
             // Stalemate or Checkmate 
             if (board.IsChecked(playerColor))
@@ -97,7 +142,7 @@ public sealed partial class ChessModel : ModelBase
 
         if (publish)
         {
-            new ModelUpdatedMessage(UpdateHint.LegalMoves, this.legalMoves).Publish();
+            new ModelUpdatedMessage(UpdateHint.LegalMoves, legalMoves).Publish();
         }
 
         return EndGame.None;
@@ -119,7 +164,8 @@ public sealed partial class ChessModel : ModelBase
     {
         if (this.GameInProgress is null)
         {
-            throw new InvalidOperationException("No game in progress");
+            new ModelUpdatedMessage(UpdateHint.UnexpectedError, "No game in progress").Publish();
+            return;
         }
 
         await Task.Delay(UiUpdateDelay);
@@ -140,7 +186,8 @@ public sealed partial class ChessModel : ModelBase
     {
         if (this.GameInProgress is null)
         {
-            throw new InvalidOperationException("No game in progress");
+            new ModelUpdatedMessage(UpdateHint.UnexpectedError, "No game in progress").Publish();
+            return;
         }
 
         try
@@ -149,18 +196,18 @@ public sealed partial class ChessModel : ModelBase
             var board = this.Engine.Board;
 
             // Stop if the engine is still thinking
-            if (this.isThinking)
+            if (this.EngineDriver.IsThinking)
             {
-                this.Engine.Stop();
+                this.EngineDriver.Stop();
             }
 
             // Check capture 
             Piece firstToPiece = board[move.ToSquare];
-            this.firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
-            if (this.firstCapturedPiece != Piece.None)
+            Piece  firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
+            if (firstCapturedPiece != Piece.None)
             {
-                Debug.WriteLine("Captured: " + this.firstCapturedPiece.ToString());
-                this.GameInProgress.Match.Capture(this.firstCapturedPiece);
+                Debug.WriteLine("Captured: " + firstCapturedPiece.ToString());
+                this.GameInProgress.Match.Capture(firstCapturedPiece);
                 new ModelUpdatedMessage(UpdateHint.Capture, move.ToSquare).Publish();
 
                 // Wait for the UI to update captures
@@ -189,38 +236,49 @@ public sealed partial class ChessModel : ModelBase
             await Task.Delay(UiUpdateDelay);
 
             // Launch the thinking thread for computer side 
-            bool success = await this.ThinkEngine(depth: 2, maxTime: 2);
+            // TODO : depth and maxTime should depend on difficulty level
+            bool success = await this.EngineDriver.Think(depth: 3, maxTime: 2);
 
-            Debug.WriteLine("Engine Play: " + this.bestMove.ToString());
+            if (!success || ! this.EngineDriver.HasBestMove)
+            {
+                // Failed to find a best move 
+                if (Debugger.IsAttached) { Debugger.Break(); }
+
+                // TODO: Report error to user   
+                return;
+            } 
+
+            Move bestMove = this.EngineDriver.BestMove;
+            Debug.WriteLine("Engine Play: " + bestMove.ToString());
 
             // Check capture 
-            Piece secondToPiece = board[this.bestMove.ToSquare];
-            this.secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
+            Piece secondToPiece = board[bestMove.ToSquare];
+            Piece secondCapturedPiece = secondToPiece != Piece.None ? secondToPiece : Piece.None;
 
             // Update capture
-            if (this.secondCapturedPiece != Piece.None)
+            if (secondCapturedPiece != Piece.None)
             {
-                Debug.WriteLine("Engine Captured: " + this.secondCapturedPiece.ToString());
-                this.GameInProgress.Match.Capture(this.secondCapturedPiece);
-                new ModelUpdatedMessage(UpdateHint.Capture, this.bestMove.ToSquare).Publish();
+                Debug.WriteLine("Engine Captured: " + secondCapturedPiece.ToString());
+                this.GameInProgress.Match.Capture(secondCapturedPiece);
+                new ModelUpdatedMessage(UpdateHint.Capture, bestMove.ToSquare).Publish();
 
                 // Wait for the UI to update the board 
                 await Task.Delay(UiUpdateDelay);
             }
 
-            new ModelUpdatedMessage(UpdateHint.Move, this.bestMove).Publish();
+            new ModelUpdatedMessage(UpdateHint.Move, bestMove).Publish();
 
             // Wait for the UI to update the board 
             await Task.Delay(UiUpdateDelay);
 
             // Update scores
-            if ((this.firstCapturedPiece != Piece.None) || (this.secondCapturedPiece != Piece.None))
+            if ((firstCapturedPiece != Piece.None) || (secondCapturedPiece != Piece.None))
             {
                 new ModelUpdatedMessage(UpdateHint.UpdateScores).Publish();
             }
 
             // Play the computer best move 
-            this.Engine.Play(this.bestMove);
+            this.Engine.Play(bestMove);
 
             playerColor = this.Engine.SideToMove;
             endGame = this.VerifyLegalMoves(playerColor, publish: true);
@@ -234,233 +292,25 @@ public sealed partial class ChessModel : ModelBase
 
             // Launch the thinking thread for human side: the 'best' move found by the engine will not
             // be played, it will be only suggested to the human player on request 
-            this.isThinking = true;
-            success = await this.ThinkEngine(depth: 9, maxTime: 5);
-            this.isThinking = false;
-            Debug.WriteLine("Suggested Move: " + this.bestMove.ToString());
-            new ModelUpdatedMessage(UpdateHint.SuggestedMove, this.bestMove).Publish();
+            success = await this.EngineDriver.Think(depth: 9, maxTime: 5);
+            if (!success || !this.EngineDriver.HasBestMove)
+            {
+                // Failed to find a best move 
+                if (Debugger.IsAttached) { Debugger.Break(); }
+            }
+
+            Move suggestedMove = this.EngineDriver.BestMove;
+            Debug.WriteLine("Suggested Move: " + suggestedMove.ToString());
+            new ModelUpdatedMessage(UpdateHint.SuggestedMove, suggestedMove).Publish();
         }
         catch (Exception ex)
         {
             Debug.WriteLine("New Game, Exception thrown: " + ex);
-            throw;
+            new ModelUpdatedMessage(UpdateHint.UnexpectedError, ex.ToString()).Publish();
         }
     }
 
     #region In-Game Actions 
-
-    // TODO : Create class for the engine driver 
-
-    [JsonIgnore]
-    public Engine Engine { get; private set; }
-
-    [JsonIgnore]
-    public EnginePhase Phase { get; private set; }
-
-    public enum EnginePhase
-    {
-        None,
-        Initialisation,
-        GameSetup,
-        Play,
-        Shutdown,
-    }
-
-    public async Task<bool> InitializeEngine()
-    {
-        try
-        {
-            this.Phase = EnginePhase.Initialisation;
-            this.Engine.UciCommand("uci");
-
-            // Should respond with uciok 
-            int retries = 3;
-            while (retries > 0)
-            {
-                if (this.engineLastResponseCommand == "uciok")
-                {
-                    break;
-                }
-
-                await Task.Delay(50);
-                --retries;
-            }
-
-            if (retries == 0)
-            {
-                return false;
-            }
-
-            this.Engine.UciCommand("isready");
-            retries = 3;
-            while (retries > 0)
-            {
-                if (this.engineLastResponseCommand == "readyok")
-                {
-                    break;
-                }
-
-                await Task.Delay(50);
-                --retries;
-            }
-
-            if (retries == 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-            return false;
-        }
-    }
-
-    public async Task<bool> StartEngine()
-    {
-        try
-        {
-            this.Phase = EnginePhase.GameSetup;
-
-            // No response expected for newgame and following commands 
-            this.Engine.UciCommand("ucinewgame");
-            this.Engine.SetupPosition(new Board(Board.STARTING_POS_FEN));
-            this.Engine.Start();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-            return false;
-        }
-    }
-
-    public async Task<bool> ThinkEngine(int depth, int maxTime)
-    {
-        try
-        {
-            this.Phase = EnginePhase.Play;
-            maxTime *= 1_000;
-
-            // Use parameters tuned to human player level 
-            this.Engine.Go(depth, maxTime, 10_000_000);
-
-            // Wait until we get a best move 
-            this.bestMove = NullMove;
-            int retryDelay = 200;
-            int retries = maxTime / retryDelay;
-            while (retries > 0)
-            {
-                if (this.bestMove != NullMove)
-                {
-                    break;
-                }
-
-                await Task.Delay(retryDelay);
-                --retries;
-            }
-
-            if (retries == 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-            return false;
-        }
-    }
-
-    private bool isThinking = false;
-    private string[] engineLastResponseTokens = [];
-    private string engineLastResponseCommand = string.Empty;
-    private static Move NullMove = new(-1, -1);
-    private Piece firstCapturedPiece = Piece.None;
-    private Piece secondCapturedPiece = Piece.None;
-    private Move bestMove = NullMove;
-    private LegalMoves? legalMoves = null;
-
-    public TaskCompletionSource<string> Tcs { get; private set; }
-
-    public void UciResponse(string response)
-    {
-        Debug.WriteLine("Uci Response: " + response);
-
-        this.engineLastResponseTokens = response.Split();
-        if (this.engineLastResponseTokens.Length > 0)
-        {
-            this.engineLastResponseCommand = this.engineLastResponseTokens[0];
-        }
-        else
-        {
-            this.engineLastResponseCommand = string.Empty;
-        }
-
-        if (this.Phase != EnginePhase.Play)
-        {
-            return;
-        }
-
-        if (this.engineLastResponseCommand == "info")
-        {
-            if (this.engineLastResponseTokens.Length > 0)
-            {
-                this.engineLastResponseCommand = this.engineLastResponseTokens[0];
-
-                // TODO: Use the depth and pv values to create variations or to dumb down the engine 
-            }
-        }
-        else if (this.engineLastResponseCommand == "bestmove")
-        {
-            if (this.engineLastResponseTokens.Length == 2)
-            {
-                try
-                {
-                    string moveString = this.engineLastResponseTokens[1];
-                    var move = new Move(moveString);
-                    this.bestMove = move;
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                }
-            }
-            else
-            {
-                Debug.WriteLine("Missing bestmove token.");
-            }
-        }
-        else
-        {
-        }
-
-        //if ( this.Tcs is null)
-        //{
-        //    Debug.WriteLine(response);
-        //    return; 
-        //}
-
-        //_ = this.Tcs.TrySetResult(response);
-    }
-
-    //15:43:51:739	info string legal: a7a6 a7a5 b7b6 b7b5 c7c6 c7c5 d7d6 d7d5 e7e6 e7e5 f7f6 f7f5 g7g6 g7g5 h7h6 h7h5 b8a6 b8c6 g8f6 g8h6
-    //15:43:51:739	info string Search scheduled to take 19980ms!
-    //15:43:57:989	info depth 13 score cp -6 nodes 690506 nps 112022 time 6164 pv e7e5 b1c3 b8c6 g1f3 g8f6 f1b5 c6d4 f3e5 d4b5 c3b5 f6e4 d1f3 e4g5
-    //15:44:06:237	info depth 14 score cp -32 nodes 1648005 nps 113327 time 14542 pv e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 g8f6 d4c6 d7c6 d1d8 e8d8 b1c3 f8b4 c1g5
-    //15:44:06:237	bestmove e7e5
-
-    private async Task<string> WaitUciTask()
-    {
-        this.Tcs = new TaskCompletionSource<string>(TaskCreationOptions.None);
-        string response = await this.Tcs.Task;
-        Debug.WriteLine(response);
-        return response;
-    }
 
     public void GameIsActive() => this.timeoutTimer.ResetTimeout();
 
@@ -543,6 +393,7 @@ public sealed partial class ChessModel : ModelBase
         catch (Exception ex)
         {
             Debug.WriteLine("Load, Exception thrown: " + ex);
+            new ModelUpdatedMessage(UpdateHint.UnexpectedError, ex.ToString()).Publish();
             return null;
         }
     }

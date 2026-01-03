@@ -29,6 +29,8 @@
 
     <system:String x:Key="Shell.Greetings">Benvenuto a Gioco di Puzzle!</system:String>
 
+    <system:String x:Key="Shell.NewGame">Nuovo gioco</system:String>
+
     <system:String x:Key="Collection.Remove">Rimuovi</system:String>
 
     <system:String x:Key="Collection.SaveToDesktop">Salva sul desktop</system:String>

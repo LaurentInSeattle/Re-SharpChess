@@ -29,6 +29,8 @@
 
     <system:String x:Key="Shell.Greetings">¡Bienvenidos a Rompecabezas!</system:String>
 
+    <system:String x:Key="Shell.NewGame">Nuevo juego</system:String>
+
     <system:String x:Key="Collection.Remove">Eliminar</system:String>
 
     <system:String x:Key="Collection.SaveToDesktop">Guardar en el escritorio</system:String>

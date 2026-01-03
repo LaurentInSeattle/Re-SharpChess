@@ -79,22 +79,7 @@ public sealed partial class ShellViewModel
         Select(ActivatedView.Play);
         //Select(this.jigsawModel.IsFirstRun ? ActivatedView.Language : ActivatedView.Setup);
 
-        Task.Run(async () =>
-        {
-            bool ready = await this.chessModel.InitializeEngine();
-            if (ready)
-            {
-                this.Logger.Debug("Engine ready");
-                await Task.Delay(120);
-                new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
-            }
-            else
-            {
-                // TODO 
-                if (Debugger.IsAttached) { Debugger.Break(); }
-            }
-        });
-
+        this.chessModel.StartEngine(); 
         this.Logger.Debug("OnViewLoaded complete");
     }
 
@@ -182,26 +167,7 @@ public sealed partial class ShellViewModel
 #pragma warning disable CA1822 // Mark members as static
 
     [RelayCommand]
-    public void OnNewGame()
-    {
-        Task.Run(async () =>
-        {
-            bool ready = await this.chessModel.InitializeEngine();
-            if (ready)
-            {
-
-                new ModelUpdatedMessage(UpdateHint.EngineReady, ready).Publish();
-                await Task.Delay(150);
-                this.chessModel.NewGame(isPlayingWhite:false);
-                this.chessModel.GameIsActive(isActive: true);
-            }
-            else
-            {
-                // TODO 
-                if (Debugger.IsAttached) { Debugger.Break(); }
-            }
-        });
-    }
+    public void OnNewGame() => this.chessModel.NewGame(isPlayingWhite:false);
 
     [RelayCommand]
     public void OnCollection() => Select(ActivatedView.Setup);

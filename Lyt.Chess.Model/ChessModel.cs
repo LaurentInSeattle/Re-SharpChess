@@ -4,7 +4,7 @@ using Lyt.Framework.Interfaces.Dispatching;
 
 using static Lyt.Persistence.FileManagerModel;
 
-public sealed partial class ChessModel : ModelBase , IUciResponder 
+public sealed partial class ChessModel : ModelBase
 {
     public const string DefaultLanguage = "fr-FR";
     private const string ChessModelFilename = "ChessData";
@@ -51,7 +51,8 @@ public sealed partial class ChessModel : ModelBase , IUciResponder
         this.modelFileId = new FileId(Area.User, Kind.Json, ChessModel.ChessModelFilename);
         this.timeoutTimer = new TimeoutTimer(this.OnSaveGame, timeoutMilliseconds: 20_000);
         this.ShouldAutoSave = true;
-        this.Engine = new Engine(this);
+        this.EngineDriver = new EngineDriver();
+        this.Engine = this.EngineDriver.Engine;
     }
 
     public override async Task Initialize()

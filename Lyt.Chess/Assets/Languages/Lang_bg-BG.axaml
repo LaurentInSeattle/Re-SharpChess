@@ -29,6 +29,8 @@
 
     <system:String x:Key="Shell.Greetings">Добре дошли в Jigsaw Puzzle!</system:String>
 
+    <system:String x:Key="Shell.NewGame">Нова игра</system:String>
+
     <system:String x:Key="Collection.Remove">Премахнете</system:String>
 
     <system:String x:Key="Collection.SaveToDesktop">Запазване на работния плот</system:String>

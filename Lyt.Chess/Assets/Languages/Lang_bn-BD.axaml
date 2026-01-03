@@ -29,6 +29,8 @@
 
     <system:String x:Key="Shell.Greetings">জিগস পাজলে স্বাগতম!</system:String>
 
+    <system:String x:Key="Shell.NewGame">নতুন খেলা</system:String>
+
     <system:String x:Key="Collection.Remove">সরান</system:String>
 
     <system:String x:Key="Collection.SaveToDesktop">ডেস্কটপে সংরক্ষণ করুন</system:String>

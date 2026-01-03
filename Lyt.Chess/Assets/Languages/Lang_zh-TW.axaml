@@ -29,6 +29,8 @@
 
     <system:String x:Key="Shell.Greetings">歡迎來到拼圖遊戲！</system:String>
 
+    <system:String x:Key="Shell.NewGame">新遊戲</system:String>
+
     <system:String x:Key="Collection.Remove">消除</system:String>
 
     <system:String x:Key="Collection.SaveToDesktop">保存到桌面</system:String>

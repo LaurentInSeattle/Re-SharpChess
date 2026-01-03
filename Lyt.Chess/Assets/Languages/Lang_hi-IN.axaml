@@ -29,6 +29,8 @@
 
     <system:String x:Key="Shell.Greetings">जिग्सॉ पहेली में आपका स्वागत है!</system:String>
 
+    <system:String x:Key="Shell.NewGame">नया खेल</system:String>
+
     <system:String x:Key="Collection.Remove">निकालना</system:String>
 
     <system:String x:Key="Collection.SaveToDesktop">डेस्कटॉप पर सहेजें</system:String>

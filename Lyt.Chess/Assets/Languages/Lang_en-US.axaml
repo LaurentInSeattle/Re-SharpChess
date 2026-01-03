@@ -18,6 +18,7 @@
 	<system:String x:Key="Shell.Close">Close</system:String>
 	<system:String x:Key="Shell.Ready">Ready.</system:String>
 	<system:String x:Key="Shell.Greetings">Welcome to Mini Chess!</system:String>
+	<system:String x:Key="Shell.NewGame">New Game</system:String>
 
 	<!-- Collection -->
 	<system:String x:Key="Collection.Remove">Remove</system:String>
