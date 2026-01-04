@@ -24,6 +24,13 @@
 			<Setter Property="Fill" Value="LightGreen" />
 			<Setter Property="Opacity" Value="0.7" />
 		</ControlTheme>
+		<ControlTheme x:Key="SuggestedMove" TargetType="Ellipse" > 
+			<Setter Property="Margin" Value="6" />
+			<Setter Property="Width" Value="9" />
+			<Setter Property="Height" Value="9" />
+			<Setter Property="Fill" Value="Goldenrod" />
+			<Setter Property="Opacity" Value="0.7" />
+		</ControlTheme>
 	</UserControl.Resources>
 	<Grid>
 		<Rectangle
@@ -119,5 +126,30 @@
 				<RotateTransform Angle="-45" />
 			</Rectangle.RenderTransform>
 		</Rectangle>
+
+		<Ellipse
+			IsVisible="{Binding IsSuggestedMove}"
+			HorizontalAlignment="Left" 
+			VerticalAlignment="Top"
+			Theme="{StaticResource SuggestedMove}"
+			/>
+		<Ellipse
+			IsVisible="{Binding IsSuggestedMove}"
+			HorizontalAlignment="Right" 
+			VerticalAlignment="Top"
+			Theme="{StaticResource SuggestedMove}"
+			/>
+		<Ellipse
+			IsVisible="{Binding IsSuggestedMove}"
+			HorizontalAlignment="Right" 
+			VerticalAlignment="Bottom"
+			Theme="{StaticResource SuggestedMove}"
+			/>
+		<Ellipse
+			IsVisible="{Binding IsSuggestedMove}"
+			HorizontalAlignment="Left" 
+			VerticalAlignment="Bottom"
+			Theme="{StaticResource SuggestedMove}"
+			/>
 	</Grid>
 </UserControl>

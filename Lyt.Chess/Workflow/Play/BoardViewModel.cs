@@ -1,5 +1,7 @@
 ﻿namespace Lyt.Chess.Workflow.Play;
 
+using MinimalChess;
+
 public sealed partial class BoardViewModel :
     ViewModel<BoardView>,
     IRecipient<ModelUpdatedMessage>
@@ -18,6 +20,8 @@ public sealed partial class BoardViewModel :
     private readonly SquareViewModel[] squareViewModels = new SquareViewModel[64];
 
     private bool boardCreated;
+    private SquareViewModel? suggestedFromSquare; // Can be null 
+    private SquareViewModel? suggestedToSquare; // Can be null 
     private SquareViewModel? selectedSquare; // Can be null 
     private SquareViewModel? checkedSquare; // Can be null 
     private SquareViewModel? lastMoveSquare; // Can be null 
@@ -84,6 +88,13 @@ public sealed partial class BoardViewModel :
                 if (message.Parameter is Move move)
                 {
                     this.UpdateBoard(move);
+                }
+                break;
+
+            case UpdateHint.SuggestedMove:
+                if (message.Parameter is Move suggestedMove)
+                {
+                    this.ShowSuggestedMove(suggestedMove);
                 }
                 break;
 
@@ -206,6 +217,29 @@ public sealed partial class BoardViewModel :
         this.View.RemovePieceView(pieceViewModel);
     }
 
+    internal void ShowSuggestedMove(Move suggestedMove)
+    {
+        this.suggestedFromSquare = this.SquareAt(suggestedMove.FromSquare);
+        this.suggestedFromSquare.ShowAsSuggested();
+        this.suggestedToSquare = this.SquareAt(suggestedMove.ToSquare);
+        this.suggestedToSquare.ShowAsSuggested();
+    }
+
+    internal void ClearSuggestedMove()
+    {
+        if ( this.suggestedFromSquare is not null )
+        {
+            this.suggestedFromSquare.ShowAsSuggested(suggested: false);
+            this.suggestedFromSquare = null;
+        }
+
+        if (this.suggestedToSquare is not null)
+        {
+            this.suggestedToSquare.ShowAsSuggested(suggested: false);
+            this.suggestedToSquare = null;
+        }
+    }
+
     internal void UpdateBoard(Move sourceMove)
     {
         Debug.WriteLine("UpdateBoard: " + sourceMove.ToString());
@@ -217,6 +251,8 @@ public sealed partial class BoardViewModel :
             return;
         }
 
+        this.ClearSuggestedMove(); 
+        
         void PerformMove(Move move)
         {
             SquareViewModel fromSquareViewModel = this.SquareAt(move.FromSquare);

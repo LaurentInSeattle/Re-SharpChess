@@ -38,12 +38,12 @@ public sealed partial class ScoreViewModel :
 
     public void ReceiveOnUiThread(ModelUpdatedMessage message)
     {
-        Debug.WriteLine(" BoardViewModel Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
+        Debug.WriteLine(" ScoreViewModel Message: " + message.Hint.ToString() + ":  " + message.Parameter?.ToString());
 
         var game = this.chessModel.GameInProgress;
         if (game is null)
         {
-            Debug.WriteLine(" BoardViewModel Message: No Game!");
+            Debug.WriteLine(" ScoreViewModel Message: No Game!");
             return;
         }
 

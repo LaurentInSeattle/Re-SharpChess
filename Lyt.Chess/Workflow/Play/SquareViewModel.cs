@@ -22,6 +22,9 @@ internal partial class SquareViewModel : ViewModel<SquareView>
     private bool isValidMoveWithCapture;
 
     [ObservableProperty]
+    private bool isSuggestedMove;
+
+    [ObservableProperty]
     private bool isInvalidMove;
 
     [ObservableProperty]
@@ -54,6 +57,7 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         this.IsSelected = false;
         this.IsValidMoveNoCapture = false;
         this.IsValidMoveWithCapture = false;
+        this.IsSuggestedMove = false;
         this.IsLastMove = false;
         this.IsInvalidMove = false;
         this.IsInCheck = false;
@@ -79,6 +83,8 @@ internal partial class SquareViewModel : ViewModel<SquareView>
         // Can be null ! 
         this.pieceViewModel?.ShowAsSelected(select);
     }
+
+    internal void ShowAsSuggested(bool suggested = true) => this.IsSuggestedMove = suggested;
 
     internal void ShowAsInCheck(bool inCheck = true) => this.IsInCheck = inCheck;
 
