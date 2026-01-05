@@ -26,7 +26,6 @@ public class ChessMatch
         this.Board = new Board();
     }
 
-    [JsonIgnore]
     public Board Board { get; private set; }
 
     public bool IsPlayingWhite { get; private set; }
@@ -44,6 +43,10 @@ public class ChessMatch
     public int WhiteScore { get; private set; }
 
     public int BlackScore { get; private set; }
+
+    public int WhitePromotionPoints { get; private set; }
+
+    public int BlackPromotionPoints { get; private set; }
 
     public void UpdateBoard(Board board) => this.Board = new Board(board);
 
@@ -64,16 +67,41 @@ public class ChessMatch
         }
 
         Debug.WriteLine($"Captured piece: {piece}");
-
         this.UpdateScores();
     }
 
     private void UpdateScores()
     {
-        this.WhiteScore = this.BlackCapturedPieces.Sum(p => PieceValues[p]);
-        this.BlackScore = this.WhiteCapturedPieces.Sum(p => PieceValues[p]);
+        this.WhiteScore =
+            this.WhitePromotionPoints +
+            this.BlackCapturedPieces.Sum(p => PieceValues[p]);
+        this.BlackScore =
+            this.BlackPromotionPoints +
+            this.WhiteCapturedPieces.Sum(p => PieceValues[p]);
         this.IsTied = this.WhiteScore == this.BlackScore;
         this.IsLeading = this.IsPlayingWhite ? this.WhiteScore > this.BlackScore : this.BlackScore > this.WhiteScore;
         this.Lead = Math.Abs(this.WhiteScore - this.BlackScore);
+    }
+
+    internal void Promotion(Piece promotion)
+    {
+        if (promotion == Piece.None)
+        {
+            return;
+        }
+
+        if (promotion.IsWhite())
+        {
+            this.WhitePromotionPoints += PieceValues[promotion];
+            --this.WhitePromotionPoints;
+        }
+        else
+        {
+            this.BlackPromotionPoints += PieceValues[promotion];
+            --this.BlackPromotionPoints;
+        }
+
+        Debug.WriteLine($"Promoted piece: {promotion}");
+        this.UpdateScores();
     }
 }

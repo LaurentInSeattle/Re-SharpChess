@@ -42,15 +42,11 @@ public sealed class Game
 
     public static string GameNameFromKey(string key) => string.Concat("Game_", key);
 
-    //public static string PuzzleNameFromKey(string key) => string.Concat("Puzzle_", key);
-
     //public static string ImageNameFromKey(string key) => string.Concat("Image_", key);
     
     public static string ThumbnailNameFromKey(string key) => string.Concat("Thumbnail_", key);
 
     public string GameName => GameNameFromKey(this.Name);
-
-    //public string PuzzleName => PuzzleNameFromKey(this.Name);
 
     //public string ImageName => ImageNameFromKey(this.Name);
 

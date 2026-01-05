@@ -46,7 +46,7 @@ public sealed partial class ChessModel : ModelBase
 
     public void GameIsActive(bool isActive = true) => this.IsGameActive = isActive;
 
-    public async void StartEngine ()
+    public async void StartEngine()
     {
         try
         {
@@ -89,7 +89,7 @@ public sealed partial class ChessModel : ModelBase
         try
         {
             this.StartEngine();
-            if ( ! this.EngineDriver.IsReady)
+            if (!this.EngineDriver.IsReady)
             {
                 new ModelUpdatedMessage(UpdateHint.UnexpectedError, "Engine is not ready").Publish();
                 return;
@@ -203,7 +203,7 @@ public sealed partial class ChessModel : ModelBase
 
             // Check capture 
             Piece firstToPiece = board[move.ToSquare];
-            Piece  firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
+            Piece firstCapturedPiece = firstToPiece != Piece.None ? firstToPiece : Piece.None;
             if (firstCapturedPiece != Piece.None)
             {
                 Debug.WriteLine("Captured: " + firstCapturedPiece.ToString());
@@ -218,6 +218,12 @@ public sealed partial class ChessModel : ModelBase
 
             // Wait for the UI to update the board 
             await Task.Delay(UiUpdateDelay);
+
+            if (move.Promotion != Piece.None)
+            {
+                Debug.WriteLine("Promotion to: " + move.Promotion.ToString());
+                this.GameInProgress.Match.Promotion(move.Promotion);
+            }
 
             // Human plays
             this.Engine.Play(move);
@@ -239,14 +245,22 @@ public sealed partial class ChessModel : ModelBase
             // TODO : depth and maxTime should depend on difficulty level
             bool success = await this.EngineDriver.Think(depth: 3, maxTime: 2);
 
-            if (!success || ! this.EngineDriver.HasBestMove)
+            if (!success || !this.EngineDriver.HasBestMove)
             {
                 // Failed to find a best move 
                 if (Debugger.IsAttached) { Debugger.Break(); }
 
-                // TODO: Report error to user   
+                // Report error to user   
+                new ModelUpdatedMessage(UpdateHint.EngineError, "No best move.").Publish();
                 return;
-            } 
+            }
+
+            // TODO:
+            // For easy levels, we can pick a random move from the top N moves found by the engine
+            // Need to parse the engine output for that. (non uci standard info lines with pv ...)
+            // 	info depth 13 score cp -6 nodes 690506 nps 112022 time 6164 pv e7e5 b1c3 b8c6 g1f3 g8f6 f1b5 c6d4 f3e5 d4b5 c3b5 f6e4 d1f3 e4g5
+            //  info depth 14 score cp -32 nodes 1648005 nps 113327 time 14542 pv e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 g8f6 d4c6 d7c6 d1d8 e8d8 b1c3 f8b4 c1g5
+            //  bestmove e7e5
 
             Move bestMove = this.EngineDriver.BestMove;
             Debug.WriteLine("Engine Play: " + bestMove.ToString());
@@ -271,8 +285,14 @@ public sealed partial class ChessModel : ModelBase
             // Wait for the UI to update the board 
             await Task.Delay(UiUpdateDelay);
 
+            if (bestMove.Promotion != Piece.None)
+            {
+                Debug.WriteLine("Promotion to: " + move.Promotion.ToString());
+                this.GameInProgress.Match.Promotion(move.Promotion);
+            }
+
             // Update scores
-            if ((firstCapturedPiece != Piece.None) || (secondCapturedPiece != Piece.None))
+            if ((firstCapturedPiece != Piece.None) || (secondCapturedPiece != Piece.None) || (bestMove.Promotion != Piece.None))
             {
                 new ModelUpdatedMessage(UpdateHint.UpdateScores).Publish();
             }
@@ -297,6 +317,8 @@ public sealed partial class ChessModel : ModelBase
             {
                 // Failed to find a best move 
                 if (Debugger.IsAttached) { Debugger.Break(); }
+
+                // Not an error here, we can 'live' without a suggestion, but still a weird situation
             }
 
             Move suggestedMove = this.EngineDriver.BestMove;
