@@ -7,6 +7,7 @@ internal sealed class EngineDriver : IUciResponder
     private string[] engineLastResponseTokens = [];
     private string engineLastResponseCommand = string.Empty;
     private Move bestMove = NullMove;
+    private List<Move> foundMoves = [];
 
     public EngineDriver() => this.Engine = new Engine(this);
 
@@ -18,10 +19,17 @@ internal sealed class EngineDriver : IUciResponder
 
     public bool HasBestMove => this.bestMove != NullMove;
 
+    public bool HasFoundMoves => this.foundMoves.Count > 0;
+
     public Move BestMove 
         => this.HasBestMove ? 
                 this.bestMove : 
                 throw new Exception("Should have checked HasBestMove property.");
+
+    public List<Move> FoundMoves
+        => this.HasFoundMoves ?
+                this.foundMoves :
+                throw new Exception("Should have checked HasFoundMoves property.");
 
     public async Task<bool> Initialize()
     {
@@ -102,8 +110,11 @@ internal sealed class EngineDriver : IUciResponder
             // Use parameters tuned to human player level 
             this.Engine.Go(depth, maxTime, 20_000_000);
 
-            // Wait until we get a best move 
+            // Clear previous best move and found moves
             this.bestMove = NullMove;
+            this.foundMoves.Clear();
+
+            // Wait until we get a best move 
             int retryDelay = 200;
             int retries = maxTime / retryDelay;
             while (retries > 0)
@@ -169,9 +180,12 @@ internal sealed class EngineDriver : IUciResponder
         {
             if (this.engineLastResponseTokens.Length > 0)
             {
-                this.engineLastResponseCommand = this.engineLastResponseTokens[0];
-
-                // TODO: Use the depth and pv values to create variations or to dumb down the engine 
+                string subCommandString = this.engineLastResponseTokens[1];
+                if (subCommandString == "depth")
+                {
+                    // Use the depth and pv values to create variations or to dumb down the engine 
+                    this.foundMoves = ParseDepthInfo(this.engineLastResponseTokens);
+                }
             }
         }
         else if (this.engineLastResponseCommand == "bestmove")
@@ -199,9 +213,32 @@ internal sealed class EngineDriver : IUciResponder
         }
     }
 
-    //15:43:51:739	info string legal: a7a6 a7a5 b7b6 b7b5 c7c6 c7c5 d7d6 d7d5 e7e6 e7e5 f7f6 f7f5 g7g6 g7g5 h7h6 h7h5 b8a6 b8c6 g8f6 g8h6
-    //15:43:51:739	info string Search scheduled to take 19980ms!
-    //15:43:57:989	info depth 13 score cp -6 nodes 690506 nps 112022 time 6164 pv e7e5 b1c3 b8c6 g1f3 g8f6 f1b5 c6d4 f3e5 d4b5 c3b5 f6e4 d1f3 e4g5
-    //15:44:06:237	info depth 14 score cp -32 nodes 1648005 nps 113327 time 14542 pv e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 g8f6 d4c6 d7c6 d1d8 e8d8 b1c3 f8b4 c1g5
-    //15:44:06:237	bestmove e7e5
+    // Examples of depth info lines:
+    //
+    //	info depth 13 score cp -6 nodes 690506 nps 112022 time 6164 pv e7e5 b1c3 b8c6 g1f3 g8f6 f1b5 c6d4 f3e5 d4b5 c3b5 f6e4 d1f3 e4g5
+    //	info depth 14 score cp -32 nodes 1648005 nps 113327 time 14542 pv e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 g8f6 d4c6 d7c6 d1d8 e8d8 b1c3 f8b4 c1g5
+    private static List<Move> ParseDepthInfo(string[] engineLastResponseTokens)
+    {
+        List<Move> moves = [];
+        int pvIndex = Array.IndexOf(engineLastResponseTokens, "pv");
+        if (pvIndex >= 0)
+        {
+            for (int i = pvIndex + 1; i < engineLastResponseTokens.Length; i++)
+            {
+                try
+                {
+                    string moveString = engineLastResponseTokens[i];
+                    var move = new Move(moveString);
+                    moves.Add(move);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
+            }
+        }
+
+        return moves;
+    }
+
 }

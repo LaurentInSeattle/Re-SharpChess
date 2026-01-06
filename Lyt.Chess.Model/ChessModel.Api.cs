@@ -16,15 +16,16 @@ public sealed partial class ChessModel : ModelBase
     // Starting moves for the computer when it is playing white 
     private static Move[] StartingMoves =
         [
-            // According to Chess Strategy Online: 
+            // According to Chess Strategy Online website: 
             //
-            // "First Tier"
+            // "First Tier" openings
+            //
             new ("d2d4"), // King's pawn
             new ("e2e4"), // Queen's pawn
             new ("c2c4"), // Queen's bishop
             new ("g1f3"), // King's knight
 
-            // "Decent" 
+            // "Decent" openings
             //
             new ("g2g3"),
             new ("b2b3"),
@@ -243,7 +244,7 @@ public sealed partial class ChessModel : ModelBase
 
             // Launch the thinking thread for computer side 
             // TODO : depth and maxTime should depend on difficulty level
-            bool success = await this.EngineDriver.Think(depth: 3, maxTime: 2);
+            bool success = await this.EngineDriver.Think(depth: 5, maxTime: 5);
 
             if (!success || !this.EngineDriver.HasBestMove)
             {
@@ -255,13 +256,24 @@ public sealed partial class ChessModel : ModelBase
                 return;
             }
 
-            // TODO:
             // For easy levels, we can pick a random move from the top N moves found by the engine
-            // Need to parse the engine output for that. (non uci standard info lines with pv ...)
-            // 	info depth 13 score cp -6 nodes 690506 nps 112022 time 6164 pv e7e5 b1c3 b8c6 g1f3 g8f6 f1b5 c6d4 f3e5 d4b5 c3b5 f6e4 d1f3 e4g5
-            //  info depth 14 score cp -32 nodes 1648005 nps 113327 time 14542 pv e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 g8f6 d4c6 d7c6 d1d8 e8d8 b1c3 f8b4 c1g5
-            //  bestmove e7e5
+            // Need to parse the engine output for that. (uci standard info depth lines with pv ...)
+            if ( this.EngineDriver.HasFoundMoves)
+            {
+                var foundMoves = this.EngineDriver.FoundMoves;
+                Debug.WriteLine("Found Moves: " + foundMoves.Count.ToString());
+                if (foundMoves.Count > 1)
+                {
+                    // TODO: Pick a random move from the found moves 
+                    int n = Math.Min(12, foundMoves.Count);
+                    var random = new Random((int)DateTime.Now.Ticks);
+                    int index = random.Next(n);
+                    Move randomMove = foundMoves[index];
+                    Debug.WriteLine("Engine Random Move: " + randomMove.ToString());
+                }
+            }
 
+            // FOR NOW: Computer plays the best move 
             Move bestMove = this.EngineDriver.BestMove;
             Debug.WriteLine("Engine Play: " + bestMove.ToString());
 
