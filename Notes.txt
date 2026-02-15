@@ -1,0 +1,4 @@
+TODO: Output board as FEN string
+https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation  
+https://github.com/Geras1mleo/Chess/blob/master/ChessLibrary/Builders/FenBoardBuilder.cs 
+https://github.com/TimHanewich/TimHanewich.Chess/blob/master/src/BoardPosition.cs 

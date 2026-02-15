@@ -22,6 +22,7 @@
     <Project Path="../Lyt.Framework/Lyt.Utilities/Lyt.Utilities.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
+    <File Path="Notes.txt" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Tools/">
