@@ -87,6 +87,66 @@ public sealed class Board
         eval = board.eval;
     }
 
+    public string ToFen(int halfMoveClock = 0, int fullMoveNumber = 1)
+    {
+        // Board: https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+        var sb = new StringBuilder();
+
+        // FEN starts with rank 8 and ends with rank 1,
+        // so we need to iterate in reverse order
+        for (int rank = 7; rank >= 0; rank--)
+        {
+            int emptySquares = 0;
+            for (int file = 0; file < 8; file++)
+            {
+                Piece piece = this[rank, file];
+                if (piece == Piece.None)
+                {
+                    emptySquares++;
+                }
+                else
+                {
+                    if (emptySquares > 0)
+                    {
+                        sb.Append(emptySquares);
+                        emptySquares = 0;
+                    }
+                    sb.Append(piece.ToChar());
+                }
+            }
+
+            if (emptySquares > 0)
+            {
+                sb.Append(emptySquares);
+            }
+            
+            if (rank > 0)
+            {
+                sb.Append('/');
+            }
+        }
+
+        // side to move
+        sb.Append(' ');
+        sb.Append(this.sideToMove == PlayerColor.White ? 'w' : 'b');
+
+        // castling rights
+        sb.Append(' ');
+        sb.Append(this.HasCastlingRight(CastlingRights.WhiteKingside) ? 'K' : '-');
+        sb.Append(this.HasCastlingRight(CastlingRights.WhiteQueenside) ? 'Q' : '-');
+        sb.Append(this.HasCastlingRight(CastlingRights.BlackKingside) ? 'k' : '-');
+        sb.Append(this.HasCastlingRight(CastlingRights.BlackQueenside) ? 'q' : '-');
+
+        // en passant square
+        sb.Append(' ');
+        sb.Append(this.enPassantSquare == -1 ? '-' : ((byte)this.enPassantSquare).ToSquareName());
+
+        // halfmove clock and fullmove number   
+        sb.Append(string.Format(" {0} {1}", halfMoveClock, fullMoveNumber)); 
+
+        return sb.ToString();
+    } 
+
     public Piece this[int square]
     {
         get => this.State[square];
@@ -106,8 +166,8 @@ public sealed class Board
 
     public void SetupPosition(string fen)
     {
-        //Startpos in FEN looks like this: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        //https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+        // Starting position in FEN notation is this: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        // https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
         string[] fields = fen.Split();
         if (fields.Length < 4)
         {
