@@ -20,7 +20,7 @@ public sealed partial class SetupViewModel :
     #region Observable Properties 
 
     [ObservableProperty]
-    private ThumbnailsPanelViewModel thumbnailsPanelViewModel;
+    public partial ThumbnailsPanelViewModel ThumbnailsPanelViewModel { get; set; }
 
     [ObservableProperty]
     // Either copy of sourceImage and possibly cropped and with requested contrast applied

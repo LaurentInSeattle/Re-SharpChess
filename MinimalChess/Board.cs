@@ -119,7 +119,7 @@ public sealed class Board
             {
                 sb.Append(emptySquares);
             }
-            
+
             if (rank > 0)
             {
                 sb.Append('/');
@@ -142,10 +142,10 @@ public sealed class Board
         sb.Append(this.enPassantSquare == -1 ? '-' : ((byte)this.enPassantSquare).ToSquareName());
 
         // halfmove clock and fullmove number   
-        sb.Append(string.Format(" {0} {1}", halfMoveClock, fullMoveNumber)); 
+        sb.Append(string.Format(" {0} {1}", halfMoveClock, fullMoveNumber));
 
         return sb.ToString();
-    } 
+    }
 
     public Piece this[int square]
     {
@@ -215,8 +215,15 @@ public sealed class Board
 
         //Initialze Hash
         this.InitZobristHash();
-    }
 
+#if DEBUG
+        string generatedFen = this.ToFen();
+        if (fen != generatedFen)
+        {
+            if (Debugger.IsAttached) { Debugger.Break(); }
+        }
+#endif
+    }
     //** PLAY MOVES ***
 
     public void PlayNullMove()
